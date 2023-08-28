@@ -1,4 +1,4 @@
-mport json
+import json
 
 from padmet.classes import PadmetRef
 from typing import Set
