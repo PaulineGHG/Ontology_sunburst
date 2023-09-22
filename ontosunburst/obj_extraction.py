@@ -3,8 +3,8 @@ import json
 import os.path
 
 from padmet.utils.sbmlPlugin import convert_from_coded_id
-from aucomana.utils.utils import *
-from aucomana.utils.PadmetNetwork import PadmetNetwork
+# from aucomana.utils.utils import *
+# from aucomana.utils.PadmetNetwork import PadmetNetwork
 from padmet.classes import PadmetSpec
 from typing import List, Set, Tuple, Dict
 
@@ -103,13 +103,13 @@ def extract_iscope_group_metabolites(scope_json, g_file, group_list):
         scopes = json.load(f)
         for sp, met_l in scopes.items():
             scopes[sp] = set(met_l)
-    groups = extract_groups(g_file)
+    # groups = extract_groups(g_file)
     union_scope = set()
-    for grp in group_list:
-        sp_list = groups[grp]
-        all_metabolites = [met for sp, met in scopes.items() if sp in sp_list]
-        if all_metabolites:
-            union_scope = union_scope.union(*all_metabolites)
+    # for grp in group_list:
+    #     sp_list = groups[grp]
+    #     all_metabolites = [met for sp, met in scopes.items() if sp in sp_list]
+    #     if all_metabolites:
+    #         union_scope = union_scope.union(*all_metabolites)
     return set([convert_from_coded_id(met)[0].replace('_C-BOUNDARY', '') for met in union_scope])
 
 
@@ -133,11 +133,11 @@ def extract_pathway_classes(padmet_networks_list: List[str], completion_threshol
         Dict[pathway_ID, List[pathway_class]] : associate for each pathway, its classes associated.
     """
     pw_classes = dict()
-    for species_nw in padmet_networks_list:
-        sp_nw = PadmetNetwork(species_nw)
-        for pw_id, pw in sp_nw.pathways.items():
-            if pw.completion_rate > completion_threshold:
-                pw_classes[pw_id] = pw.is_class
+    # for species_nw in padmet_networks_list:
+    #     sp_nw = PadmetNetwork(species_nw)
+    #     for pw_id, pw in sp_nw.pathways.items():
+    #         if pw.completion_rate > completion_threshold:
+    #             pw_classes[pw_id] = pw.is_class
     return pw_classes
 
 

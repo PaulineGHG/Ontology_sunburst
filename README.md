@@ -36,7 +36,7 @@ Codes to run workflows (proportion or comparison) to create sunburst in
 
 #### Example 
 
-```commandline
+```
 CLASS_FILE = 'Inputs/classes.json'
 P_REF = 'Inputs/metacyc_26.0_prot70.padmet'
 INPUT_FILE = 'Path/To/clusters.tsv'
