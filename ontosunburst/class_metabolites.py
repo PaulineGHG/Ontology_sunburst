@@ -10,7 +10,15 @@ from sunburst_fig import *
 
 # WORKFLOW ==========================================================================================================
 
-def proportion_workflow(metabolites: Set[str], class_file: str, padmet_ref: str, output: str, full=True):
+CLASS_FILE = 'Inputs/classes.json'
+METACYC_FILE = 'Inputs/metacyc_26.0_prot70.padmet'
+ENZYME_ONTO_FILE = 'Inputs/enzymes_ontology.json'
+NAMES_FILE = 'Inputs/enzymes_class_names.json'
+OUTPUT = ''
+
+
+def proportion_workflow(metabolites: Set[str], class_file: str = CLASS_FILE, padmet_ref: str = METACYC_FILE,
+                        output: str = OUTPUT, full=True):
     """ Classify and plot a list of metabolites (MetaCyc Ids)
 
     Parameters
@@ -39,7 +47,8 @@ def proportion_workflow(metabolites: Set[str], class_file: str, padmet_ref: str,
     generate_sunburst_fig(data, output, 'proportion')
 
 
-def comparison_workflow(metabolites_interest, metabolites_base, class_file, padmet_ref, output,  test='Binomial',
+def comparison_workflow(metabolites_interest, metabolites_base, class_file=CLASS_FILE, padmet_ref=METACYC_FILE,
+                        output=OUTPUT,  test='Binomial',
                         full=True):
     with open(class_file, 'r') as f:
         d_classes_ontology = json.load(f)
@@ -56,7 +65,8 @@ def comparison_workflow(metabolites_interest, metabolites_base, class_file, padm
     generate_sunburst_fig(data, output, 'comparison', b_classes_abundance, test)
 
 
-def all_workflow(metabolites_interest, metabolites_base, class_file, padmet_ref, output, full=True):
+def all_workflow(metabolites_interest, metabolites_base, class_file=CLASS_FILE, padmet_ref=METACYC_FILE,
+                 output=OUTPUT, full=True):
     with open(class_file, 'r') as f:
         d_classes_ontology = json.load(f)
     padmet_ref = PadmetRef(padmet_ref)
@@ -73,7 +83,7 @@ def all_workflow(metabolites_interest, metabolites_base, class_file, padmet_ref,
     generate_dash_interactive_fig(data, output)
 
 
-def pathways_workflow_proportion(pw_classes, class_file, output, full=True):
+def pathways_workflow_proportion(pw_classes, class_file=CLASS_FILE, output=OUTPUT, full=True):
     with open(class_file, 'r') as f:
         d_classes_ontology = json.load(f)
     # d_classes_ontology = get_dict_ontology(padmet_ref)
@@ -86,8 +96,8 @@ def pathways_workflow_proportion(pw_classes, class_file, output, full=True):
     generate_sunburst_fig(data, output, 'proportion')
 
 
-def pathways_workflow_comparison(pw_cls_interest, pw_cls_base, class_file, output,  test='Binomial',
-                        full=True):
+def pathways_workflow_comparison(pw_cls_interest, pw_cls_base, class_file=CLASS_FILE, output=OUTPUT,  test='Binomial',
+                                 full=True):
     with open(class_file, 'r') as f:
         d_classes_ontology = json.load(f)
     i_all_classes = get_all_classes(pw_cls_interest, d_classes_ontology, 'FRAMES')
@@ -100,7 +110,7 @@ def pathways_workflow_comparison(pw_cls_interest, pw_cls_base, class_file, outpu
     generate_sunburst_fig(data, output, 'comparison', b_classes_abundance, test)
 
 
-def chebi_roles_workflow_proportion(chebi_ids, endpoint_url, output, full=True):
+def chebi_roles_workflow_proportion(chebi_ids, endpoint_url, output=OUTPUT, full=True):
     all_classes, d_roles_ontology = extract_chebi_roles(chebi_ids, endpoint_url)
     classes_abondance = get_classes_abondance(all_classes)
     data = get_fig_parameters(classes_abondance, d_roles_ontology,
@@ -109,7 +119,7 @@ def chebi_roles_workflow_proportion(chebi_ids, endpoint_url, output, full=True):
     generate_sunburst_fig(data, output, 'proportion')
 
 
-def chebi_roles_workflow_comparison(chebi_interest, chebi_base, endpoint_url, output,  test='Binomial',
+def chebi_roles_workflow_comparison(chebi_interest, chebi_base, endpoint_url, output=OUTPUT,  test='Binomial',
                                     full=True):
     i_all_roles, d_roles_ontology = extract_chebi_roles(chebi_interest, endpoint_url)
     i_roles_abondance = get_classes_abondance(i_all_roles)
@@ -121,7 +131,7 @@ def chebi_roles_workflow_comparison(chebi_interest, chebi_base, endpoint_url, ou
     generate_sunburst_fig(data, output, 'comparison', b_roles_abundance, test)
 
 
-def go_workflow_proportion(go_abundance, class_file, output, full=True):
+def go_workflow_proportion(go_abundance, class_file=CLASS_FILE, output=OUTPUT, full=True):
     with open(class_file, 'r') as f:
         d_classes_ontology = json.load(f)
     for go in go_abundance:
@@ -133,7 +143,7 @@ def go_workflow_proportion(go_abundance, class_file, output, full=True):
     generate_sunburst_fig(data, output, 'proportion')
 
 
-def ec_workflow_proportion(ec_classes, class_file, names_file, output, full=True):
+def ec_workflow_proportion(ec_classes, class_file=ENZYME_ONTO_FILE, names_file=NAMES_FILE, output=OUTPUT, full=True):
     with open(class_file, 'r') as f:
         d_classes_ontology = json.load(f)
     with open(names_file, 'r') as f:
