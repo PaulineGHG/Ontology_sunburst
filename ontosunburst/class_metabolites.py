@@ -1,19 +1,19 @@
-import json
-
 from padmet.classes import PadmetRef
 from typing import Set
 
-from obj_extraction import *
-from ontology import *
-from sunburst_fig import *
+from ontosunburst.obj_extraction import *
+from ontosunburst.ontology import *
+from ontosunburst.sunburst_fig import *
 
+from importlib import resources
+from ontosunburst import Inputs
 
 # WORKFLOW ==========================================================================================================
 
-CLASS_FILE = 'Inputs/classes.json'
-METACYC_FILE = 'Inputs/metacyc_26.0_prot70.padmet'
-ENZYME_ONTO_FILE = 'Inputs/enzymes_ontology.json'
-NAMES_FILE = 'Inputs/enzymes_class_names.json'
+CLASS_FILE = (resources.files(Inputs) / 'classes.json')
+METACYC_FILE = (resources.files(Inputs) / 'metacyc_26.0_prot70.padmet')
+ENZYME_ONTO_FILE = (resources.files(Inputs) / 'enzymes_ontology.json')
+NAMES_FILE = (resources.files(Inputs) / 'enzymes_class_names.json')
 OUTPUT = ''
 
 
@@ -39,7 +39,7 @@ def proportion_workflow(metabolites: Set[str], class_file: str = CLASS_FILE, pad
     # d_classes_ontology = get_dict_ontology(padmet_ref)
     met_classes = extract_classes(metabolites, padmet_ref)
     all_classes = get_all_classes(met_classes, d_classes_ontology, 'FRAMES')
-    write_met_classes(all_classes, output)
+    write_met_classes(all_classes, output, padmet_ref)
     classes_abundance = get_classes_abondance(all_classes)
     data = get_fig_parameters(classes_abundance, d_classes_ontology,
                               get_children_dict(d_classes_ontology), 'FRAMES', full)
@@ -158,8 +158,10 @@ def ec_workflow_proportion(ec_classes, class_file=ENZYME_ONTO_FILE, names_file=N
 
 # EXTRAS ==============================================================================================================
 
-def write_met_classes(all_classes, output):
+def write_met_classes(all_classes, output, pref):
     with open(f'{output}.tsv', 'w') as f:
+        f.write('\t'.join(['metabolite', 'classes', 'common names']) + '\n')
         for met, classes, in all_classes.items():
-            f.write(f'{met}\t{classes}\n')
+            name = '; '.join(pref.dicOfNode[met].misc['COMMON-NAME'])
+            f.write(f'{met}\t{", ".join(classes)}\t{name}\n')
 
