@@ -160,8 +160,8 @@ def ec_workflow_proportion(ec_classes, class_file=ENZYME_ONTO_FILE, names_file=N
 
 def write_met_classes(all_classes, output, pref):
     with open(f'{output}.tsv', 'w') as f:
-        f.write('\t'.join(['metabolite', 'classes', 'common names']) + '\n')
+        f.write('\t'.join(['Compound', 'Classes', 'Common names', 'MetaCyc link']) + '\n')
         for met, classes, in all_classes.items():
-            name = '; '.join(pref.dicOfNode[met].misc['COMMON-NAME'])
-            f.write(f'{met}\t{", ".join(classes)}\t{name}\n')
-
+            name = ' / '.join(pref.dicOfNode[met].misc['COMMON-NAME'])
+            link = f'https://metacyc.org/compound?orgid=META&id={met}'
+            f.write('\t'.join([met, ', '.join(classes), name, link]) + '\n')
