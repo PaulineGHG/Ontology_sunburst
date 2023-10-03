@@ -10,7 +10,7 @@ from ontosunburst.sunburst_fig import *
 
 # WORKFLOW ==========================================================================================================
 
-CURRENT_DIR = os.getcwd()
+CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 CLASS_FILE = os.path.join(CURRENT_DIR, 'Inputs/classes.json')
 METACYC_FILE = os.path.join(CURRENT_DIR, 'Inputs/metacyc_26.0_prot70.padmet')
 ENZYME_ONTO_FILE = os.path.join(CURRENT_DIR, 'Inputs/enzymes_ontology.json')
