@@ -1,3 +1,5 @@
+import os
+
 from padmet.classes import PadmetRef
 from typing import Set
 
@@ -5,16 +7,15 @@ from ontosunburst.obj_extraction import *
 from ontosunburst.ontology import *
 from ontosunburst.sunburst_fig import *
 
-from importlib import resources
-from ontosunburst import Inputs
 
 # WORKFLOW ==========================================================================================================
 
-CLASS_FILE = (resources.files(Inputs) / 'classes.json')
-METACYC_FILE = (resources.files(Inputs) / 'metacyc_26.0_prot70.padmet')
-ENZYME_ONTO_FILE = (resources.files(Inputs) / 'enzymes_ontology.json')
-NAMES_FILE = (resources.files(Inputs) / 'enzymes_class_names.json')
-OUTPUT = ''
+CURRENT_DIR = os.getcwd()
+CLASS_FILE = os.path.join(CURRENT_DIR, 'Inputs/classes.json')
+METACYC_FILE = os.path.join(CURRENT_DIR, 'Inputs/metacyc_26.0_prot70.padmet')
+ENZYME_ONTO_FILE = os.path.join(CURRENT_DIR, 'Inputs/enzymes_ontology.json')
+NAMES_FILE = os.path.join(CURRENT_DIR, 'Inputs/enzymes_class_names.json')
+OUTPUT = 'sunburst'
 
 
 def proportion_workflow(metabolites: Set[str], class_file: str = CLASS_FILE, padmet_ref: str = METACYC_FILE,
