@@ -204,7 +204,7 @@ def get_data_enrichment_analysis(data, b_classes_abundance, test):
     return data, significant_representation
 
 
-def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: str, sb_type: str,
+def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: str = None, sb_type: str = 'proportion',
                           b_classes_abond=None, test='Binomial'):
     """ Generate a Sunburst figure and save it to output path.
 
@@ -250,7 +250,9 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
         raise ValueError('Wrong type input')
     fig.update_layout(paper_bgcolor="#373f48", font_color='#ffffff', font_size=20)
     fig.update_annotations(font_size=28)
-    fig.write_html(f'{output}.html')
+    if output is not None:
+        fig.write_html(f'{output}.html')
+    return fig
 
 
 def generate_dash_interactive_fig(data, output):

@@ -15,7 +15,7 @@ CLASS_FILE = os.path.join(CURRENT_DIR, 'Inputs/classes.json')
 METACYC_FILE = os.path.join(CURRENT_DIR, 'Inputs/metacyc_26.0_prot70.padmet')
 ENZYME_ONTO_FILE = os.path.join(CURRENT_DIR, 'Inputs/enzymes_ontology.json')
 NAMES_FILE = os.path.join(CURRENT_DIR, 'Inputs/enzymes_class_names.json')
-OUTPUT = 'sunburst'
+OUTPUT = None
 
 
 def proportion_workflow(metabolites: Set[str], class_file: str = CLASS_FILE,
@@ -45,7 +45,7 @@ def proportion_workflow(metabolites: Set[str], class_file: str = CLASS_FILE,
     data = get_fig_parameters(classes_abundance, d_classes_ontology,
                               get_children_dict(d_classes_ontology), 'FRAMES', full)
     data = get_data_proportion(data)
-    generate_sunburst_fig(data, output, 'proportion')
+    return generate_sunburst_fig(data, output, 'proportion')
 
 
 def comparison_workflow(metabolites_interest, metabolites_base, class_file=CLASS_FILE,
@@ -62,7 +62,7 @@ def comparison_workflow(metabolites_interest, metabolites_base, class_file=CLASS
     data = get_fig_parameters(i_classes_abondance, d_classes_ontology,
                               get_children_dict(d_classes_ontology), 'FRAMES', full)
     data = get_data_prop_diff(data, b_classes_abundance)
-    generate_sunburst_fig(data, output, 'comparison', b_classes_abundance, test)
+    return generate_sunburst_fig(data, output, 'comparison', b_classes_abundance, test)
 
 
 def all_workflow(metabolites_interest, metabolites_base, class_file=CLASS_FILE,
@@ -93,7 +93,7 @@ def pathways_workflow_proportion(pw_classes, class_file=CLASS_FILE, output=OUTPU
     data = get_fig_parameters(classes_abondance, d_classes_ontology,
                               get_children_dict(d_classes_ontology), 'FRAMES', full)
     data = get_data_proportion(data)
-    generate_sunburst_fig(data, output, 'proportion')
+    return generate_sunburst_fig(data, output, 'proportion')
 
 
 def pathways_workflow_comparison(pw_cls_interest, pw_cls_base, class_file=CLASS_FILE, output=OUTPUT,
@@ -107,7 +107,7 @@ def pathways_workflow_comparison(pw_cls_interest, pw_cls_base, class_file=CLASS_
     data = get_fig_parameters(i_classes_abondance, d_classes_ontology,
                               get_children_dict(d_classes_ontology), 'FRAMES', full)
     data = get_data_prop_diff(data, b_classes_abundance)
-    generate_sunburst_fig(data, output, 'comparison', b_classes_abundance, test)
+    return generate_sunburst_fig(data, output, 'comparison', b_classes_abundance, test)
 
 
 def chebi_roles_workflow_proportion(chebi_ids, endpoint_url, output=OUTPUT, full=True):
@@ -116,7 +116,7 @@ def chebi_roles_workflow_proportion(chebi_ids, endpoint_url, output=OUTPUT, full
     data = get_fig_parameters(classes_abondance, d_roles_ontology,
                               get_children_dict(d_roles_ontology), 'role', full)
     data = get_data_proportion(data)
-    generate_sunburst_fig(data, output, 'proportion')
+    return generate_sunburst_fig(data, output, 'proportion')
 
 
 def chebi_roles_workflow_comparison(chebi_interest, chebi_base, endpoint_url, output=OUTPUT,
@@ -128,7 +128,7 @@ def chebi_roles_workflow_comparison(chebi_interest, chebi_base, endpoint_url, ou
     data = get_fig_parameters(i_roles_abondance, d_roles_ontology,
                               get_children_dict(d_roles_ontology), 'FRAMES', full)
     data = get_data_prop_diff(data, b_roles_abundance)
-    generate_sunburst_fig(data, output, 'comparison', b_roles_abundance, test)
+    return generate_sunburst_fig(data, output, 'comparison', b_roles_abundance, test)
 
 
 def go_workflow_proportion(go_abundance, class_file=CLASS_FILE, output=OUTPUT, full=True):
@@ -140,7 +140,7 @@ def go_workflow_proportion(go_abundance, class_file=CLASS_FILE, output=OUTPUT, f
     data = get_fig_parameters(go_abundance, d_classes_ontology,
                               get_children_dict(d_classes_ontology), 'FRAMES', full)
     data = get_data_proportion(data)
-    generate_sunburst_fig(data, output, 'proportion')
+    return generate_sunburst_fig(data, output, 'proportion')
 
 
 def ec_workflow_proportion(ec_set, class_file=ENZYME_ONTO_FILE, names_file=NAMES_FILE,
@@ -155,7 +155,7 @@ def ec_workflow_proportion(ec_set, class_file=ENZYME_ONTO_FILE, names_file=NAMES
     data = get_fig_parameters(classes_abondance, d_classes_ontology,
                               get_children_dict(d_classes_ontology), 'Enzyme', full, names)
     data = get_data_proportion(data)
-    generate_sunburst_fig(data, output, 'proportion')
+    return generate_sunburst_fig(data, output, 'proportion')
 
 
 # EXTRAS ===========================================================================================
