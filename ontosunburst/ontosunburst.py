@@ -25,8 +25,8 @@ NAMES_FILE = os.path.join(CURRENT_DIR, 'Inputs/enzymes_class_names.json')
 
 # Other
 # -----
-BINOMIAL_TEST = 'binomial'
-HYPERGEO_TEST = 'hypergeometric'
+BINOMIAL_TEST = 'Binomial'
+HYPERGEO_TEST = 'Hypergeometric'
 COMPARISON_METHOD = 'comparison'
 PROPORTION_METHOD = 'proportion'
 
@@ -137,7 +137,7 @@ def ec_ontosunburst(ec_set: Collection[str], reference_set: Collection[str] = No
         ref_all_classes = get_all_classes(ref_leaf_classes, d_classes_ontology, EC_ROOT)
         ref_classes_abundance = get_classes_abondance(ref_all_classes)
         data = get_fig_parameters(classes_abundance, d_classes_ontology,
-                                  get_children_dict(d_classes_ontology), EC_ROOT, full)
+                                  get_children_dict(d_classes_ontology), EC_ROOT, full, names)
         data = get_data_prop_diff(data, ref_classes_abundance)
         return generate_sunburst_fig(data, output, COMPARISON_METHOD, ref_classes_abundance, test)
 
@@ -155,6 +155,9 @@ def write_met_classes(all_classes, output, pref):
     with open(f'{output}.tsv', 'w') as f:
         f.write('\t'.join(['Compound', 'Classes', 'Common names', 'MetaCyc link']) + '\n')
         for met, classes, in all_classes.items():
-            name = ' / '.join(pref.dicOfNode[met].misc['COMMON-NAME'])
+            try:
+                name = ' / '.join(pref.dicOfNode[met].misc['COMMON-NAME'])
+            except KeyError:
+                name = ''
             link = f'https://metacyc.org/compound?orgid=META&id={met}'
             f.write('\t'.join([met, ', '.join(classes), name, link]) + '\n')
