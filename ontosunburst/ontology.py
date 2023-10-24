@@ -146,6 +146,17 @@ def select_root(count_input: Dict[str, int], parent: Dict[str, List[str]], act_r
     return set(roots).difference({root}), root, parent
 
 
+# For EC
+def get_ec_classes(ec_set):
+    ec_classes = dict()
+    for ec in ec_set:
+        parent = ec.split('.')
+        parent[-1] = '-'
+        parent = '.'.join(parent)
+        ec_classes[ec] = [parent]
+    return ec_classes
+
+
 # For ChEBI Ontology
 # TODO: Try to solve problem whan no chebi ID associated to metacyc ID
 def extract_chebi_ids(metabolites, p_ref):

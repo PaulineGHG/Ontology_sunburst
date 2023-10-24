@@ -163,7 +163,7 @@ def extract_go_esmecata(sp_annotations):
 # ====================================================================================================================
 
 def extract_ec_esmecata(sp_annotations):
-    ec_class = dict()
+    ec_set = set()
     for sp_file in sp_annotations:
         with open(sp_file, 'r') as f:
             rows = csv.reader(f, delimiter='\t')
@@ -172,8 +172,5 @@ def extract_ec_esmecata(sp_annotations):
                 ec_number = row[4].split(',')
                 for ec in ec_number:
                     if ec != '':
-                        parent = ec.split('.')
-                        parent[-1] = '-'
-                        parent = '.'.join(parent)
-                        ec_class[ec] = [parent]
-    return ec_class
+                        ec_set.add(ec)
+    return ec_set
