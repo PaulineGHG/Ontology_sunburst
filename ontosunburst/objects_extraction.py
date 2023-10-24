@@ -10,7 +10,7 @@ from typing import List, Set, Tuple, Dict
 
 
 # METABOLITES EXTRACTION
-# ====================================================================================================================
+# ==================================================================================================
 
 # From ClusterMap output
 def extract_metabolites_clusters(input_file: str, clust: List[int]) -> Set[str]:
