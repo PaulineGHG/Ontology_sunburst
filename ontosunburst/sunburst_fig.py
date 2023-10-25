@@ -6,7 +6,6 @@ from plotly.subplots import make_subplots
 import numpy as np
 import scipy.stats as stats
 
-
 BINOMIAL_TEST = 'Binomial'
 HYPERGEO_TEST = 'Hypergeometric'
 
@@ -58,7 +57,8 @@ def get_fig_parameters(classes_abondance: Dict[str, int], parent_dict: Dict[str,
                     if c_label in children_dict.keys():
                         c_children = children_dict[c_label]
                         for c in c_children:
-                            data = add_children(data, suffix, c, c_id, classes_abondance, children_dict)
+                            data = add_children(data, suffix, c, c_id, classes_abondance,
+                                                children_dict)
         else:
             data = add_value_data(data, c_label, c_label, c_abundance, '')
 
@@ -167,6 +167,34 @@ def get_data_proportion(data: Dict[str, List]) -> Dict[str, List]:
     """
     max_abondance = np.max(data['Count'])
     data['Proportion'] = [x / max_abondance for x in data['Count']]
+    data['Relative_prop'] = [x for x in data['Proportion']]
+    p = ''
+    data = get_relat_prop(data, p)
+    return data
+
+
+def get_relat_prop(data, p):
+    if p == '':
+        prop_p = 1.0
+        count_p = max(data['Count'])
+    else:
+        prop_p = data['Relative_prop'][data['ID'].index(p)]
+        count_p = data['Count'][data['ID'].index(p)]
+    index_p = [i for i, v in enumerate(data['Parent']) if v == p]
+    c_p = [data['ID'][i] for i in index_p]
+    count_c_p = [data['Count'][i] for i in index_p]
+    if sum(count_c_p) > count_p:
+        total = sum(count_c_p)
+    else:
+        total = count_p
+    tot_prop = []
+    for i, c in enumerate(c_p):
+        prop = count_c_p[i] / total
+        data['Relative_prop'][data['ID'].index(c)] = prop * prop_p
+        tot_prop.append(prop * prop_p)
+    for c in c_p:
+        if c in data['Parent']:
+            data = get_relat_prop(data, c)
     return data
 
 
@@ -174,7 +202,8 @@ def get_data_prop_diff(data, b_classes_abundance):
     i_max_abondance = np.max(data['Count'])
     i_prop = [x / i_max_abondance for x in data['Count']]
     b_max_abondance = np.max(list(b_classes_abundance.values()))
-    b_prop = [b_classes_abundance[x] / b_max_abondance if x in b_classes_abundance.keys() else 0 for x in data['Label']]
+    b_prop = [b_classes_abundance[x] / b_max_abondance if x in b_classes_abundance.keys() else 0 for
+              x in data['Label']]
     diff = [i_prop[i] - b_prop[i] for i in range(len(i_prop))]
     data['Proportion Difference'] = diff
     return data
@@ -188,10 +217,8 @@ def get_data_enrichment_analysis(data, b_classes_abundance, test, names):
     else:
         m_list = [b_classes_abundance[x] if x in b_classes_abundance.keys() else 0 for x in
                   data['Label']]
-    print(m_list)
     N = np.max(data['Count'])
     n_list = data['Count']
-    print(n_list)
     data['p_value'] = list()
     nb_classes = len(set(data['ID']))
     significant_representation = dict()
@@ -204,19 +231,20 @@ def get_data_enrichment_analysis(data, b_classes_abundance, test, names):
             p_val = stats.hypergeom.sf(n_list[i] - 1, M, m_list[i], N)
         else:
             raise ValueError(f'test parameter must be in : {[BINOMIAL_TEST, HYPERGEO_TEST]}')
-        if ((n_list[i]/N) - (m_list[i]/M)) > 0:
+        if ((n_list[i] / N) - (m_list[i] / M)) > 0:
             data['p_value'].append(-np.log10(p_val))
         else:
             data['p_value'].append(np.log10(p_val))
         if p_val < 0.05 / nb_classes:
             significant_representation[data['ID'][i]] = p_val.round(10)
-    significant_representation = dict(sorted(significant_representation.items(), key=lambda item: item[1]))
+    significant_representation = dict(
+        sorted(significant_representation.items(), key=lambda item: item[1]))
     return data, significant_representation
 
 
 def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: str = None,
                           sb_type: str = 'proportion', b_classes_abond=None, test=BINOMIAL_TEST,
-                          names: bool = False):
+                          names: bool = False, total: bool = True):
     """ Generate a Sunburst figure and save it to output path.
 
     Parameters
@@ -234,11 +262,23 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
     b_classes_abond
     test
     names
+    total
     """
+    if total:
+        branch_values = 'total'
+        values = data['Relative_prop']
+    else:
+        branch_values = 'remainder'
+        values = data['Count']
     if sb_type == 'proportion':
-        fig = px.sunburst(data, names='Label', parents='Parent', values='Count', ids='ID',
-                          color='Proportion', template='presentation',
-                          color_continuous_scale=px.colors.diverging.curl_r, maxdepth=7)
+        fig = go.Figure(go.Sunburst(labels=data['Label'], parents=data['Parent'], values=values,
+                                    ids=data['ID'], customdata=data['Count'],
+                                    hoverinfo='label+text', maxdepth=7,
+                                    branchvalues=branch_values,
+                                    hovertext=[f'Count: {x}' for x in data['Count']],
+                                    marker=dict(colors=data['Count'],
+                                                colorscale=px.colors.diverging.curl_r,
+                                                cmid=0.5 * max(data['Count']), showscale=True)))
     elif sb_type == 'comparison':
         data, signif = get_data_enrichment_analysis(data, b_classes_abond, test, names)
         m = np.mean(data['Proportion Difference'])
@@ -251,23 +291,30 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
                             specs=[[{'type': 'table'}, {'type': 'sunburst'}]])
 
         fig.add_trace(go.Sunburst(labels=data['Label'], parents=data['Parent'],
-                                  values=data['Count'], ids=data['ID'],
-                                  hovertext=[f'P value: {10**(-x)}' if x > 0 else
-                                             f'P value: {10**x}' for x in data['p_value']],
-                                  hoverinfo='label+value+text', maxdepth=7,
-
+                                  values=values, ids=data['ID'],
+                                  customdata=data['Count'],
+                                  hovertext=[f'P value: {10 ** (-x)}<br>'
+                                             f'Count: {data["Count"][data["p_value"].index(x)]}'
+                                             if x > 0 else
+                                             f'P value: {10 ** x}<br>'
+                                             f'Count: {data["Count"][data["p_value"].index(x)]}'
+                                             for x in data['p_value']],
+                                  hoverinfo='label+text', maxdepth=7,
+                                  branchvalues=branch_values,
                                   marker=dict(colors=data['p_value'],
                                               colorscale=px.colors.diverging.RdBu,
                                               cmid=0, showscale=True)), row=1, col=2)
 
         fig.add_trace(go.Table(header=dict(values=['Metabolite', f'{test} test P-value'],
-                                           fill=dict(color='#222222'), height=40, font=dict(size=20)),
+                                           fill=dict(color='#222222'), height=40,
+                                           font=dict(size=20)),
                                cells=dict(values=[list(signif.keys()), list(signif.values())],
-                                          fill=dict(color='#333333'), height=35, font=dict(size=16))),
+                                          fill=dict(color='#333333'), height=35,
+                                          font=dict(size=16))),
                       row=1, col=1)
     else:
         raise ValueError('Wrong type input')
-    fig.update_layout(paper_bgcolor="#373f48", font_color='#ffffff', font_size=20)
+    fig.update_layout(paper_bgcolor="#888888", font_color='#111111', font_size=20)
     fig.update_annotations(font_size=28)
     if output is not None:
         fig.write_html(f'{output}.html')

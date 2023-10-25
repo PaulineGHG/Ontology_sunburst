@@ -83,6 +83,7 @@ def metacyc_ontosunburst(metabolic_objects: Collection[str], reference_set: Coll
         data = get_fig_parameters(classes_abundance, d_classes_ontology,
                                   get_children_dict(d_classes_ontology), METACYC_ROOT, full)
         data = get_data_prop_diff(data, ref_classes_abundance)
+        data = get_data_proportion(data)
         if output is not None:
             write_met_classes(ref_all_classes, output, padmet_ref)
         return generate_sunburst_fig(data, output, COMPARISON_METHOD, ref_classes_abundance, test)
@@ -199,7 +200,7 @@ def ec_ontosunburst(ec_set: Collection[str], reference_set: Collection[str] = No
         data = get_fig_parameters(classes_abundance, d_classes_ontology,
                                   get_children_dict(d_classes_ontology), EC_ROOT, full, names)
         data = get_data_proportion(data)
-        return generate_sunburst_fig(data, output, PROPORTION_METHOD)
+        return generate_sunburst_fig(data, output, PROPORTION_METHOD, total=True)
 
 
 # EXTRAS ===========================================================================================
