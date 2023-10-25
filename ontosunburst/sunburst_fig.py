@@ -292,7 +292,8 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
                                     hoverinfo='label+text', maxdepth=7,
                                     branchvalues=branch_values,
                                     hovertext=[f'Count: {data[COUNT][i]}<br>'
-                                               f'Proportion: {round(data[PROP][i]*100, 2)}%'
+                                               f'Proportion: {round(data[PROP][i]*100, 2)}%<br>'
+                                               f'ID: {data[IDS][i]}'
                                                for i in range(len(data[PROP]))],
                                     marker=dict(colors=data[COUNT],
                                                 colorscale=px.colors.diverging.curl_r,
@@ -309,12 +310,14 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
 
         fig.add_trace(go.Sunburst(labels=data[LABEL], parents=data[PARENT],
                                   values=values, ids=data[IDS],
-                                  hovertext=[f'P value: {10 ** (-x)}<br>'
-                                             f'Count: {data[COUNT][data[PVAL].index(x)]}'
-                                             if x > 0 else
-                                             f'P value: {10 ** x}<br>'
-                                             f'Count: {data[COUNT][data[PVAL].index(x)]}'
-                                             for x in data[PVAL]],
+                                  hovertext=[f'P value: {10 ** (-data[PVAL][i])}<br>'
+                                             f'Count: {data[COUNT][i]}<br>'
+                                             f'ID: {data[IDS][i]}'
+                                             if data[PVAL][i] > 0 else
+                                             f'P value: {10 ** data[PVAL][i]}<br>'
+                                             f'Count: {data[COUNT][i]}<br>'
+                                             f'ID: {data[IDS][i]}'
+                                             for i in range(len(data[PVAL]))],
                                   hoverinfo='label+text', maxdepth=7,
                                   branchvalues=branch_values,
                                   marker=dict(colors=data[PVAL],

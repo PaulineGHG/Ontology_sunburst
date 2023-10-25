@@ -134,6 +134,7 @@ def chebi_ontosunburst(chebi_ids: Collection[str], endpoint_url: str,
         data = get_fig_parameters(classes_abondance, d_roles_ontology,
                                   get_children_dict(d_roles_ontology), CHEBI_ROLE_ROOT, full)
         data = get_data_prop_diff(data, ref_roles_abundance)
+        data = get_data_proportion(data)
         return generate_sunburst_fig(data, output, COMPARISON_METHOD, ref_roles_abundance, test)
 
     # Proportion figure
@@ -190,8 +191,8 @@ def ec_ontosunburst(ec_set: Collection[str], reference_set: Collection[str] = No
         ref_classes_abundance = get_classes_abondance(ref_all_classes)
         data = get_fig_parameters(classes_abundance, d_classes_ontology,
                                   get_children_dict(d_classes_ontology), EC_ROOT, full, names)
-        print(data)
         data = get_data_prop_diff(data, ref_classes_abundance)
+        data = get_data_proportion(data)
         return generate_sunburst_fig(data, output, COMPARISON_METHOD, ref_classes_abundance, test,
                                      True)
 
