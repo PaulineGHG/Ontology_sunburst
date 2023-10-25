@@ -6,10 +6,25 @@ from plotly.subplots import make_subplots
 import numpy as np
 import scipy.stats as stats
 
+# CONSTANTS
+# ==================================================================================================
 BINOMIAL_TEST = 'Binomial'
 HYPERGEO_TEST = 'Hypergeometric'
 
+# Keys
+# ----
+IDS = 'ID'
+PARENT = 'Parent'
+LABEL = 'Label'
+COUNT = 'Count'
+PROP = 'Proportion'
+R_PROP = 'Relative_proportion'
+PROP_DIF = 'Proportion_difference'
+PVAL = 'Pvalue'
 
+
+# FUNCTIONS
+# ==================================================================================================
 def get_fig_parameters(classes_abondance: Dict[str, int], parent_dict: Dict[str, List[str]],
                        children_dict: Dict[str, List[str]], root_item, full: bool = True,
                        names: Dict = None) -> Dict[str, List]:
@@ -38,10 +53,10 @@ def get_fig_parameters(classes_abondance: Dict[str, int], parent_dict: Dict[str,
             - parents ids : Parent (str)
             - abundance value : Count (int)
     """
-    data = {'ID': list(),
-            'Parent': list(),
-            'Label': list(),
-            'Count': list()}
+    data = {IDS: list(),
+            PARENT: list(),
+            LABEL: list(),
+            COUNT: list()}
     for c_label, c_abundance in classes_abondance.items():
         if c_label != root_item:
             c_parents = parent_dict[c_label]
@@ -95,10 +110,10 @@ def add_value_data(data: Dict[str, List], m_id: str, label: str, value: int, par
             - parents ids : Parent (str)
             - abundance value : Count (int)
     """
-    data['ID'].append(m_id)
-    data['Label'].append(label)
-    data['Parent'].append(parent)
-    data['Count'].append(value)
+    data[IDS].append(m_id)
+    data[LABEL].append(label)
+    data[PARENT].append(parent)
+    data[COUNT].append(value)
     return data
 
 
@@ -136,10 +151,10 @@ def add_children(data: Dict[str, List], origin: str, child: str, parent: str,
             - abundance value : Count (int)
     """
     if child in classes_abondance.keys():
-        data['ID'].append(child + origin)
-        data['Label'].append(child)
-        data['Parent'].append(parent)
-        data['Count'].append(classes_abondance[child])
+        data[IDS].append(child + origin)
+        data[LABEL].append(child)
+        data[PARENT].append(parent)
+        data[COUNT].append(classes_abondance[child])
         if child in children_dict.keys():
             origin_2 = origin + '__' + child
             cs = children_dict[child]
@@ -164,10 +179,11 @@ def get_data_proportion(data: Dict[str, List]) -> Dict[str, List]:
             - parents ids : Parent (str)
             - abundance value : Count (int)
             - colors value : Proportion (0 < float <= 1)
+            - branch proportion : Relative_prop
     """
-    max_abondance = np.max(data['Count'])
-    data['Proportion'] = [x / max_abondance for x in data['Count']]
-    data['Relative_prop'] = [x for x in data['Proportion']]
+    max_abondance = np.max(data[COUNT])
+    data[PROP] = [x / max_abondance for x in data[COUNT]]
+    data[R_PROP] = [x for x in data[PROP]]
     p = ''
     data = get_relat_prop(data, p)
     return data
@@ -176,13 +192,13 @@ def get_data_proportion(data: Dict[str, List]) -> Dict[str, List]:
 def get_relat_prop(data, p):
     if p == '':
         prop_p = 1.0
-        count_p = max(data['Count'])
+        count_p = max(data[COUNT])
     else:
-        prop_p = data['Relative_prop'][data['ID'].index(p)]
-        count_p = data['Count'][data['ID'].index(p)]
-    index_p = [i for i, v in enumerate(data['Parent']) if v == p]
-    c_p = [data['ID'][i] for i in index_p]
-    count_c_p = [data['Count'][i] for i in index_p]
+        prop_p = data[R_PROP][data[IDS].index(p)]
+        count_p = data[COUNT][data[IDS].index(p)]
+    index_p = [i for i, v in enumerate(data[PARENT]) if v == p]
+    c_p = [data[IDS][i] for i in index_p]
+    count_c_p = [data[COUNT][i] for i in index_p]
     if sum(count_c_p) > count_p:
         total = sum(count_c_p)
     else:
@@ -190,22 +206,22 @@ def get_relat_prop(data, p):
     tot_prop = []
     for i, c in enumerate(c_p):
         prop = count_c_p[i] / total
-        data['Relative_prop'][data['ID'].index(c)] = prop * prop_p
+        data[R_PROP][data[IDS].index(c)] = prop * prop_p
         tot_prop.append(prop * prop_p)
     for c in c_p:
-        if c in data['Parent']:
+        if c in data[PARENT]:
             data = get_relat_prop(data, c)
     return data
 
 
 def get_data_prop_diff(data, b_classes_abundance):
-    i_max_abondance = np.max(data['Count'])
-    i_prop = [x / i_max_abondance for x in data['Count']]
+    i_max_abondance = np.max(data[COUNT])
+    i_prop = [x / i_max_abondance for x in data[COUNT]]
     b_max_abondance = np.max(list(b_classes_abundance.values()))
     b_prop = [b_classes_abundance[x] / b_max_abondance if x in b_classes_abundance.keys() else 0 for
-              x in data['Label']]
+              x in data[LABEL]]
     diff = [i_prop[i] - b_prop[i] for i in range(len(i_prop))]
-    data['Proportion Difference'] = diff
+    data[PROP_DIF] = diff
     return data
 
 
@@ -213,14 +229,14 @@ def get_data_enrichment_analysis(data, b_classes_abundance, test, names):
     M = np.max(list(b_classes_abundance.values()))
     if names:
         m_list = [b_classes_abundance[x] if x in b_classes_abundance.keys() else 0 for x in
-                  data['ID']]
+                  data[IDS]]
     else:
         m_list = [b_classes_abundance[x] if x in b_classes_abundance.keys() else 0 for x in
-                  data['Label']]
-    N = np.max(data['Count'])
-    n_list = data['Count']
-    data['p_value'] = list()
-    nb_classes = len(set(data['ID']))
+                  data[LABEL]]
+    N = np.max(data[COUNT])
+    n_list = data[COUNT]
+    data[PVAL] = list()
+    nb_classes = len(set(data[IDS]))
     significant_representation = dict()
     for i in range(len(m_list)):
         # Binomial Test
@@ -232,11 +248,11 @@ def get_data_enrichment_analysis(data, b_classes_abundance, test, names):
         else:
             raise ValueError(f'test parameter must be in : {[BINOMIAL_TEST, HYPERGEO_TEST]}')
         if ((n_list[i] / N) - (m_list[i] / M)) > 0:
-            data['p_value'].append(-np.log10(p_val))
+            data[PVAL].append(-np.log10(p_val))
         else:
-            data['p_value'].append(np.log10(p_val))
+            data[PVAL].append(np.log10(p_val))
         if p_val < 0.05 / nb_classes:
-            significant_representation[data['ID'][i]] = p_val.round(10)
+            significant_representation[data[IDS][i]] = p_val.round(10)
     significant_representation = dict(
         sorted(significant_representation.items(), key=lambda item: item[1]))
     return data, significant_representation
@@ -266,23 +282,24 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
     """
     if total:
         branch_values = 'total'
-        values = data['Relative_prop']
+        values = data[R_PROP]
     else:
         branch_values = 'remainder'
-        values = data['Count']
+        values = data[PROP]
     if sb_type == 'proportion':
-        fig = go.Figure(go.Sunburst(labels=data['Label'], parents=data['Parent'], values=values,
-                                    ids=data['ID'], customdata=data['Count'],
+        fig = go.Figure(go.Sunburst(labels=data[LABEL], parents=data[PARENT], values=values,
+                                    ids=data[IDS],
                                     hoverinfo='label+text', maxdepth=7,
                                     branchvalues=branch_values,
-                                    hovertext=[f'Count: {x}' for x in data['Count']],
-                                    marker=dict(colors=data['Count'],
+                                    hovertext=[f'Count: {data[COUNT][i]}<br>'
+                                               f'Proportion: {round(data[PROP][i]*100, 2)}%'
+                                               for i in range(len(data[PROP]))],
+                                    marker=dict(colors=data[COUNT],
                                                 colorscale=px.colors.diverging.curl_r,
-                                                cmid=0.5 * max(data['Count']), showscale=True)))
+                                                cmid=0.5 * max(data[COUNT]), showscale=True)))
     elif sb_type == 'comparison':
         data, signif = get_data_enrichment_analysis(data, b_classes_abond, test, names)
-        m = np.mean(data['Proportion Difference'])
-
+        m = np.mean(data[PROP_DIF])
         fig = make_subplots(rows=1, cols=2,
                             column_widths=[0.3, 0.7],
                             vertical_spacing=0.03,
@@ -290,18 +307,17 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
                                             'Metabolites classes enrichment representation'),
                             specs=[[{'type': 'table'}, {'type': 'sunburst'}]])
 
-        fig.add_trace(go.Sunburst(labels=data['Label'], parents=data['Parent'],
-                                  values=values, ids=data['ID'],
-                                  customdata=data['Count'],
+        fig.add_trace(go.Sunburst(labels=data[LABEL], parents=data[PARENT],
+                                  values=values, ids=data[IDS],
                                   hovertext=[f'P value: {10 ** (-x)}<br>'
-                                             f'Count: {data["Count"][data["p_value"].index(x)]}'
+                                             f'Count: {data[COUNT][data[PVAL].index(x)]}'
                                              if x > 0 else
                                              f'P value: {10 ** x}<br>'
-                                             f'Count: {data["Count"][data["p_value"].index(x)]}'
-                                             for x in data['p_value']],
+                                             f'Count: {data[COUNT][data[PVAL].index(x)]}'
+                                             for x in data[PVAL]],
                                   hoverinfo='label+text', maxdepth=7,
                                   branchvalues=branch_values,
-                                  marker=dict(colors=data['p_value'],
+                                  marker=dict(colors=data[PVAL],
                                               colorscale=px.colors.diverging.RdBu,
                                               cmid=0, showscale=True)), row=1, col=2)
 
