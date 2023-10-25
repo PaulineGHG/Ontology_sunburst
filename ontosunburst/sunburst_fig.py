@@ -312,10 +312,12 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
                                   values=values, ids=data[IDS],
                                   hovertext=[f'P value: {10 ** (-data[PVAL][i])}<br>'
                                              f'Count: {data[COUNT][i]}<br>'
+                                             f'Proportion: {round(data[PROP][i]*100, 2)}%<br>'
                                              f'ID: {data[IDS][i]}'
                                              if data[PVAL][i] > 0 else
                                              f'P value: {10 ** data[PVAL][i]}<br>'
                                              f'Count: {data[COUNT][i]}<br>'
+                                             f'Proportion: {round(data[PROP][i]*100, 2)}%<br>'
                                              f'ID: {data[IDS][i]}'
                                              for i in range(len(data[PVAL]))],
                                   hoverinfo='label+text', maxdepth=7,
@@ -325,10 +327,10 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
                                               cmid=0, showscale=True)), row=1, col=2)
 
         fig.add_trace(go.Table(header=dict(values=['Metabolite', f'{test} test P-value'],
-                                           fill=dict(color='#222222'), height=40,
+                                           fill=dict(color='#666666'), height=40,
                                            font=dict(size=20)),
                                cells=dict(values=[list(signif.keys()), list(signif.values())],
-                                          fill=dict(color='#333333'), height=35,
+                                          fill=dict(color='#777777'), height=35,
                                           font=dict(size=16))),
                       row=1, col=1)
     else:
