@@ -1,6 +1,7 @@
 import os
 import json
 from typing import Collection
+import plotly.graph_objects as go
 
 from padmet.classes import PadmetRef
 
@@ -39,7 +40,7 @@ EC_ROOT = 'Enzyme'
 def metacyc_ontosunburst(metabolic_objects: Collection[str], reference_set: Collection[str] = None,
                          output: str = None, class_file: str = CLASS_FILE,
                          padmet_ref: str = METACYC_FILE, test: str = BINOMIAL_TEST,
-                         full: bool = True):
+                         full: bool = True) -> go.Figure:
     """ Classify and plot a sunburst from a list of metabolic objects with MetaCyc ontology Ids
 
     Parameters
@@ -50,14 +51,19 @@ def metacyc_ontosunburst(metabolic_objects: Collection[str], reference_set: Coll
         Set of reference metabolic objects
     output: str (optional, default=None)
         Path to output to save figure
-    class_file: (optional, default=CLASS_FILE)
+    class_file: str (optional, default=CLASS_FILE)
         Path to class ontology file
-    padmet_ref: (optional, default=METACYC_FILE)
+    padmet_ref: str (optional, default=METACYC_FILE)
         Path to metacyc padmet ref file
-    test: (optional, default=BINOMIAL_TEST)
+    test: str (optional, default=BINOMIAL_TEST)
         Type of test for enrichment analysis if reference_set is not None
     full: bool (optional, default=True)
         True to duplicate labels if +1 parents (False to take exactly 1 random parent)
+
+    Returns
+    -------
+    go.Figure
+        Plotly graph_objects figure of the sunburst
     """
     # Load files
     padmet_ref = PadmetRef(padmet_ref)
@@ -93,7 +99,29 @@ def metacyc_ontosunburst(metabolic_objects: Collection[str], reference_set: Coll
 
 def chebi_ontosunburst(chebi_ids: Collection[str], endpoint_url: str,
                        reference_set: Collection[str] = None, output: str = None,
-                       test: str = BINOMIAL_TEST, full: bool = True):
+                       test: str = BINOMIAL_TEST, full: bool = True) -> go.Figure:
+    """ Classify and plot a sunburst from a list of ChEBI IDs with ChEBI roles ontology
+
+    Parameters
+    ----------
+    chebi_ids: Collection[str]
+        Set of ChEBI IDs to classify
+    endpoint_url: str
+        URL of ChEBI ontology for SPARQL requests
+    reference_set: Collection[str] (optional, default=None)
+        Set of reference ChEBI IDs
+    output: str (optional, default=None)
+        Path to output to save figure
+    test: str (optional, default=BINOMIAL_TEST)
+        Type of test for enrichment analysis if reference_set is not None
+    full: bool (optional, default=True)
+        True to duplicate labels if +1 parents (False to take exactly 1 random parent)
+
+    Returns
+    -------
+    go.Figure
+        Plotly graph_objects figure of the sunburst
+    """
     # Extract set information
     all_classes, d_roles_ontology = extract_chebi_roles(chebi_ids, endpoint_url)
     classes_abondance = get_classes_abondance(all_classes)
@@ -117,7 +145,32 @@ def chebi_ontosunburst(chebi_ids: Collection[str], endpoint_url: str,
 
 def ec_ontosunburst(ec_set: Collection[str], reference_set: Collection[str] = None,
                     output: str = None, class_file: str = ENZYME_ONTO_FILE,
-                    names_file: str = NAMES_FILE, test: str = BINOMIAL_TEST, full: bool = True):
+                    names_file: str = NAMES_FILE, test: str = BINOMIAL_TEST,
+                    full: bool = True) -> go.Figure:
+    """ Classify and plot a sunburst from a list of EC numbers with EC ontology Ids
+
+    Parameters
+    ----------
+    ec_set: Collection[str]
+        Set of EC numbers objects to classify (format "x.x.x.x" or "x.x.x.-")
+    reference_set: Collection[str] (optional, default=None)
+        Set of reference EC numbers
+    output: str (optional, default=None)
+        Path to output to save figure
+    class_file: str (optional, default=ENZYME_ONTO_FILE)
+        Path to class ontology file
+    names_file: str (optional, default=NAMES_FILE)
+        Path to EC_ID - EC_NAME association json file
+    test: str (optional, default=BINOMIAL_TEST)
+        Type of test for enrichment analysis if reference_set is not None
+    full: bool (optional, default=True)
+        True to duplicate labels if +1 parents (False to take exactly 1 random parent)
+
+    Returns
+    -------
+    go.Figure
+        Plotly graph_objects figure of the sunburst
+    """
     # Load files
     with open(class_file, 'r') as f:
         d_classes_ontology = json.load(f)
