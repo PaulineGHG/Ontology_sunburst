@@ -238,7 +238,7 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
     if sb_type == 'proportion':
         fig = px.sunburst(data, names='Label', parents='Parent', values='Count', ids='ID',
                           color='Proportion', template='presentation',
-                          color_continuous_scale=px.colors.sequential.Mint, maxdepth=7)
+                          color_continuous_scale=px.colors.diverging.curl_r, maxdepth=7)
     elif sb_type == 'comparison':
         data, signif = get_data_enrichment_analysis(data, b_classes_abond, test, names)
         m = np.mean(data['Proportion Difference'])
@@ -254,8 +254,10 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
                                   values=data['Count'], ids=data['ID'],
                                   hovertext=[f'P value: {10**(-x)}' if x > 0 else
                                              f'P value: {10**x}' for x in data['p_value']],
-                                  hoverinfo='label+value+percent entry+text', maxdepth=7,
+                                  hoverinfo='label+value+text', maxdepth=7,
+
                                   marker=dict(colors=data['p_value'],
+                                              colorscale=px.colors.diverging.RdBu,
                                               cmid=0, showscale=True)), row=1, col=2)
 
         fig.add_trace(go.Table(header=dict(values=['Metabolite', f'{test} test P-value'],

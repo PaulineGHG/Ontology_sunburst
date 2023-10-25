@@ -27,19 +27,19 @@ REF_PWY = {'2ASDEG-PWY', '4AMINOBUTMETAB-PWY', 'ALLANTOINDEG-PWY',
 
 class MetacycTest(unittest.TestCase):
     def test_cpd_metacyc_proportion(self):
-        metacyc_ontosunburst(metabolic_objects=MET_SET, output='test')
+        metacyc_ontosunburst(metabolic_objects=REF_MET, output='test')
 
     def test_cpd_metacyc_comparison(self):
         metacyc_ontosunburst(metabolic_objects=MET_SET, reference_set=REF_MET, output='test')
 
     def test_rxn_metacyc_proportion(self):
-        metacyc_ontosunburst(metabolic_objects=RXN_SET, output='test')
+        metacyc_ontosunburst(metabolic_objects=REF_RXN, output='test')
 
     def test_rxn_metacyc_comparison(self):
         metacyc_ontosunburst(metabolic_objects=RXN_SET, reference_set=REF_RXN, output='test')
 
     def test_pwy_metacyc_proportion(self):
-        metacyc_ontosunburst(metabolic_objects=PWY_SET, output='test')
+        metacyc_ontosunburst(metabolic_objects=REF_PWY, output='test')
 
     def test_pwy_metacyc_comparison(self):
         metacyc_ontosunburst(metabolic_objects=PWY_SET, reference_set=REF_PWY, output='test')
