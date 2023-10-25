@@ -8,7 +8,7 @@ from ontosunburst.ontology import get_all_classes, get_classes_abondance, get_ch
     extract_chebi_roles, extract_metacyc_classes, extract_ec_classes
 
 from ontosunburst.sunburst_fig import get_fig_parameters, get_data_prop_diff, get_data_proportion, \
-    generate_sunburst_fig
+    generate_sunburst_fig, BINOMIAL_TEST
 
 
 # CONSTANTS ========================================================================================
@@ -25,8 +25,6 @@ NAMES_FILE = os.path.join(CURRENT_DIR, 'Inputs/enzymes_class_names.json')
 
 # Other
 # -----
-BINOMIAL_TEST = 'Binomial'
-HYPERGEO_TEST = 'Hypergeometric'
 COMPARISON_METHOD = 'comparison'
 PROPORTION_METHOD = 'proportion'
 
@@ -138,8 +136,10 @@ def ec_ontosunburst(ec_set: Collection[str], reference_set: Collection[str] = No
         ref_classes_abundance = get_classes_abondance(ref_all_classes)
         data = get_fig_parameters(classes_abundance, d_classes_ontology,
                                   get_children_dict(d_classes_ontology), EC_ROOT, full, names)
+        print(data)
         data = get_data_prop_diff(data, ref_classes_abundance)
-        return generate_sunburst_fig(data, output, COMPARISON_METHOD, ref_classes_abundance, test)
+        return generate_sunburst_fig(data, output, COMPARISON_METHOD, ref_classes_abundance, test,
+                                     True)
 
     # Proportion figure
     else:

@@ -61,5 +61,4 @@ class EcTest(unittest.TestCase):
         ec_ontosunburst(ec_set=REF_EC, output='test')
 
     def test_ec_comparison(self):
-        # TODO fix pb
         ec_ontosunburst(ec_set=EC_SET, reference_set=REF_EC, output='test')

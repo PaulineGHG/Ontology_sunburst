@@ -152,7 +152,7 @@ def extract_chebi_roles(chebi_ids: Collection[str], endpoint_url: str) \
 
 def get_parents(child: str, parent_set: Set[str], d_classes_ontology: Dict[str, List[str]],
                 root_item) -> Set[str]:
-    """ Get recursively from a child class, all its parents classes found in MetaCyc ontology.
+    """ Get recursively from a child class, all its parents classes found in ontology.
 
     Parameters
     ----------
@@ -190,7 +190,7 @@ def get_all_classes(met_classes: Dict[str, List[str]], d_classes_ontology: Dict[
     met_classes: Dict[str, List[str]] (Dict[metabolite, List[class]])
         Dictionary associating for each metabolite the list of +1 parent classes it belongs to.
     d_classes_ontology: Dict[str, List[str]]
-        Dictionary of the classes ontology of MetaCyc associating for each class its parent classes.
+        Dictionary of the classes ontology associating for each class its parent classes.
     root_item: str
         Name of the root item of the ontology.
 
