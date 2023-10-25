@@ -324,7 +324,8 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
                                   branchvalues=branch_values,
                                   marker=dict(colors=data[PVAL],
                                               colorscale=px.colors.diverging.RdBu,
-                                              cmid=0, showscale=True)), row=1, col=2)
+                                              cmid=0, cmax=10.0, cmin=-10.0, showscale=True)),
+                      row=1, col=2)
 
         fig.add_trace(go.Table(header=dict(values=['Metabolite', f'{test} test P-value'],
                                            fill=dict(color='#666666'), height=40,
