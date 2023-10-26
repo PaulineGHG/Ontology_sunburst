@@ -40,7 +40,7 @@ EC_ROOT = 'Enzyme'
 def metacyc_ontosunburst(metabolic_objects: Collection[str], reference_set: Collection[str] = None,
                          output: str = None, class_file: str = CLASS_FILE,
                          padmet_ref: str = METACYC_FILE, test: str = BINOMIAL_TEST,
-                         full: bool = True) -> go.Figure:
+                         full: bool = True, total: bool = False) -> go.Figure:
     """ Classify and plot a sunburst from a list of metabolic objects with MetaCyc ontology Ids
 
     Parameters
@@ -59,6 +59,8 @@ def metacyc_ontosunburst(metabolic_objects: Collection[str], reference_set: Coll
         Type of test for enrichment analysis if reference_set is not None
     full: bool (optional, default=True)
         True to duplicate labels if +1 parents (False to take exactly 1 random parent)
+    total: bool (optional, default=False)
+        True to have branch values proportional of the total parent (may not work in some cases)
 
     Returns
     -------
@@ -86,7 +88,8 @@ def metacyc_ontosunburst(metabolic_objects: Collection[str], reference_set: Coll
         data = get_data_proportion(data)
         if output is not None:
             write_met_classes(ref_all_classes, output, padmet_ref)
-        return generate_sunburst_fig(data, output, COMPARISON_METHOD, ref_classes_abundance, test)
+        return generate_sunburst_fig(data=data, output=output, sb_type=COMPARISON_METHOD,
+                                     b_classes_abond=ref_classes_abundance, test=test, total=total)
 
     # Proportion figure
     else:
@@ -95,12 +98,14 @@ def metacyc_ontosunburst(metabolic_objects: Collection[str], reference_set: Coll
         data = get_data_proportion(data)
         if output is not None:
             write_met_classes(obj_all_classes, output, padmet_ref)
-        return generate_sunburst_fig(data, output, PROPORTION_METHOD)
+        return generate_sunburst_fig(data=data, output=output, sb_type=PROPORTION_METHOD,
+                                     total=total)
 
 
 def chebi_ontosunburst(chebi_ids: Collection[str], endpoint_url: str,
                        reference_set: Collection[str] = None, output: str = None,
-                       test: str = BINOMIAL_TEST, full: bool = True) -> go.Figure:
+                       test: str = BINOMIAL_TEST, full: bool = True, total: bool = False) \
+        -> go.Figure:
     """ Classify and plot a sunburst from a list of ChEBI IDs with ChEBI roles ontology
 
     Parameters
@@ -117,6 +122,8 @@ def chebi_ontosunburst(chebi_ids: Collection[str], endpoint_url: str,
         Type of test for enrichment analysis if reference_set is not None
     full: bool (optional, default=True)
         True to duplicate labels if +1 parents (False to take exactly 1 random parent)
+    total: bool (optional, default=False)
+        True to have branch values proportional of the total parent (may not work in some cases)
 
     Returns
     -------
@@ -135,20 +142,22 @@ def chebi_ontosunburst(chebi_ids: Collection[str], endpoint_url: str,
                                   get_children_dict(d_roles_ontology), CHEBI_ROLE_ROOT, full)
         data = get_data_prop_diff(data, ref_roles_abundance)
         data = get_data_proportion(data)
-        return generate_sunburst_fig(data, output, COMPARISON_METHOD, ref_roles_abundance, test)
+        return generate_sunburst_fig(data=data, output=output, sb_type=COMPARISON_METHOD,
+                                     b_classes_abond=ref_roles_abundance, test=test, total=total)
 
     # Proportion figure
     else:
         data = get_fig_parameters(classes_abondance, d_roles_ontology,
                                   get_children_dict(d_roles_ontology), CHEBI_ROLE_ROOT, full)
         data = get_data_proportion(data)
-        return generate_sunburst_fig(data, output, PROPORTION_METHOD)
+        return generate_sunburst_fig(data=data, output=output, sb_type=PROPORTION_METHOD,
+                                     total=total)
 
 
 def ec_ontosunburst(ec_set: Collection[str], reference_set: Collection[str] = None,
                     output: str = None, class_file: str = ENZYME_ONTO_FILE,
                     names_file: str = NAMES_FILE, test: str = BINOMIAL_TEST,
-                    full: bool = True) -> go.Figure:
+                    full: bool = True, total: bool = False) -> go.Figure:
     """ Classify and plot a sunburst from a list of EC numbers with EC ontology Ids
 
     Parameters
@@ -167,6 +176,8 @@ def ec_ontosunburst(ec_set: Collection[str], reference_set: Collection[str] = No
         Type of test for enrichment analysis if reference_set is not None
     full: bool (optional, default=True)
         True to duplicate labels if +1 parents (False to take exactly 1 random parent)
+    total: bool (optional, default=False)
+        True to have branch values proportional of the total parent (may not work in some cases)
 
     Returns
     -------
@@ -193,15 +204,17 @@ def ec_ontosunburst(ec_set: Collection[str], reference_set: Collection[str] = No
                                   get_children_dict(d_classes_ontology), EC_ROOT, full, names)
         data = get_data_prop_diff(data, ref_classes_abundance)
         data = get_data_proportion(data)
-        return generate_sunburst_fig(data, output, COMPARISON_METHOD, ref_classes_abundance, test,
-                                     True)
+        return generate_sunburst_fig(data=data, output=output, sb_type=COMPARISON_METHOD,
+                                     b_classes_abond=ref_classes_abundance, test=test, names=True,
+                                     total=total)
 
     # Proportion figure
     else:
         data = get_fig_parameters(classes_abundance, d_classes_ontology,
                                   get_children_dict(d_classes_ontology), EC_ROOT, full, names)
         data = get_data_proportion(data)
-        return generate_sunburst_fig(data, output, PROPORTION_METHOD, total=True)
+        return generate_sunburst_fig(data=data, output=output, sb_type=PROPORTION_METHOD,
+                                     names=True, total=total)
 
 
 # EXTRAS ===========================================================================================
