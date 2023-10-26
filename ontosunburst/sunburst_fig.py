@@ -209,13 +209,13 @@ def get_relative_prop(data, p):
         total = count_p
     tot_prop = []
     for i, c in enumerate(c_p):
-        prop = round((count_c_p[i] / total) * prop_p, 15)
+        prop = (count_c_p[i] / total) * prop_p
         data[R_PROP][data[IDS].index(c)] = prop
         tot_prop.append(prop)
     # Correct prop to not exceed 100%
-    while sum(tot_prop) > prop_p:
-        tot_prop[-1] -= 0.000000000000001
-    data[R_PROP][data[IDS].index(c)] = prop
+    # while sum(tot_prop) > prop_p:
+    #     tot_prop[-1] -= 10 ** (-dec)
+    # data[R_PROP][data[IDS].index(c)] = prop
     for c in c_p:
         if c in data[PARENT]:
             data = get_relative_prop(data, c)

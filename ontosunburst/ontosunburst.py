@@ -98,9 +98,6 @@ def metacyc_ontosunburst(metabolic_objects: Collection[str], reference_set: Coll
         data = get_data_proportion(data, total)
         if output is not None:
             write_met_classes(obj_all_classes, output, padmet_ref)
-        for k, v in data.items():
-            print(k)
-            print(v)
         return generate_sunburst_fig(data=data, output=output, sb_type=PROPORTION_METHOD,
                                      total=total)
 
