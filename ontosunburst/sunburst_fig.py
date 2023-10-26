@@ -163,12 +163,13 @@ def add_children(data: Dict[str, List], origin: str, child: str, parent: str,
     return data
 
 
-def get_data_proportion(data: Dict[str, List]) -> Dict[str, List]:
+def get_data_proportion(data: Dict[str, List], total: bool) -> Dict[str, List]:
     """ Add a proportion value for color.
 
     Parameters
     ----------
     data: Dict[str, List]
+    total: bool
 
     Returns
     -------
@@ -181,15 +182,18 @@ def get_data_proportion(data: Dict[str, List]) -> Dict[str, List]:
             - colors value : Proportion (0 < float <= 1)
             - branch proportion : Relative_prop
     """
+    # Get total proportion
     max_abondance = np.max(data[COUNT])
     data[PROP] = [x / max_abondance for x in data[COUNT]]
-    data[R_PROP] = [x for x in data[PROP]]
-    p = ''
-    data = get_relat_prop(data, p)
+    # Get proportion relative to +1 parent proportion for total branch value
+    if total:
+        data[R_PROP] = [x for x in data[PROP]]
+        p = ''
+        data = get_relative_prop(data, p)
     return data
 
 
-def get_relat_prop(data, p):
+def get_relative_prop(data, p):
     if p == '':
         prop_p = 1.0
         count_p = max(data[COUNT])
@@ -205,12 +209,16 @@ def get_relat_prop(data, p):
         total = count_p
     tot_prop = []
     for i, c in enumerate(c_p):
-        prop = count_c_p[i] / total
-        data[R_PROP][data[IDS].index(c)] = prop * prop_p
-        tot_prop.append(prop * prop_p)
+        prop = round((count_c_p[i] / total) * prop_p, 15)
+        data[R_PROP][data[IDS].index(c)] = prop
+        tot_prop.append(prop)
+    # Correct prop to not exceed 100%
+    while sum(tot_prop) > prop_p:
+        tot_prop[-1] -= 0.000000000000001
+    data[R_PROP][data[IDS].index(c)] = prop
     for c in c_p:
         if c in data[PARENT]:
-            data = get_relat_prop(data, c)
+            data = get_relative_prop(data, c)
     return data
 
 
@@ -285,7 +293,7 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
         values = data[R_PROP]
     else:
         branch_values = 'remainder'
-        values = data[PROP]
+        values = data[COUNT]
     if sb_type == 'proportion':
         fig = go.Figure(go.Sunburst(labels=data[LABEL], parents=data[PARENT], values=values,
                                     ids=data[IDS],

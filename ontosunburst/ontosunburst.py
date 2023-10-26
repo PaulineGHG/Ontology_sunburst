@@ -85,7 +85,7 @@ def metacyc_ontosunburst(metabolic_objects: Collection[str], reference_set: Coll
         data = get_fig_parameters(classes_abundance, d_classes_ontology,
                                   get_children_dict(d_classes_ontology), METACYC_ROOT, full)
         data = get_data_prop_diff(data, ref_classes_abundance)
-        data = get_data_proportion(data)
+        data = get_data_proportion(data, total)
         if output is not None:
             write_met_classes(ref_all_classes, output, padmet_ref)
         return generate_sunburst_fig(data=data, output=output, sb_type=COMPARISON_METHOD,
@@ -95,9 +95,12 @@ def metacyc_ontosunburst(metabolic_objects: Collection[str], reference_set: Coll
     else:
         data = get_fig_parameters(classes_abundance, d_classes_ontology,
                                   get_children_dict(d_classes_ontology), METACYC_ROOT, full)
-        data = get_data_proportion(data)
+        data = get_data_proportion(data, total)
         if output is not None:
             write_met_classes(obj_all_classes, output, padmet_ref)
+        for k, v in data.items():
+            print(k)
+            print(v)
         return generate_sunburst_fig(data=data, output=output, sb_type=PROPORTION_METHOD,
                                      total=total)
 
@@ -141,7 +144,7 @@ def chebi_ontosunburst(chebi_ids: Collection[str], endpoint_url: str,
         data = get_fig_parameters(classes_abondance, d_roles_ontology,
                                   get_children_dict(d_roles_ontology), CHEBI_ROLE_ROOT, full)
         data = get_data_prop_diff(data, ref_roles_abundance)
-        data = get_data_proportion(data)
+        data = get_data_proportion(data, total)
         return generate_sunburst_fig(data=data, output=output, sb_type=COMPARISON_METHOD,
                                      b_classes_abond=ref_roles_abundance, test=test, total=total)
 
@@ -149,7 +152,7 @@ def chebi_ontosunburst(chebi_ids: Collection[str], endpoint_url: str,
     else:
         data = get_fig_parameters(classes_abondance, d_roles_ontology,
                                   get_children_dict(d_roles_ontology), CHEBI_ROLE_ROOT, full)
-        data = get_data_proportion(data)
+        data = get_data_proportion(data, total)
         return generate_sunburst_fig(data=data, output=output, sb_type=PROPORTION_METHOD,
                                      total=total)
 
@@ -203,7 +206,7 @@ def ec_ontosunburst(ec_set: Collection[str], reference_set: Collection[str] = No
         data = get_fig_parameters(classes_abundance, d_classes_ontology,
                                   get_children_dict(d_classes_ontology), EC_ROOT, full, names)
         data = get_data_prop_diff(data, ref_classes_abundance)
-        data = get_data_proportion(data)
+        data = get_data_proportion(data, total)
         return generate_sunburst_fig(data=data, output=output, sb_type=COMPARISON_METHOD,
                                      b_classes_abond=ref_classes_abundance, test=test, names=True,
                                      total=total)
@@ -212,7 +215,7 @@ def ec_ontosunburst(ec_set: Collection[str], reference_set: Collection[str] = No
     else:
         data = get_fig_parameters(classes_abundance, d_classes_ontology,
                                   get_children_dict(d_classes_ontology), EC_ROOT, full, names)
-        data = get_data_proportion(data)
+        data = get_data_proportion(data, total)
         return generate_sunburst_fig(data=data, output=output, sb_type=PROPORTION_METHOD,
                                      names=True, total=total)
 
