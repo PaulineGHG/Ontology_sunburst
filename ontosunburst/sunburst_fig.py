@@ -190,12 +190,20 @@ def get_data_proportion(data: Dict[str, List], total: bool) -> Dict[str, List]:
         data[R_PROP] = [x for x in data[PROP]]
         p = ''
         data = get_relative_prop(data, p)
+
+    # TODO : IDK WHY IT WORKS ???
+    missed = [data[IDS][i] for i in range(len(data[IDS])) if data[R_PROP][i] < 1]
+    if missed:
+        parents = {data[PARENT][data[IDS].index(m)] for m in missed}
+        for p in parents:
+            data = get_relative_prop(data, p)
+        missed = [data[IDS][i] for i in range(len(data[IDS])) if data[R_PROP][i] < 1]
     return data
 
 
 def get_relative_prop(data, p):
     if p == '':
-        prop_p = 1.0
+        prop_p = 1000000
         count_p = max(data[COUNT])
     else:
         prop_p = data[R_PROP][data[IDS].index(p)]
@@ -209,13 +217,9 @@ def get_relative_prop(data, p):
         total = count_p
     tot_prop = []
     for i, c in enumerate(c_p):
-        prop = (count_c_p[i] / total) * prop_p
+        prop = int((count_c_p[i] / total) * prop_p)
         data[R_PROP][data[IDS].index(c)] = prop
         tot_prop.append(prop)
-    # Correct prop to not exceed 100%
-    # while sum(tot_prop) > prop_p:
-    #     tot_prop[-1] -= 10 ** (-dec)
-    # data[R_PROP][data[IDS].index(c)] = prop
     for c in c_p:
         if c in data[PARENT]:
             data = get_relative_prop(data, c)
