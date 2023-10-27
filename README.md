@@ -68,8 +68,13 @@ Codes to run workflows (proportion or comparison) to create sunburst in
 
 #### Parameters
 
+---------- REQUIRED ----------
+
 - `metabolic_objects` : `Collection[str]`
     - Set of metabolic objects to classify
+
+---------- OPTIONAL ----------
+
 - `reference_set` : `Collection[str]` (optional, `default=None`)
   - Set of reference metabolic objects
 - `output` : `str` (optional, `default=None`)
@@ -115,8 +120,13 @@ metacyc_ontosunburst(metabolic_objects=MET_SET,
 
 #### Parameters
 
+---------- REQUIRED ----------
+
 - `ec_set` : `Collection[str]`
   - Set of EC numbers objects to classify (format "x.x.x.x" or "x.x.x.-")
+
+---------- OPTIONAL ----------
+
 - `reference_set` : `Collection[str]` (optional, `default=None`)
   - Set of reference metabolic objects
 - `output` : `str` (optional, `default=None`)
@@ -160,10 +170,15 @@ ec_ontosunburst(ec_set=EC_SET,
 
 #### Parameters
 
+---------- REQUIRED ----------
+
 - `chebi_ids` : `Collection[str]`
   - Set of ChEBI IDs to classify
 - `endpoint_url` : `str`
   - URL of ChEBI ontology for SPARQL requests
+
+---------- OPTIONAL ----------
+
 - `reference_set` : `Collection[str]` (optional, `default=None`)
   - Set of reference metabolic objects
 - `output` : `str` (optional, `default=None`)
