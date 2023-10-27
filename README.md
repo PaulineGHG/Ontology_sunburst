@@ -58,12 +58,37 @@ Classes ontology json file)
 #### 2. SPARQL server url (ChEBI)
 
 
-### Run
+## Run
 
 Codes to run workflows (proportion or comparison) to create sunburst in
 `ontosunburst.py`
 
-#### MetaCyc
+
+### MetaCyc `ontosunburst.ontosunburst.metacyc_ontosunburst`
+
+#### Parameters
+
+- `metabolic_objects` : `Collection[str]`
+    - Set of metabolic objects to classify
+- `reference_set` : `Collection[str]` (optional, `default=None`)
+  - Set of reference metabolic objects
+- `output` : `str` (optional, `default=None`)
+  - Path to output to save figure
+- `class_file` : `str` (optional, `default=CLASS_FILE`)
+  - Path to class ontology file
+- `padmet_ref` : `str` (optional, `default=METACYC_FILE`)
+  - Path to metacyc padmet ref file
+- `test` : `str` (optional, `default=BINOMIAL_TEST`)
+  - Type of test for enrichment analysis if reference_set is 
+not None
+- `full` : `bool` (optional, `default=True`)
+  - True to duplicate labels if +1 parents (False to take exactly 
+1 random parent)
+- `total` : `bool` (optional, `default=True`)
+  - True to have branch values proportional of the total parent 
+(may not work in some cases)
+
+#### Example
 
 ```python
 from ontosunburst.ontosunburst import metacyc_ontosunburst
@@ -86,7 +111,31 @@ metacyc_ontosunburst(metabolic_objects=MET_SET,
                      output='test')
 ```
 
-#### EC
+### EC `ontosunburst.ontosunburst.ec_ontosunburst`
+
+#### Parameters
+
+- `ec_set` : `Collection[str]`
+  - Set of EC numbers objects to classify (format "x.x.x.x" or "x.x.x.-")
+- `reference_set` : `Collection[str]` (optional, `default=None`)
+  - Set of reference metabolic objects
+- `output` : `str` (optional, `default=None`)
+  - Path to output to save figure
+- `class_file` : `str` (optional, `default=ENZYME_ONTO_FILE`)
+  - Path to class ontology file
+- `names_file` : `str` (optional, `default=NAMES_FILE`)
+  - Path to EC_ID - EC_NAME association json file
+- `test` : `str` (optional, `default=BINOMIAL_TEST`)
+  - Type of test for enrichment analysis if reference_set is 
+not None
+- `full` : `bool` (optional, `default=True`)
+  - True to duplicate labels if +1 parents (False to take exactly 
+1 random parent)
+- `total` : `bool` (optional, `default=True`)
+  - True to have branch values proportional of the total parent 
+(may not work in some cases)
+
+#### Example
 
 ```python
 from  ontosunburst.ontosunburst import ec_ontosunburst
@@ -107,7 +156,29 @@ ec_ontosunburst(ec_set=EC_SET,
                 output='test')
 ```
 
-#### ChEBI
+### ChEBI ` ontosunburst.ontosunburst.chebi_ontosunburst`
+
+#### Parameters
+
+- `chebi_ids` : `Collection[str]`
+  - Set of ChEBI IDs to classify
+- `endpoint_url` : `str`
+  - URL of ChEBI ontology for SPARQL requests
+- `reference_set` : `Collection[str]` (optional, `default=None`)
+  - Set of reference metabolic objects
+- `output` : `str` (optional, `default=None`)
+  - Path to output to save figure
+- `test` : `str` (optional, `default=BINOMIAL_TEST`)
+  - Type of test for enrichment analysis if reference_set is 
+not None
+- `full` : `bool` (optional, `default=True`)
+  - True to duplicate labels if +1 parents (False to take exactly 
+1 random parent)
+- `total` : `bool` (optional, `default=True`)
+  - True to have branch values proportional of the total parent 
+(may not work in some cases)
+
+#### Example
 
 ```python
 from  ontosunburst.ontosunburst import chebi_ontosunburst
