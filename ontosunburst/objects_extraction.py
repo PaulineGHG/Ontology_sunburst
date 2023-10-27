@@ -112,7 +112,7 @@ def extract_iscope_group_metabolites(scope_json, g_file, group_list):
 
 
 # PATHWAYS EXTRACTION
-# ====================================================================================================================
+# ==================================================================================================
 
 # From padmet network
 # def extract_pathway_classes(padmet_networks_list: List[str], completion_threshold: float = 0) -> Dict[str, List[str]]:
@@ -140,7 +140,7 @@ def extract_iscope_group_metabolites(scope_json, g_file, group_list):
 
 
 # GO TERMS EXTRACTION
-# ====================================================================================================================
+# ==================================================================================================
 
 def extract_go_esmecata(sp_annotations):
     go_abundance = dict()
@@ -158,7 +158,7 @@ def extract_go_esmecata(sp_annotations):
 
 
 # EC EXTRACTION
-# ====================================================================================================================
+# ==================================================================================================
 
 def extract_ec_esmecata(sp_annotations):
     ec_set = set()

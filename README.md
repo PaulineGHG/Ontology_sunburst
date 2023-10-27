@@ -1,60 +1,129 @@
-# Ontology_sunburst
-tututu
+# Ontosunburst
+
+Sunburst visualisation of sets of metabolic object according to their 
+classes of an ontology.
+
 ## Requirements
 
 Requirements from `requirements.txt`
 
-Install aucomana : https://github.com/PaulineGHG/aucomana.git
-(or comment code if no need of pathway)
+- numpy>=1.22.0
+- padmet>=5.0.1
+- plotly>=5.17.0
+- scipy>=1.8.1
+- SPARQLWrapper>=2.0.0
 
+### Installation
 
+```commandline
+pip install -r requirements.txt
+pip install -e .
+```
 ## Utilisation
+
+### Availabilities
+
+#### 1. **Ontologies :**
+
+- MetaCyc (compounds, reactions and pathways)
+- ChEBI (chebi roles)
+- EC (EC-numbers)
+
+#### 2. **Analysis :**
+
+- Proportion (1 set) : displays proportion representation of all classes
+- Comparison (1 set + 1 reference set) :  displays enrichment analysis
+significance of a set according to a reference set of metabolic objects
 
 ### Inputs
 
 #### Objects sets
 
-Codes to extract some objects (metabolites, pathways, chebi ID, ...) in 
-`obj_extraction.py` used as input for sunburst creation.
+A python collection (list, set, ...) of metabolic objects IDs 
 
-#### Ontology files
+Metabolic objects from some tools outputs can be extracted easily with 
+functions from `obj_extraction`
 
-For metabolites and pathways:
+#### Ontology
 
-- Class file : `Input/classes.json`
-- Padmet ref : `Input/metacyc_26.0_prot70.padmet`
+#### 1. Files (MetaCyc, EC)
 
-For enzymes:
+Intern tool files (in `Inputs` folder) by default
 
-- Ontology : `Input/enzymes_ontology.json`
-- Names : `Input/enzymes_class_names.json`
+Specified user local files
+- MetaCyc (Data Base Padmet Reference (metacyc_x.xx.padmet) + 
+Classes ontology json file)
+- EC (Classes ontology json file + Names json file)
+
+#### 2. SPARQL server url (ChEBI)
+
 
 ### Run
 
 Codes to run workflows (proportion or comparison) to create sunburst in
-`class_metabolites.py`
+`ontosunburst.py`
 
-#### Example 
+#### MetaCyc
 
+```python
+from ontosunburst.ontosunburst import metacyc_ontosunburst
+
+MET_SET = {'CPD-24674', 'CPD-24687', 'CPD-24688'}
+REF_MET = {'CPD-24674', 'CPD-24687', 'CPD-24688',
+           'CPD-12782', 'CPD-12784', 'CPD-12787',
+           'CPD-12788', 'CPD-12789', 'CPD-12796',
+           'CPD-12797', 'CPD-12798', 'CPD-12805',
+           'CPD-12806', 'CPD-12812', 'CPD-12816',
+           'CPD-1282', 'CPD-12824', 'CPD-1283'}
+
+# PROPORTION
+metacyc_ontosunburst(metabolic_objects=REF_MET, 
+                     output='test')
+
+# COMPARISON
+metacyc_ontosunburst(metabolic_objects=MET_SET, 
+                     reference_set=REF_MET, 
+                     output='test')
 ```
-CLASS_FILE = 'Inputs/classes.json'
-P_REF = 'Inputs/metacyc_26.0_prot70.padmet'
-INPUT_FILE = 'Path/To/clusters.tsv'
 
-CLUST_CYAN = [7, 8]
-CLUST_PINK = [3, 4, 5, 6]
-CLUST_ALL = list(range(1, 12))
+#### EC
 
-MET_CYAN = extract_metabolites_clusters(INPUT_FILE, CLUST_CYAN)
-MET_PINK = extract_metabolites_clusters(INPUT_FILE, CLUST_PINK)
-MET_ALL = extract_metabolites_clusters(INPUT_FILE, CLUST_ALL)
+```python
+from  ontosunburst.ontosunburst import ec_ontosunburst
 
-proportion_workflow(MET_CYAN, CLASS_FILE, P_REF, 'Output/prop_cyan', True)
-proportion_workflow(MET_PINK, CLASS_FILE, P_REF, 'Output/prop_pink', True)
-proportion_workflow(MET_ALL, CLASS_FILE, P_REF, 'Output/prop_all', True)
+EC_SET = {'2.6.1.45', '1.1.1.25', '1.1.1.140'}
+REF_EC = {'2.6.1.45', '1.1.1.25', '1.1.1.140',
+          '1.14.14.52', '2.7.1.137', '7.1.1.8',
+          '1.17.4.5', '2.3.1.165', '3.2.1.53',
+          '3.2.1.91', '6.3.4.2', '5.4.99.8'}
 
-comparison_workflow(MET_CYAN, MET_ALL, CLASS_FILE, P_REF, 'Output/diff_cyan_all_bin', 'Binomial')
-comparison_workflow(MET_PINK, MET_ALL, CLASS_FILE, P_REF, 'Output/diff_pink_all_bin', 'Binomial')
-comparison_workflow(MET_CYAN, MET_ALL, CLASS_FILE, P_REF, 'Output/diff_cyan_all_hyp', 'Hypergeometric')
-comparison_workflow(MET_PINK, MET_ALL, CLASS_FILE, P_REF, 'Output/diff_pink_all_hyp', 'Hypergeometric')
+# PROPORTION
+ec_ontosunburst(ec_set=REF_EC, 
+                output='test')
+
+# COMPARISON
+ec_ontosunburst(ec_set=EC_SET, 
+                reference_set=REF_EC, 
+                output='test')
+```
+
+#### ChEBI
+
+```python
+from  ontosunburst.ontosunburst import chebi_ontosunburst
+
+URL = ''
+CH_SET = {}
+REF_CH = {}
+
+# PROPORTION
+chebi_ontosunburst(chebi_ids=CH_SET, 
+                   endpoint_url=URL, 
+                   output='test')
+
+# COMPARISON
+chebi_ontosunburst(chebi_ids=CH_SET, 
+                   reference_set=REF_CH, 
+                   endpoint_url=URL, 
+                   output='test')
 ```
