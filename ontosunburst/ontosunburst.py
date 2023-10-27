@@ -8,8 +8,8 @@ from padmet.classes import PadmetRef
 from ontosunburst.ontology import get_all_classes, get_classes_abondance, get_children_dict, \
     extract_chebi_roles, extract_metacyc_classes, extract_ec_classes
 
-from ontosunburst.sunburst_fig import get_fig_parameters, get_data_prop_diff, get_data_proportion, \
-    generate_sunburst_fig, BINOMIAL_TEST
+from ontosunburst.sunburst_fig import get_fig_parameters, get_data_proportion, \
+    generate_sunburst_fig, BINOMIAL_TEST, COMPARISON_METHOD, PROPORTION_METHOD
 
 
 # CONSTANTS ========================================================================================
@@ -24,11 +24,6 @@ METACYC_FILE = os.path.join(CURRENT_DIR, 'Inputs/metacyc_26.0_prot70.padmet')
 ENZYME_ONTO_FILE = os.path.join(CURRENT_DIR, 'Inputs/enzymes_ontology.json')
 NAMES_FILE = os.path.join(CURRENT_DIR, 'Inputs/enzymes_class_names.json')
 
-# Other
-# -----
-COMPARISON_METHOD = 'comparison'
-PROPORTION_METHOD = 'proportion'
-
 # ONTOLOGIES
 # ----------
 METACYC_ROOT = 'FRAMES'
@@ -40,7 +35,7 @@ EC_ROOT = 'Enzyme'
 def metacyc_ontosunburst(metabolic_objects: Collection[str], reference_set: Collection[str] = None,
                          output: str = None, class_file: str = CLASS_FILE,
                          padmet_ref: str = METACYC_FILE, test: str = BINOMIAL_TEST,
-                         full: bool = True, total: bool = False) -> go.Figure:
+                         full: bool = True, total: bool = True) -> go.Figure:
     """ Classify and plot a sunburst from a list of metabolic objects with MetaCyc ontology Ids
 
     Parameters
@@ -59,7 +54,7 @@ def metacyc_ontosunburst(metabolic_objects: Collection[str], reference_set: Coll
         Type of test for enrichment analysis if reference_set is not None
     full: bool (optional, default=True)
         True to duplicate labels if +1 parents (False to take exactly 1 random parent)
-    total: bool (optional, default=False)
+    total: bool (optional, default=True)
         True to have branch values proportional of the total parent (may not work in some cases)
 
     Returns
@@ -79,32 +74,22 @@ def metacyc_ontosunburst(metabolic_objects: Collection[str], reference_set: Coll
 
     # Comparison figure
     if reference_set is not None:
-        ref_leaf_classes = extract_metacyc_classes(reference_set, padmet_ref)
-        ref_all_classes = get_all_classes(ref_leaf_classes, d_classes_ontology, METACYC_ROOT)
-        ref_classes_abundance = get_classes_abondance(ref_all_classes)
-        data = get_fig_parameters(classes_abundance, d_classes_ontology,
-                                  get_children_dict(d_classes_ontology), METACYC_ROOT, full)
-        data = get_data_prop_diff(data, ref_classes_abundance)
-        data = get_data_proportion(data, total)
-        if output is not None:
-            write_met_classes(ref_all_classes, output, padmet_ref)
-        return generate_sunburst_fig(data=data, output=output, sb_type=COMPARISON_METHOD,
-                                     b_classes_abond=ref_classes_abundance, test=test, total=total)
-
-    # Proportion figure
-    else:
-        data = get_fig_parameters(classes_abundance, d_classes_ontology,
-                                  get_children_dict(d_classes_ontology), METACYC_ROOT, full)
-        data = get_data_proportion(data, total)
         if output is not None:
             write_met_classes(obj_all_classes, output, padmet_ref)
-        return generate_sunburst_fig(data=data, output=output, sb_type=PROPORTION_METHOD,
-                                     total=total)
+        ref_leaf_classes = extract_metacyc_classes(reference_set, padmet_ref)
+        return comparison_analysis(ref_leaf_classes, classes_abundance, d_classes_ontology, output,
+                                   full, None, total, test, METACYC_ROOT)
+    # Proportion figure
+    else:
+        if output is not None:
+            write_met_classes(obj_all_classes, output, padmet_ref)
+        return proportion_analysis(classes_abundance, d_classes_ontology, output, full, None, total,
+                                   METACYC_ROOT)
 
 
 def chebi_ontosunburst(chebi_ids: Collection[str], endpoint_url: str,
                        reference_set: Collection[str] = None, output: str = None,
-                       test: str = BINOMIAL_TEST, full: bool = True, total: bool = False) \
+                       test: str = BINOMIAL_TEST, full: bool = True, total: bool = True) \
         -> go.Figure:
     """ Classify and plot a sunburst from a list of ChEBI IDs with ChEBI roles ontology
 
@@ -122,7 +107,7 @@ def chebi_ontosunburst(chebi_ids: Collection[str], endpoint_url: str,
         Type of test for enrichment analysis if reference_set is not None
     full: bool (optional, default=True)
         True to duplicate labels if +1 parents (False to take exactly 1 random parent)
-    total: bool (optional, default=False)
+    total: bool (optional, default=True)
         True to have branch values proportional of the total parent (may not work in some cases)
 
     Returns
@@ -136,28 +121,19 @@ def chebi_ontosunburst(chebi_ids: Collection[str], endpoint_url: str,
 
     # Comparison figure
     if reference_set is not None:
-        ref_all_roles, d_roles_ontology = extract_chebi_roles(reference_set, endpoint_url)
-        ref_roles_abundance = get_classes_abondance(ref_all_roles)
-        data = get_fig_parameters(classes_abondance, d_roles_ontology,
-                                  get_children_dict(d_roles_ontology), CHEBI_ROLE_ROOT, full)
-        data = get_data_prop_diff(data, ref_roles_abundance)
-        data = get_data_proportion(data, total)
-        return generate_sunburst_fig(data=data, output=output, sb_type=COMPARISON_METHOD,
-                                     b_classes_abond=ref_roles_abundance, test=test, total=total)
-
+        ref_leaf_classes, d_roles_ontology = extract_chebi_roles(reference_set, endpoint_url)
+        return comparison_analysis(ref_leaf_classes, classes_abondance, d_roles_ontology, output,
+                                   full, None, total, test, CHEBI_ROLE_ROOT)
     # Proportion figure
     else:
-        data = get_fig_parameters(classes_abondance, d_roles_ontology,
-                                  get_children_dict(d_roles_ontology), CHEBI_ROLE_ROOT, full)
-        data = get_data_proportion(data, total)
-        return generate_sunburst_fig(data=data, output=output, sb_type=PROPORTION_METHOD,
-                                     total=total)
+        return proportion_analysis(classes_abondance, d_roles_ontology, output, full, None, total,
+                                   CHEBI_ROLE_ROOT)
 
 
 def ec_ontosunburst(ec_set: Collection[str], reference_set: Collection[str] = None,
                     output: str = None, class_file: str = ENZYME_ONTO_FILE,
                     names_file: str = NAMES_FILE, test: str = BINOMIAL_TEST,
-                    full: bool = True, total: bool = False) -> go.Figure:
+                    full: bool = True, total: bool = True) -> go.Figure:
     """ Classify and plot a sunburst from a list of EC numbers with EC ontology Ids
 
     Parameters
@@ -176,7 +152,7 @@ def ec_ontosunburst(ec_set: Collection[str], reference_set: Collection[str] = No
         Type of test for enrichment analysis if reference_set is not None
     full: bool (optional, default=True)
         True to duplicate labels if +1 parents (False to take exactly 1 random parent)
-    total: bool (optional, default=False)
+    total: bool (optional, default=True)
         True to have branch values proportional of the total parent (may not work in some cases)
 
     Returns
@@ -198,26 +174,38 @@ def ec_ontosunburst(ec_set: Collection[str], reference_set: Collection[str] = No
     # Comparison figure
     if reference_set is not None:
         ref_leaf_classes = extract_ec_classes(reference_set)
-        ref_all_classes = get_all_classes(ref_leaf_classes, d_classes_ontology, EC_ROOT)
-        ref_classes_abundance = get_classes_abondance(ref_all_classes)
-        data = get_fig_parameters(classes_abundance, d_classes_ontology,
-                                  get_children_dict(d_classes_ontology), EC_ROOT, full, names)
-        data = get_data_prop_diff(data, ref_classes_abundance)
-        data = get_data_proportion(data, total)
-        return generate_sunburst_fig(data=data, output=output, sb_type=COMPARISON_METHOD,
-                                     b_classes_abond=ref_classes_abundance, test=test, names=True,
-                                     total=total)
-
+        return comparison_analysis(ref_leaf_classes, classes_abundance, d_classes_ontology, output,
+                                   full, names, total, test, EC_ROOT)
     # Proportion figure
     else:
-        data = get_fig_parameters(classes_abundance, d_classes_ontology,
-                                  get_children_dict(d_classes_ontology), EC_ROOT, full, names)
-        data = get_data_proportion(data, total)
-        return generate_sunburst_fig(data=data, output=output, sb_type=PROPORTION_METHOD,
-                                     names=True, total=total)
+        return proportion_analysis(classes_abundance, d_classes_ontology, output, full, names,
+                                   total, EC_ROOT)
 
 
-# EXTRAS ===========================================================================================
+# FUNCTIONS ========================================================================================
+
+def proportion_analysis(classes_abundance, d_classes_ontology, output, full, names, total, root):
+    data = get_fig_parameters(classes_abundance, d_classes_ontology,
+                              get_children_dict(d_classes_ontology), root, full, names)
+    data = get_data_proportion(data, total)
+    names = names is not None
+    return generate_sunburst_fig(data=data, output=output, sb_type=PROPORTION_METHOD,
+                                 names=names, total=total)
+
+
+def comparison_analysis(ref_leaf_classes, classes_abundance, d_classes_ontology, output, full,
+                        names, total, test, root):
+    ref_all_classes = get_all_classes(ref_leaf_classes, d_classes_ontology, root)
+    ref_classes_abundance = get_classes_abondance(ref_all_classes)
+
+    data = get_fig_parameters(classes_abundance, d_classes_ontology,
+                              get_children_dict(d_classes_ontology), root, full, names)
+    data = get_data_proportion(data, total)
+    names = names is not None
+    return generate_sunburst_fig(data=data, output=output, sb_type=COMPARISON_METHOD,
+                                 b_classes_abond=ref_classes_abundance, test=test, names=names,
+                                 total=total)
+
 
 def write_met_classes(all_classes, output, pref):
     with open(f'{output}.tsv', 'w') as f:

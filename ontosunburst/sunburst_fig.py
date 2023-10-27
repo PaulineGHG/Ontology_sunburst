@@ -1,5 +1,4 @@
 from typing import List, Dict
-from dash import Dash, dcc, html, Input, Output
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -10,6 +9,9 @@ import scipy.stats as stats
 # ==================================================================================================
 BINOMIAL_TEST = 'Binomial'
 HYPERGEO_TEST = 'Hypergeometric'
+
+COMPARISON_METHOD = 'comparison'
+PROPORTION_METHOD = 'proportion'
 
 # Keys
 # ----
@@ -164,12 +166,19 @@ def add_children(data: Dict[str, List], origin: str, child: str, parent: str,
 
 
 def get_data_proportion(data: Dict[str, List], total: bool) -> Dict[str, List]:
-    """ Add a proportion value for color.
+    """ Add a proportion value for color. If total add relative proportion to +1 parent for branch
+    value.
 
     Parameters
     ----------
     data: Dict[str, List]
+        Dictionary with lists of :
+            - ids : ID (str)
+            - labels : Label (str)
+            - parents ids : Parent (str)
+            - abundance value : Count (int)
     total: bool
+        True to have branch values proportional of the total parent
 
     Returns
     -------
@@ -190,43 +199,67 @@ def get_data_proportion(data: Dict[str, List], total: bool) -> Dict[str, List]:
         data[R_PROP] = [x for x in data[PROP]]
         p = ''
         data = get_relative_prop(data, p)
-
-    # TODO : IDK WHY IT WORKS ???
-    missed = [data[IDS][i] for i in range(len(data[IDS])) if data[R_PROP][i] < 1]
-    if missed:
-        parents = {data[PARENT][data[IDS].index(m)] for m in missed}
-        for p in parents:
-            data = get_relative_prop(data, p)
+        # TODO : IDK WHY IT WORKS ???
         missed = [data[IDS][i] for i in range(len(data[IDS])) if data[R_PROP][i] < 1]
+        if missed:
+            parents = {data[PARENT][data[IDS].index(m)] for m in missed}
+            for p in parents:
+                data = get_relative_prop(data, p)
+            missed = [data[IDS][i] for i in range(len(data[IDS])) if data[R_PROP][i] < 1]
     return data
 
 
-def get_relative_prop(data, p):
-    if p == '':
+def get_relative_prop(data: Dict[str, List], p_id: str):
+    """ Get recursively relative proportion of a parent children to itself. Add id to data
+    Relative_proportion.
+
+    Parameters
+    ----------
+    data: Dict[str, List]
+        Dictionary with lists of :
+            - ids : ID (str)
+            - labels : Label (str)
+            - parents ids : Parent (str)
+            - abundance value : Count (int)
+            - colors value : Proportion (0 < float <= 1)
+            - branch proportion : Relative_prop
+    p_id: str
+        ID of the parent
+
+    Returns
+    -------
+    Dict[str, List]
+        Dictionary with lists of :
+            - ids : ID (str)
+            - labels : Label (str)
+            - parents ids : Parent (str)
+            - abundance value : Count (int)
+            - colors value : Proportion (0 < float <= 1)
+            - branch proportion : Relative_prop --> + actual children values
+    """
+    if p_id == '':
         prop_p = 1000000
         count_p = max(data[COUNT])
     else:
-        prop_p = data[R_PROP][data[IDS].index(p)]
-        count_p = data[COUNT][data[IDS].index(p)]
-    index_p = [i for i, v in enumerate(data[PARENT]) if v == p]
-    c_p = [data[IDS][i] for i in index_p]
-    count_c_p = [data[COUNT][i] for i in index_p]
-    if sum(count_c_p) > count_p:
-        total = sum(count_c_p)
+        prop_p = data[R_PROP][data[IDS].index(p_id)]
+        count_p = data[COUNT][data[IDS].index(p_id)]
+    index_p = [i for i, v in enumerate(data[PARENT]) if v == p_id]
+    p_children = [data[IDS][i] for i in index_p]
+    count_p_children = [data[COUNT][i] for i in index_p]
+    if sum(count_p_children) > count_p:
+        total = sum(count_p_children)
     else:
         total = count_p
-    tot_prop = []
-    for i, c in enumerate(c_p):
-        prop = int((count_c_p[i] / total) * prop_p)
-        data[R_PROP][data[IDS].index(c)] = prop
-        tot_prop.append(prop)
-    for c in c_p:
+    for i, c in enumerate(p_children):
+        prop_c = int((count_p_children[i] / total) * prop_p)
+        data[R_PROP][data[IDS].index(c)] = prop_c
+    for c in p_children:
         if c in data[PARENT]:
             data = get_relative_prop(data, c)
     return data
 
 
-def get_data_prop_diff(data, b_classes_abundance):
+def get_data_prop_diff(data: Dict[str, List], b_classes_abundance):
     i_max_abondance = np.max(data[COUNT])
     i_prop = [x / i_max_abondance for x in data[COUNT]]
     b_max_abondance = np.max(list(b_classes_abundance.values()))
@@ -264,15 +297,15 @@ def get_data_enrichment_analysis(data, b_classes_abundance, test, names):
         else:
             data[PVAL].append(np.log10(p_val))
         if p_val < 0.05 / nb_classes:
-            significant_representation[data[IDS][i]] = p_val.round(10)
+            significant_representation[data[LABEL][i]] = p_val.round(10)
     significant_representation = dict(
         sorted(significant_representation.items(), key=lambda item: item[1]))
     return data, significant_representation
 
 
 def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: str = None,
-                          sb_type: str = 'proportion', b_classes_abond=None, test=BINOMIAL_TEST,
-                          names: bool = False, total: bool = True):
+                          sb_type: str = PROPORTION_METHOD, b_classes_abond=None,
+                          test=BINOMIAL_TEST, names: bool = False, total: bool = True):
     """ Generate a Sunburst figure and save it to output path.
 
     Parameters
@@ -298,7 +331,7 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
     else:
         branch_values = 'remainder'
         values = data[COUNT]
-    if sb_type == 'proportion':
+    if sb_type == PROPORTION_METHOD:
         fig = go.Figure(go.Sunburst(labels=data[LABEL], parents=data[PARENT], values=values,
                                     ids=data[IDS],
                                     hoverinfo='label+text', maxdepth=7,
@@ -310,9 +343,9 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
                                     marker=dict(colors=data[COUNT],
                                                 colorscale=px.colors.diverging.curl_r,
                                                 cmid=0.5 * max(data[COUNT]), showscale=True)))
-    elif sb_type == 'comparison':
+    elif sb_type == COMPARISON_METHOD:
         data, signif = get_data_enrichment_analysis(data, b_classes_abond, test, names)
-        m = np.mean(data[PROP_DIF])
+        # m = np.mean(data[PROP_DIF])
         fig = make_subplots(rows=1, cols=2,
                             column_widths=[0.3, 0.7],
                             vertical_spacing=0.03,
@@ -353,27 +386,3 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
     if output is not None:
         fig.write_html(f'{output}.html')
     return fig
-
-# def generate_dash_interactive_fig(data, output):
-#     app = Dash(__name__)
-#     values = ['Proportion', 'Proportion Difference']
-#     color_scale = {'Proportion': px.colors.sequential.Mint,
-#                    'Proportion Difference': px.colors.diverging.Armyrose_r}
-#     midpoint = {'Proportion': 0.5,
-#                 'Proportion Difference': np.mean(data['Proportion Difference'])}
-#     app.layout = html.Div([html.P("Select value:"),
-#                            dcc.Dropdown(id='dropdown',
-#                                         options=values,
-#                                         value='Proportion'),
-#                            dcc.Graph(id="graph")])
-#
-#     @app.callback(
-#         Output("graph", "figure"),
-#         Input("dropdown", "value"))
-#     def change_measure(value):
-#         fig = px.sunburst(data, names='Label', parents='Parent', values='Count', ids='ID', color=value,
-#                           template='presentation', color_continuous_scale=color_scale[value], height=900,
-#                           color_continuous_midpoint=midpoint[value])
-#         fig.update_layout(paper_bgcolor="#373f48", font_color='#ffffff')
-#         return fig
-#     app.run_server(debug=True)
