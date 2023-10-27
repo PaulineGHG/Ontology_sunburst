@@ -1,7 +1,7 @@
 # Ontosunburst
 
-Sunburst visualisation of sets of metabolic object according to their 
-classes of an ontology.
+Sunburst visualisation of an ontology representing classes of sets
+of metabolic objects
 
 ## Requirements
 
@@ -183,18 +183,20 @@ not None
 ```python
 from  ontosunburst.ontosunburst import chebi_ontosunburst
 
-URL = ''
-CH_SET = {}
-REF_CH = {}
+URL = 'http://localhost:3030/chebi/'
+CH_SET = {'38028', '28604', '85146'}
+REF_CH = {'38028', '28604', '85146',
+          '23066', '27803', '37565',
+          '58215', '79983', '42639'}
 
 # PROPORTION
-chebi_ontosunburst(chebi_ids=CH_SET, 
+chebi_ontosunburst(chebi_ids=REF_CH, 
                    endpoint_url=URL, 
-                   output='test')
+                   output='test_chebi_prop')
 
 # COMPARISON
 chebi_ontosunburst(chebi_ids=CH_SET, 
                    reference_set=REF_CH, 
-                   endpoint_url=URL, 
-                   output='test')
+                   endpoint_url=URL,
+                   output='test_chebi_comp')
 ```

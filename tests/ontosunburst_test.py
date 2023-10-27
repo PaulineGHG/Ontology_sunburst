@@ -1,6 +1,11 @@
 import unittest
 from ontosunburst.ontosunburst import *
 
+"""
+Tests manually good file creation.
+No automatic tests integrated.
+"""
+
 # METACYC
 # ==================================================================================================
 
@@ -26,23 +31,28 @@ REF_PWY = {'2ASDEG-PWY', '4AMINOBUTMETAB-PWY', 'ALLANTOINDEG-PWY',
 
 
 class MetacycTest(unittest.TestCase):
+    # Compounds
     def test_cpd_metacyc_proportion(self):
-        metacyc_ontosunburst(metabolic_objects=REF_MET, output='test')
+        metacyc_ontosunburst(metabolic_objects=REF_MET, output='test_mc_cpd_prop')
 
     def test_cpd_metacyc_comparison(self):
-        metacyc_ontosunburst(metabolic_objects=MET_SET, reference_set=REF_MET, output='test')
-
+        metacyc_ontosunburst(metabolic_objects=MET_SET, reference_set=REF_MET,
+                             output='test_mc_cpd_comp')
+    # Reactions
     def test_rxn_metacyc_proportion(self):
-        metacyc_ontosunburst(metabolic_objects=REF_RXN, output='test')
+        metacyc_ontosunburst(metabolic_objects=REF_RXN, output='test_mc_rxn_prop')
 
     def test_rxn_metacyc_comparison(self):
-        metacyc_ontosunburst(metabolic_objects=RXN_SET, reference_set=REF_RXN, output='test')
+        metacyc_ontosunburst(metabolic_objects=RXN_SET, reference_set=REF_RXN,
+                             output='test_mc_rxn_comp')
 
+    # Pathways
     def test_pwy_metacyc_proportion(self):
-        metacyc_ontosunburst(metabolic_objects=REF_PWY, output='test')
+        metacyc_ontosunburst(metabolic_objects=REF_PWY, output='test_mc_pwy_prop')
 
     def test_pwy_metacyc_comparison(self):
-        metacyc_ontosunburst(metabolic_objects=PWY_SET, reference_set=REF_PWY, output='test')
+        metacyc_ontosunburst(metabolic_objects=PWY_SET, reference_set=REF_PWY,
+                             output='test_mc_pwy_comp')
 
 
 # EC
@@ -58,7 +68,27 @@ REF_EC = {'2.6.1.45', '1.1.1.25', '1.1.1.140',
 class EcTest(unittest.TestCase):
 
     def test_ec_proportion(self):
-        ec_ontosunburst(ec_set=REF_EC, output='test')
+        ec_ontosunburst(ec_set=REF_EC, output='test_ec_prop')
 
     def test_ec_comparison(self):
-        ec_ontosunburst(ec_set=EC_SET, reference_set=REF_EC, output='test')
+        ec_ontosunburst(ec_set=EC_SET, reference_set=REF_EC, output='test_ec_comp')
+
+
+# CHEBI
+# ==================================================================================================
+
+URL = 'http://localhost:3030/chebi/'
+CH_SET = {'38028', '28604', '85146'}
+REF_CH = {'38028', '28604', '85146',
+          '23066', '27803', '37565',
+          '58215', '79983', '42639'}
+
+
+class ChEbiTest(unittest.TestCase):
+
+    def test_chebi_proportion(self):
+        chebi_ontosunburst(chebi_ids=REF_CH, endpoint_url=URL, output='test_chebi_prop')
+
+    def test_chebi_comparison(self):
+        chebi_ontosunburst(chebi_ids=CH_SET, reference_set=REF_CH, endpoint_url=URL,
+                           output='test_chebi_comp')

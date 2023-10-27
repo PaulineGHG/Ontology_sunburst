@@ -138,7 +138,7 @@ def extract_chebi_roles(chebi_ids: Collection[str], endpoint_url: str) \
             if role not in d_roles_ontology:
                 d_roles_ontology[role] = set()
             d_roles_ontology[role].add(parent_role)
-
+        roles.add('role')
         all_roles[chebi_id] = roles
 
     for c, p in d_roles_ontology.items():

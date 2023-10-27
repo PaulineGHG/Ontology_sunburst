@@ -121,8 +121,8 @@ def chebi_ontosunburst(chebi_ids: Collection[str], endpoint_url: str,
 
     # Comparison figure
     if reference_set is not None:
-        ref_leaf_classes, d_roles_ontology = extract_chebi_roles(reference_set, endpoint_url)
-        return comparison_analysis(ref_leaf_classes, classes_abondance, d_roles_ontology, output,
+        ref_all_classes, d_roles_ontology = extract_chebi_roles(reference_set, endpoint_url)
+        return comparison_analysis(ref_all_classes, classes_abondance, d_roles_ontology, output,
                                    full, None, total, test, CHEBI_ROLE_ROOT)
     # Proportion figure
     else:
@@ -195,7 +195,10 @@ def proportion_analysis(classes_abundance, d_classes_ontology, output, full, nam
 
 def comparison_analysis(ref_leaf_classes, classes_abundance, d_classes_ontology, output, full,
                         names, total, test, root):
-    ref_all_classes = get_all_classes(ref_leaf_classes, d_classes_ontology, root)
+    if root == CHEBI_ROLE_ROOT:
+        ref_all_classes = ref_leaf_classes
+    else:
+        ref_all_classes = get_all_classes(ref_leaf_classes, d_classes_ontology, root)
     ref_classes_abundance = get_classes_abondance(ref_all_classes)
 
     data = get_fig_parameters(classes_abundance, d_classes_ontology,
