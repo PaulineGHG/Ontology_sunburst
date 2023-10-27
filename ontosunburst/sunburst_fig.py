@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Tuple
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -29,7 +29,7 @@ PVAL = 'Pvalue'
 # ==================================================================================================
 def get_fig_parameters(classes_abondance: Dict[str, int], parent_dict: Dict[str, List[str]],
                        children_dict: Dict[str, List[str]], root_item, full: bool = True,
-                       names: Dict = None) -> Dict[str, List]:
+                       names: Dict[str, str] = None) -> Dict[str, List]:
     """ Returns a dictionary of parameters to create the sunburst figure.
 
     Parameters
@@ -44,7 +44,9 @@ def get_fig_parameters(classes_abondance: Dict[str, int], parent_dict: Dict[str,
         True for a full figure with class duplication if a class has +1 parents.
         False to have a reduced vew with all label appearing only once (1 random parent chosen)
     root_item: str
-    names: dict
+        Name of the root item of the ontology
+    names: Dict[str, str]
+        Dictionary associating metabolic object ID to its Name
 
     Returns
     -------
@@ -259,24 +261,58 @@ def get_relative_prop(data: Dict[str, List], p_id: str):
     return data
 
 
-def get_data_prop_diff(data: Dict[str, List], b_classes_abundance):
+def get_data_prop_diff(data: Dict[str, List], ref_classes_abundance: Dict[str, int]):
     i_max_abondance = np.max(data[COUNT])
     i_prop = [x / i_max_abondance for x in data[COUNT]]
-    b_max_abondance = np.max(list(b_classes_abundance.values()))
-    b_prop = [b_classes_abundance[x] / b_max_abondance if x in b_classes_abundance.keys() else 0 for
+    b_max_abondance = np.max(list(ref_classes_abundance.values()))
+    b_prop = [ref_classes_abundance[x] / b_max_abondance if x in ref_classes_abundance.keys() else 0 for
               x in data[LABEL]]
     diff = [i_prop[i] - b_prop[i] for i in range(len(i_prop))]
     data[PROP_DIF] = diff
     return data
 
 
-def get_data_enrichment_analysis(data, b_classes_abundance, test, names):
-    M = np.max(list(b_classes_abundance.values()))
+def get_data_enrichment_analysis(data: Dict[str, List], ref_classes_abundance: Dict[str, int],
+                                 test: str, names: bool) -> Tuple[Dict[str, List], Dict[str, float]]:
+    """ Performs statistical tests for enrichment analysis.
+
+    Parameters
+    ----------
+    data: Dict[str, List]
+        Dictionary with lists of :
+            - ids : ID (str)
+            - labels : Label (str)
+            - parents ids : Parent (str)
+            - abundance value : Count (int)
+            - colors value : Proportion (0 < float <= 1)
+            - branch proportion : Relative_prop
+    ref_classes_abundance: Dict[str, int]
+        Abundances of reference set classes
+    test: str
+        Type of test Binomial or Hypergeometric
+    names: bool
+        True if names associated with labels, False otherwise
+
+    Returns
+    -------
+    Dict[str, List]
+        Dictionary with lists of :
+            - ids : ID (str)
+            - labels : Label (str)
+            - parents ids : Parent (str)
+            - abundance value : Count (int)
+            - colors value : Proportion (0 < float <= 1)
+            - branch proportion : Relative_prop
+            - p-value : P-values of enrichment analysis
+    Dict[str, float]
+        Dictionary of significant metabolic object label associated with their p-value
+    """
+    M = np.max(list(ref_classes_abundance.values()))
     if names:
-        m_list = [b_classes_abundance[x] if x in b_classes_abundance.keys() else 0 for x in
+        m_list = [ref_classes_abundance[x] if x in ref_classes_abundance.keys() else 0 for x in
                   data[IDS]]
     else:
-        m_list = [b_classes_abundance[x] if x in b_classes_abundance.keys() else 0 for x in
+        m_list = [ref_classes_abundance[x] if x in ref_classes_abundance.keys() else 0 for x in
                   data[LABEL]]
     N = np.max(data[COUNT])
     n_list = data[COUNT]
@@ -304,7 +340,7 @@ def get_data_enrichment_analysis(data, b_classes_abundance, test, names):
 
 
 def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: str = None,
-                          sb_type: str = PROPORTION_METHOD, b_classes_abond=None,
+                          sb_type: str = PROPORTION_METHOD, ref_classes_abundance=None,
                           test=BINOMIAL_TEST, names: bool = False, total: bool = True):
     """ Generate a Sunburst figure and save it to output path.
 
@@ -317,13 +353,18 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
             - parents ids : Parent (str)
             - abundance value : Count (int)
             - colors value : Proportion (0 < float <= 1)
-    output: str
+    output: str (optional, default=None)
         Path to output to save the figure without extension
-    sb_type: str
-    b_classes_abond
-    test
-    names
-    total
+    sb_type: str (optional, default=Proportion)
+        Type of sunburst : Proportion or Comparison
+    ref_classes_abundance: Dict[str, int] (optional, default=None)
+        Abundances of reference set classes
+    test: str (optional, default=Binomial)
+        Type of test for enrichment analysis : Binomial or Hypergeometric
+    names: bool (optional, default=False)
+        True if names associated with labels, False otherwise
+    total: bool (optional, default=True)
+        True to have branch values proportional of the total parent
     """
     if total:
         branch_values = 'total'
@@ -344,7 +385,7 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
                                                 colorscale=px.colors.diverging.curl_r,
                                                 cmid=0.5 * max(data[COUNT]), showscale=True)))
     elif sb_type == COMPARISON_METHOD:
-        data, signif = get_data_enrichment_analysis(data, b_classes_abond, test, names)
+        data, signif = get_data_enrichment_analysis(data, ref_classes_abundance, test, names)
         # m = np.mean(data[PROP_DIF])
         fig = make_subplots(rows=1, cols=2,
                             column_widths=[0.3, 0.7],

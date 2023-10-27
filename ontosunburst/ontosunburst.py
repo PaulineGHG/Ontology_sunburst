@@ -206,7 +206,7 @@ def comparison_analysis(ref_leaf_classes, classes_abundance, d_classes_ontology,
     data = get_data_proportion(data, total)
     names = names is not None
     return generate_sunburst_fig(data=data, output=output, sb_type=COMPARISON_METHOD,
-                                 b_classes_abond=ref_classes_abundance, test=test, names=names,
+                                 ref_classes_abundance=ref_classes_abundance, test=test, names=names,
                                  total=total)
 
 

@@ -215,5 +215,3 @@ chebi_ontosunburst(chebi_ids=CH_SET,
                    endpoint_url=URL,
                    output='test_chebi_comp')
 ```
-
-![](https://github.com/PaulineGHG/Ontology_sunburst/blob/dev/tests/expected_figures/test_chebi_comp.html)
