@@ -383,7 +383,9 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
                                                for i in range(len(data[PROP]))],
                                     marker=dict(colors=data[COUNT],
                                                 colorscale=px.colors.diverging.curl_r,
-                                                cmid=0.5 * max(data[COUNT]), showscale=True)))
+                                                cmid=0.5 * max(data[COUNT]), showscale=True,
+                                                colorbar=dict(title=dict(text='Count')))))
+        fig.update_layout(title=dict(text='Proportion of classes', x=0.5, xanchor='center'))
     elif sb_type == COMPARISON_METHOD:
         data, signif = get_data_enrichment_analysis(data, ref_classes_abundance, test, names)
         # m = np.mean(data[PROP_DIF])
@@ -391,7 +393,7 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
                             column_widths=[0.3, 0.7],
                             vertical_spacing=0.03,
                             subplot_titles=('Significant p-values',
-                                            'Metabolites classes enrichment representation'),
+                                            'Classes enrichment representation'),
                             specs=[[{'type': 'table'}, {'type': 'sunburst'}]])
 
         fig.add_trace(go.Sunburst(labels=data[LABEL], parents=data[PARENT],
@@ -410,7 +412,8 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
                                   branchvalues=branch_values,
                                   marker=dict(colors=data[PVAL],
                                               colorscale=px.colors.diverging.RdBu,
-                                              cmid=0, cmax=10.0, cmin=-10.0, showscale=True)),
+                                              cmid=0, cmax=10.0, cmin=-10.0, showscale=True,
+                                              colorbar=dict(title=dict(text='Log10(p-value)')))),
                       row=1, col=2)
 
         fig.add_trace(go.Table(header=dict(values=['Metabolite', f'{test} test P-value'],
