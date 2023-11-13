@@ -116,6 +116,9 @@ metacyc_ontosunburst(metabolic_objects=MET_SET,
                      output='test')
 ```
 
+![MetaCyc Proportion figure](https://github.com/PaulineGHG/Ontology_sunburst/blob/main/tests/expected_figures/png/test_mc_cpd_prop.png)
+
+
 ### EC `ontosunburst.ontosunburst.ec_ontosunburst`
 
 #### Parameters
