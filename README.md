@@ -117,6 +117,7 @@ metacyc_ontosunburst(metabolic_objects=MET_SET,
 ```
 
 ![MetaCyc Proportion figure](https://github.com/PaulineGHG/Ontology_sunburst/blob/main/tests/expected_figures/png/test_mc_cpd_prop.png)
+![MetaCyc Comparison figure](https://github.com/PaulineGHG/Ontology_sunburst/blob/main/tests/expected_figures/png/test_mc_cpd_comp.png)
 
 
 ### EC `ontosunburst.ontosunburst.ec_ontosunburst`
@@ -169,6 +170,9 @@ ec_ontosunburst(ec_set=EC_SET,
                 output='test')
 ```
 
+![EC Proportion figure](https://github.com/PaulineGHG/Ontology_sunburst/blob/main/tests/expected_figures/png/test_ec_prop.png)
+![EC Comparison figure](https://github.com/PaulineGHG/Ontology_sunburst/blob/main/tests/expected_figures/png/test_ec_comp.png)
+
 ### ChEBI ` ontosunburst.ontosunburst.chebi_ontosunburst`
 
 #### Parameters
@@ -218,3 +222,6 @@ chebi_ontosunburst(chebi_ids=CH_SET,
                    endpoint_url=URL,
                    output='test_chebi_comp')
 ```
+
+![ChEBI Proportion figure](https://github.com/PaulineGHG/Ontology_sunburst/blob/main/tests/expected_figures/png/test_chebi_prop.png)
+![ChEBI Comparison figure](https://github.com/PaulineGHG/Ontology_sunburst/blob/main/tests/expected_figures/png/test_chebi_comp.png)
