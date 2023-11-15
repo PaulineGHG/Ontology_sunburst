@@ -339,6 +339,21 @@ def get_data_enrichment_analysis(data: Dict[str, List], ref_classes_abundance: D
     return data, significant_representation
 
 
+def root_cut(data, total_cut=False):
+    max_count = max(data[COUNT])
+    roots_ind = [i for i in range(len(data[IDS])) if data[COUNT][i] == max_count]
+    roots = [data[IDS][i] for i in roots_ind]
+    for root_id in roots:
+        root_ind = data[IDS].index(root_id)
+        for v in data.values():
+            del v[root_ind]
+
+    if total_cut:
+        data[PARENT] = ['' if x in roots else x for x in data[PARENT]]
+
+    return data
+
+
 def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: str = None,
                           sb_type: str = PROPORTION_METHOD, ref_classes_abundance=None,
                           test=BINOMIAL_TEST, names: bool = False, total: bool = True):
@@ -366,6 +381,7 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
     total: bool (optional, default=True)
         True to have branch values proportional of the total parent
     """
+    data = root_cut(data)
     if total:
         branch_values = 'total'
         values = data[R_PROP]
