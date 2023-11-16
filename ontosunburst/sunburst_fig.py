@@ -15,6 +15,8 @@ HYPERGEO_TEST = 'Hypergeometric'
 COMPARISON_METHOD = 'comparison'
 PROPORTION_METHOD = 'proportion'
 
+MAX_RELATIVE_NB = 1000000
+
 # Root cut
 ROOT_CUT = 'cut'
 ROOT_TOTAL_CUT = 'total'
@@ -247,7 +249,7 @@ def get_relative_prop(data: Dict[str, List], p_id: str):
             - branch proportion : Relative_prop --> + actual children values
     """
     if p_id == '':
-        prop_p = 1000000
+        prop_p = MAX_RELATIVE_NB
         count_p = max(data[COUNT])
     else:
         prop_p = data[R_PROP][data[IDS].index(p_id)]
@@ -370,8 +372,7 @@ def data_cut_root(data: Dict[str, List], mode: str) -> Dict[str, List]:
     if mode == ROOT_UNCUT:
         return data
     else:
-        max_count = max(data[COUNT])
-        roots_ind = [i for i in range(len(data[IDS])) if data[COUNT][i] == max_count]
+        roots_ind = [i for i in range(len(data[IDS])) if data[R_PROP][i] == MAX_RELATIVE_NB]
         roots = [data[IDS][i] for i in roots_ind]
         for root_id in roots:
             root_ind = data[IDS].index(root_id)
@@ -435,7 +436,7 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
                                                f'ID: {data[IDS][i]}'
                                                for i in range(len(data[PROP]))],
                                     marker=dict(colors=data[COUNT],
-                                                colorscale=px.colors.diverging.curl_r,
+                                                colorscale=px.colors.sequential.Viridis,
                                                 cmid=0.5 * max(data[COUNT]), showscale=True,
                                                 colorbar=dict(title=dict(text='Count')))))
         fig.update_layout(title=dict(text='Proportion of classes', x=0.5, xanchor='center'))
