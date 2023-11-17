@@ -235,7 +235,7 @@ def proportion_analysis(classes_abundance, d_classes_ontology, output, full, nam
 
 
 def comparison_analysis(ref_leaf_classes, classes_abundance, d_classes_ontology, output, full,
-                        names, total, test, root, root_cut) -> go.Figure:
+                        names, total, test, root, root_cut, ref_base: bool = True) -> go.Figure:
     """ Performs the comparison analysis
 
     Parameters
@@ -250,6 +250,7 @@ def comparison_analysis(ref_leaf_classes, classes_abundance, d_classes_ontology,
     test
     root
     root_cut
+    ref_base
 
     Returns
     -------
@@ -262,8 +263,20 @@ def comparison_analysis(ref_leaf_classes, classes_abundance, d_classes_ontology,
         ref_all_classes = get_all_classes(ref_leaf_classes, d_classes_ontology, root)
     ref_classes_abundance = get_classes_abondance(ref_all_classes)
 
-    data = get_fig_parameters(classes_abundance, d_classes_ontology,
-                              get_children_dict(d_classes_ontology), root, full, names)
+    if ref_base:
+        data = get_fig_parameters(classes_abondance=ref_classes_abundance,
+                                  parent_dict=d_classes_ontology,
+                                  children_dict=get_children_dict(d_classes_ontology),
+                                  root_item=root, subset_abundance=classes_abundance,
+                                  full=full, names=names)
+        for k, v in data.items():
+            print(k, len(v), v)
+    else:
+        data = get_fig_parameters(classes_abondance=classes_abundance,
+                                  parent_dict=d_classes_ontology,
+                                  children_dict=get_children_dict(d_classes_ontology),
+                                  root_item=root, full=full, names=names)
+
     data = get_data_proportion(data, total)
     names = names is not None
     return generate_sunburst_fig(data=data, output=output, sb_type=COMPARISON_METHOD,

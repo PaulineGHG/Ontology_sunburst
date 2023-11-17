@@ -28,6 +28,7 @@ IDS = 'ID'
 PARENT = 'Parent'
 LABEL = 'Label'
 COUNT = 'Count'
+BASE_COUNT = 'Base_count'
 PROP = 'Proportion'
 R_PROP = 'Relative_proportion'
 PROP_DIF = 'Proportion_difference'
@@ -37,7 +38,8 @@ PVAL = 'Pvalue'
 # FUNCTIONS
 # ==================================================================================================
 def get_fig_parameters(classes_abondance: Dict[str, int], parent_dict: Dict[str, List[str]],
-                       children_dict: Dict[str, List[str]], root_item, full: bool = True,
+                       children_dict: Dict[str, List[str]], root_item,
+                       subset_abundance: Dict[str, int] = None, full: bool = True,
                        names: Dict[str, str] = None) -> Dict[str, List]:
     """ Returns a dictionary of parameters to create the sunburst figure.
 
@@ -54,6 +56,7 @@ def get_fig_parameters(classes_abondance: Dict[str, int], parent_dict: Dict[str,
         False to have a reduced vew with all label appearing only once (1 random parent chosen)
     root_item: str
         Name of the root item of the ontology
+    subset_abundance: Dict[str, int] = None
     names: Dict[str, str]
         Dictionary associating metabolic object ID to its Name
 
@@ -65,36 +68,76 @@ def get_fig_parameters(classes_abondance: Dict[str, int], parent_dict: Dict[str,
             - labels : Label (str)
             - parents ids : Parent (str)
             - abundance value : Count (int)
+            - base abundance value : Base_count (int)
     """
     data = {IDS: list(),
             PARENT: list(),
             LABEL: list(),
-            COUNT: list()}
+            COUNT: list(),
+            BASE_COUNT: list()}
     for c_label, c_abundance in classes_abondance.items():
+        c_sub_abundance = get_sub_abundance(subset_abundance, c_label, c_abundance)
+
         if c_label != root_item:
             c_parents = parent_dict[c_label]
-            if names is None:
-                data = add_value_data(data, c_label, c_label, c_abundance, c_parents[0])
-            else:
-                data = add_value_data(data, c_label, names[c_label], c_abundance, c_parents[0])
+            m_id = c_label
+            label = c_label
+
+            if names is not None:
+                label = names[c_label]
+
+            data = add_value_data(data=data,
+                                  m_id=m_id,
+                                  label=label,
+                                  value=c_sub_abundance,
+                                  base_value=c_abundance,
+                                  parent=c_parents[0])
+
             if len(c_parents) > 1 and full:
                 for p in c_parents[1:]:
                     suffix = '__' + p
                     c_id = c_label + suffix
-                    data = add_value_data(data, c_id, c_label, c_abundance, p)
+                    data = add_value_data(data=data,
+                                          m_id=c_id,
+                                          label=c_label,
+                                          value=c_sub_abundance,
+                                          base_value=c_abundance,
+                                          parent=p)
+
                     if c_label in children_dict.keys():
                         c_children = children_dict[c_label]
                         for c in c_children:
-                            data = add_children(data, suffix, c, c_id, classes_abondance,
-                                                children_dict)
+                            data = add_children(data=data,
+                                                origin=suffix,
+                                                child=c,
+                                                parent=c_id,
+                                                classes_abondance=classes_abondance,
+                                                subset_abundance=subset_abundance,
+                                                children_dict=children_dict)
         else:
-            data = add_value_data(data, c_label, c_label, c_abundance, '')
+            data = add_value_data(data=data,
+                                  m_id=c_label,
+                                  label=c_label,
+                                  value=c_sub_abundance,
+                                  base_value=c_abundance,
+                                  parent='')
 
     return data
 
 
-def add_value_data(data: Dict[str, List], m_id: str, label: str, value: int, parent: str) -> \
-        Dict[str, List]:
+def get_sub_abundance(subset_abundance, c_label, c_abundance):
+    if subset_abundance is not None:
+        try:
+            c_sub_abundance = subset_abundance[c_label]
+        except KeyError:
+            c_sub_abundance = 0
+    else:
+        c_sub_abundance = c_abundance
+    return c_sub_abundance
+
+
+def add_value_data(data: Dict[str, List], m_id: str, label: str, value: int, base_value: int,
+                   parent: str) -> Dict[str, List]:
     """ Fill the data dictionary for a metabolite class.
 
     Parameters
@@ -105,12 +148,15 @@ def add_value_data(data: Dict[str, List], m_id: str, label: str, value: int, par
             - labels : Label (str)
             - parents ids : Parent (str)
             - abundance value : Count (int)
+            - base abundance value : Base_count (int)
     m_id: str
         ID of the metabolite class to add
     label: str
         Label (name) of the metabolite class to add
     value: int
         Abundance value of the metabolite class to add
+    base_value: int
+
     parent: str
         Parent metabolite class of the metabolite class to add
 
@@ -122,16 +168,19 @@ def add_value_data(data: Dict[str, List], m_id: str, label: str, value: int, par
             - labels : Label (str)
             - parents ids : Parent (str)
             - abundance value : Count (int)
+            - base abundance value : Base_count (int)
     """
     data[IDS].append(m_id)
     data[LABEL].append(label)
     data[PARENT].append(parent)
     data[COUNT].append(value)
+    data[BASE_COUNT].append(base_value)
     return data
 
 
 def add_children(data: Dict[str, List], origin: str, child: str, parent: str,
-                 classes_abondance: Dict[str, int], children_dict: Dict[str, List[str]]) \
+                 classes_abondance: Dict[str, int],
+                 subset_abundance, children_dict: Dict[str, List[str]]) \
         -> Dict[str, List]:
     """ Add recursively all children of a given class to the data dictionary.
 
@@ -143,6 +192,7 @@ def add_children(data: Dict[str, List], origin: str, child: str, parent: str,
             - labels : Label (str)
             - parents ids : Parent (str)
             - abundance value : Count (int)
+            - base abundance value : Base_count (int)
     origin: str
         Origin of propagation : parent class of parent
     child: str
@@ -151,6 +201,7 @@ def add_children(data: Dict[str, List], origin: str, child: str, parent: str,
         Parent metabolite class
     classes_abondance: Dict[str, int]
         Dictionary associating for each class the number of metabolites found belonging to the class.
+    subset_abundance
     children_dict: Dict[str, List[str]]
         Dictionary associating for each class, its children classes
 
@@ -162,17 +213,29 @@ def add_children(data: Dict[str, List], origin: str, child: str, parent: str,
             - labels : Label (str)
             - parents ids : Parent (str)
             - abundance value : Count (int)
+            - base abundance value : Base_count (int)
     """
     if child in classes_abondance.keys():
-        data[IDS].append(child + origin)
-        data[LABEL].append(child)
-        data[PARENT].append(parent)
-        data[COUNT].append(classes_abondance[child])
+        c_sub_value = get_sub_abundance(subset_abundance, child, classes_abondance[child])
+
+        data = add_value_data(data=data,
+                              m_id=child + origin,
+                              label=child,
+                              value=c_sub_value,
+                              base_value=classes_abondance[child],
+                              parent=parent)
+
         if child in children_dict.keys():
             origin_2 = origin + '__' + child
             cs = children_dict[child]
             for c in cs:
-                add_children(data, origin_2, c, child + origin, classes_abondance, children_dict)
+                add_children(data=data,
+                             origin=origin_2,
+                             child=c,
+                             parent=child + origin,
+                             classes_abondance=classes_abondance,
+                             subset_abundance=subset_abundance,
+                             children_dict=children_dict)
     return data
 
 
@@ -250,13 +313,13 @@ def get_relative_prop(data: Dict[str, List], p_id: str):
     """
     if p_id == '':
         prop_p = MAX_RELATIVE_NB
-        count_p = max(data[COUNT])
+        count_p = max(data[BASE_COUNT])
     else:
         prop_p = data[R_PROP][data[IDS].index(p_id)]
-        count_p = data[COUNT][data[IDS].index(p_id)]
+        count_p = data[BASE_COUNT][data[IDS].index(p_id)]
     index_p = [i for i, v in enumerate(data[PARENT]) if v == p_id]
     p_children = [data[IDS][i] for i in index_p]
-    count_p_children = [data[COUNT][i] for i in index_p]
+    count_p_children = [data[BASE_COUNT][i] for i in index_p]
     if sum(count_p_children) > count_p:
         total = sum(count_p_children)
     else:
