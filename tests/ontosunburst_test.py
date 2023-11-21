@@ -33,12 +33,13 @@ REF_PWY = {'2ASDEG-PWY', '4AMINOBUTMETAB-PWY', 'ALLANTOINDEG-PWY',
 class MetacycTest(unittest.TestCase):
     # Compounds
     def test_cpd_metacyc_proportion(self):
-        fig = metacyc_ontosunburst(metabolic_objects=REF_MET, output='test_mc_cpd_prop')
+        fig = metacyc_ontosunburst(metabolic_objects=MET_SET, reference_set=REF_MET,
+                                   output='test_mc_cpd_prop', ref_base=True)
         fig.write_image('test_mc_cpd_prop.png', width=1900, height=1000, scale=1)
 
     def test_cpd_metacyc_comparison(self):
         fig = metacyc_ontosunburst(metabolic_objects=MET_SET, reference_set=REF_MET,
-                                   output='test_mc_cpd_comp')
+                                   analysis=ENRICHMENT_A, output='test_mc_cpd_comp')
         fig.write_image('test_mc_cpd_comp.png', width=1900, height=1000, scale=1)
     # Reactions
     def test_rxn_metacyc_proportion(self):

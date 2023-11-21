@@ -130,7 +130,7 @@ def get_sub_abundance(subset_abundance, c_label, c_abundance):
         try:
             c_sub_abundance = subset_abundance[c_label]
         except KeyError:
-            c_sub_abundance = 0
+            c_sub_abundance = np.nan
     else:
         c_sub_abundance = c_abundance
     return c_sub_abundance
@@ -266,7 +266,7 @@ def get_data_proportion(data: Dict[str, List], total: bool) -> Dict[str, List]:
             - branch proportion : Relative_prop
     """
     # Get total proportion
-    max_abondance = np.max(data[COUNT])
+    max_abondance = int(np.nanmax(data[COUNT]))
     data[PROP] = [x / max_abondance for x in data[COUNT]]
     # Get proportion relative to +1 parent proportion for total branch value
     if total:
@@ -333,17 +333,6 @@ def get_relative_prop(data: Dict[str, List], p_id: str):
     return data
 
 
-def get_data_prop_diff(data: Dict[str, List], ref_classes_abundance: Dict[str, int]):
-    i_max_abondance = np.max(data[COUNT])
-    i_prop = [x / i_max_abondance for x in data[COUNT]]
-    b_max_abondance = np.max(list(ref_classes_abundance.values()))
-    b_prop = [ref_classes_abundance[x] / b_max_abondance if x in ref_classes_abundance.keys() else 0 for
-              x in data[LABEL]]
-    diff = [i_prop[i] - b_prop[i] for i in range(len(i_prop))]
-    data[PROP_DIF] = diff
-    return data
-
-
 def get_data_enrichment_analysis(data: Dict[str, List], ref_classes_abundance: Dict[str, int],
                                  test: str, names: bool) -> Tuple[Dict[str, List], Dict[str, float]]:
     """ Performs statistical tests for enrichment analysis.
@@ -386,26 +375,34 @@ def get_data_enrichment_analysis(data: Dict[str, List], ref_classes_abundance: D
     else:
         m_list = [ref_classes_abundance[x] if x in ref_classes_abundance.keys() else 0 for x in
                   data[LABEL]]
-    N = np.max(data[COUNT])
+    N = int(np.nanmax(data[COUNT]))
+    print(N)
     n_list = data[COUNT]
+    print(n_list)
     data[PVAL] = list()
-    nb_classes = len(set(data[IDS]))
+    nb_classes = len(set([data[LABEL][i]
+                         for i in range(len(data[COUNT]))
+                         if data[COUNT][i] != np.nan]))
     significant_representation = dict()
     for i in range(len(m_list)):
-        # Binomial Test
-        if test == BINOMIAL_TEST:
-            p_val = stats.binomtest(n_list[i], N, m_list[i] / M, alternative='two-sided').pvalue
-        # Hypergeometric Test
-        elif test == HYPERGEO_TEST:
-            p_val = stats.hypergeom.sf(n_list[i] - 1, M, m_list[i], N)
+        if type(n_list[i]) == int:
+            print(n_list[i])
+            # Binomial Test
+            if test == BINOMIAL_TEST:
+                p_val = stats.binomtest(n_list[i], N, m_list[i] / M, alternative='two-sided').pvalue
+            # Hypergeometric Test
+            elif test == HYPERGEO_TEST:
+                p_val = stats.hypergeom.sf(n_list[i] - 1, M, m_list[i], N)
+            else:
+                raise ValueError(f'test parameter must be in : {[BINOMIAL_TEST, HYPERGEO_TEST]}')
+            if ((n_list[i] / N) - (m_list[i] / M)) > 0:
+                data[PVAL].append(-np.log10(p_val))
+            else:
+                data[PVAL].append(np.log10(p_val))
+            if p_val < 0.05 / nb_classes:
+                significant_representation[data[LABEL][i]] = p_val.round(10)
         else:
-            raise ValueError(f'test parameter must be in : {[BINOMIAL_TEST, HYPERGEO_TEST]}')
-        if ((n_list[i] / N) - (m_list[i] / M)) > 0:
-            data[PVAL].append(-np.log10(p_val))
-        else:
-            data[PVAL].append(np.log10(p_val))
-        if p_val < 0.05 / nb_classes:
-            significant_representation[data[LABEL][i]] = p_val.round(10)
+            data[PVAL].append(np.nan)
     significant_representation = dict(
         sorted(significant_representation.items(), key=lambda item: item[1]))
     return data, significant_representation
@@ -500,12 +497,11 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
                                                for i in range(len(data[PROP]))],
                                     marker=dict(colors=data[COUNT],
                                                 colorscale=px.colors.sequential.Viridis,
-                                                cmid=0.5 * max(data[COUNT]), showscale=True,
+                                                cmin=1, showscale=True,
                                                 colorbar=dict(title=dict(text='Count')))))
         fig.update_layout(title=dict(text='Proportion of classes', x=0.5, xanchor='center'))
     elif sb_type == COMPARISON_METHOD:
         data, signif = get_data_enrichment_analysis(data, ref_classes_abundance, test, names)
-        # m = np.mean(data[PROP_DIF])
         fig = make_subplots(rows=1, cols=2,
                             column_widths=[0.3, 0.7],
                             vertical_spacing=0.03,

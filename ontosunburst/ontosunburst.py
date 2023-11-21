@@ -30,12 +30,17 @@ METACYC_ROOT = 'FRAMES'
 CHEBI_ROLE_ROOT = 'role'
 EC_ROOT = 'Enzyme'
 
+TOPOLOGY_A = 'topology'
+ENRICHMENT_A = 'enrichment'
+
 
 # WORKFLOW =========================================================================================
 def metacyc_ontosunburst(metabolic_objects: Collection[str], reference_set: Collection[str] = None,
+                         analysis: str = TOPOLOGY_A,
                          output: str = None, class_file: str = CLASS_FILE,
                          padmet_ref: str = METACYC_FILE, test: str = BINOMIAL_TEST,
-                         full: bool = True, total: bool = True, root_cut: str = ROOT_CUT) \
+                         full: bool = True, total: bool = True, root_cut: str = ROOT_CUT,
+                         ref_base: bool = True) \
         -> go.Figure:
     """ Classify and plot a sunburst from a list of metabolic objects with MetaCyc ontology Ids
 
@@ -45,6 +50,8 @@ def metacyc_ontosunburst(metabolic_objects: Collection[str], reference_set: Coll
         Set of metabolic objects to classify
     reference_set: Collection[str] (optional, default=None)
         Set of reference metabolic objects
+    analysis: str (optional, default=)
+
     output: str (optional, default=None)
         Path to output to save figure
     class_file: str (optional, default=CLASS_FILE)
@@ -59,6 +66,8 @@ def metacyc_ontosunburst(metabolic_objects: Collection[str], reference_set: Coll
         True to have branch values proportional of the total parent (may not work in some cases)
     root_cut: str (optional, default=ROOT_CUT)
         mode for root cutting (uncut, cut, total)
+    ref_base: bool (optional, default=True)
+
 
     Returns
     -------
@@ -74,25 +83,34 @@ def metacyc_ontosunburst(metabolic_objects: Collection[str], reference_set: Coll
     obj_leaf_classes = extract_metacyc_classes(metabolic_objects, padmet_ref)
     obj_all_classes = get_all_classes(obj_leaf_classes, d_classes_ontology, METACYC_ROOT)
     classes_abundance = get_classes_abondance(obj_all_classes)
-
-    # Comparison figure
     if reference_set is not None:
-        if output is not None:
-            write_met_classes(obj_all_classes, output, padmet_ref)
         ref_leaf_classes = extract_metacyc_classes(reference_set, padmet_ref)
-        return comparison_analysis(ref_leaf_classes=ref_leaf_classes,
+    else:
+        ref_leaf_classes = None
+    if output is not None:
+        write_met_classes(obj_all_classes, output, padmet_ref)
+
+    # Enrichment figure
+    if analysis == ENRICHMENT_A:
+        if ref_leaf_classes is not None:
+            return comparison_analysis(ref_leaf_classes=ref_leaf_classes,
+                                       classes_abundance=classes_abundance,
+                                       d_classes_ontology=d_classes_ontology,
+                                       output=output, full=full, names=None, total=total, test=test,
+                                       root=METACYC_ROOT, root_cut=root_cut, ref_base=ref_base)
+        else:
+            raise AttributeError('Missing reference set parameter')
+
+    # Proportion figure
+    elif analysis == TOPOLOGY_A:
+        return proportion_analysis(ref_leaf_classes=ref_leaf_classes,
                                    classes_abundance=classes_abundance,
                                    d_classes_ontology=d_classes_ontology,
-                                   output=output, full=full, names=None, total=total, test=test,
-                                   root=METACYC_ROOT, root_cut=root_cut)
-    # Proportion figure
-    else:
-        if output is not None:
-            write_met_classes(obj_all_classes, output, padmet_ref)
-        return proportion_analysis(classes_abundance=classes_abundance,
-                                   d_classes_ontology=d_classes_ontology,
                                    output=output, full=full, names=None, total=total,
-                                   root=METACYC_ROOT, root_cut=root_cut)
+                                   root=METACYC_ROOT, root_cut=root_cut, ref_base=ref_base)
+
+    else:
+        raise ValueError('')
 
 
 def chebi_ontosunburst(chebi_ids: Collection[str], endpoint_url: str,
@@ -206,12 +224,13 @@ def ec_ontosunburst(ec_set: Collection[str], reference_set: Collection[str] = No
 
 # FUNCTIONS ========================================================================================
 
-def proportion_analysis(classes_abundance, d_classes_ontology, output, full, names, total, root,
-                        root_cut) -> go.Figure:
+def proportion_analysis(ref_leaf_classes, classes_abundance, d_classes_ontology, output, full,
+                        names, total, root, root_cut, ref_base) -> go.Figure:
     """ Performs the proportion analysis
 
     Parameters
     ----------
+    ref_leaf_classes
     classes_abundance
     d_classes_ontology
     output
@@ -220,18 +239,54 @@ def proportion_analysis(classes_abundance, d_classes_ontology, output, full, nam
     total
     root
     root_cut
+    ref_base
 
     Returns
     -------
     go.Figure
         Plotly graph_objects figure of the sunburst
     """
-    data = get_fig_parameters(classes_abundance, d_classes_ontology,
-                              get_children_dict(d_classes_ontology), root, full, names)
-    data = get_data_proportion(data, total)
-    names = names is not None
-    return generate_sunburst_fig(data=data, output=output, sb_type=PROPORTION_METHOD,
-                                 names=names, total=total, root_cut=root_cut)
+    # data = get_fig_parameters(classes_abundance, d_classes_ontology,
+    #                           get_children_dict(d_classes_ontology), root, full, names)
+    # data = get_data_proportion(data, total)
+    # names = names is not None
+    # return generate_sunburst_fig(data=data, output=output, sb_type=PROPORTION_METHOD,
+    #                              names=names, total=total, root_cut=root_cut)
+    if ref_leaf_classes is not None:
+        if root == CHEBI_ROLE_ROOT:
+            ref_all_classes = ref_leaf_classes
+        else:
+            ref_all_classes = get_all_classes(ref_leaf_classes, d_classes_ontology, root)
+        ref_classes_abundance = get_classes_abondance(ref_all_classes)
+
+        if ref_base:
+            data = get_fig_parameters(classes_abondance=ref_classes_abundance,
+                                      parent_dict=d_classes_ontology,
+                                      children_dict=get_children_dict(d_classes_ontology),
+                                      root_item=root, subset_abundance=classes_abundance,
+                                      full=full, names=names)
+
+        else:
+            data = get_fig_parameters(classes_abondance=classes_abundance,
+                                      parent_dict=d_classes_ontology,
+                                      children_dict=get_children_dict(d_classes_ontology),
+                                      root_item=root, full=full, names=names)
+
+        data = get_data_proportion(data, total)
+        names = names is not None
+        return generate_sunburst_fig(data=data, output=output, sb_type=PROPORTION_METHOD,
+                                     ref_classes_abundance=ref_classes_abundance, names=names,
+                                     total=total, root_cut=root_cut)
+
+    else:
+        data = get_fig_parameters(classes_abondance=classes_abundance,
+                                  parent_dict=d_classes_ontology,
+                                  children_dict=get_children_dict(d_classes_ontology),
+                                  root_item=root, full=full, names=names)
+        data = get_data_proportion(data, total)
+        names = names is not None
+        return generate_sunburst_fig(data=data, output=output, sb_type=PROPORTION_METHOD,
+                                     names=names, total=total, root_cut=root_cut)
 
 
 def comparison_analysis(ref_leaf_classes, classes_abundance, d_classes_ontology, output, full,
@@ -280,8 +335,8 @@ def comparison_analysis(ref_leaf_classes, classes_abundance, d_classes_ontology,
     data = get_data_proportion(data, total)
     names = names is not None
     return generate_sunburst_fig(data=data, output=output, sb_type=COMPARISON_METHOD,
-                                 ref_classes_abundance=ref_classes_abundance, test=test, names=names,
-                                 total=total, root_cut=root_cut)
+                                 ref_classes_abundance=ref_classes_abundance, test=test,
+                                 names=names, total=total, root_cut=root_cut)
 
 
 def write_met_classes(all_classes, output, pref):
