@@ -39,7 +39,7 @@ class MetacycTest(unittest.TestCase):
 
     def test_cpd_metacyc_comparison(self):
         fig = metacyc_ontosunburst(metabolic_objects=MET_SET, reference_set=REF_MET,
-                                   analysis=ENRICHMENT_A, output='test_mc_cpd_comp')
+                                   analysis=ENRICHMENT_A, output='test_mc_cpd_comp', ref_base=True)
         fig.write_image('test_mc_cpd_comp.png', width=1900, height=1000, scale=1)
     # Reactions
     def test_rxn_metacyc_proportion(self):

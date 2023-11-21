@@ -12,8 +12,8 @@ BINOMIAL_TEST = 'Binomial'
 HYPERGEO_TEST = 'Hypergeometric'
 
 # Analysis method
-COMPARISON_METHOD = 'comparison'
-PROPORTION_METHOD = 'proportion'
+TOPOLOGY_A = 'topology'
+ENRICHMENT_A = 'enrichment'
 
 MAX_RELATIVE_NB = 1000000
 
@@ -28,10 +28,10 @@ IDS = 'ID'
 PARENT = 'Parent'
 LABEL = 'Label'
 COUNT = 'Count'
-BASE_COUNT = 'Base_count'
+REF_COUNT = 'Reference count'
 PROP = 'Proportion'
-R_PROP = 'Relative_proportion'
-PROP_DIF = 'Proportion_difference'
+REF_PROP = 'Reference proportion'
+RELAT_PROP = 'Relative proportion'
 PVAL = 'Pvalue'
 
 
@@ -68,13 +68,13 @@ def get_fig_parameters(classes_abondance: Dict[str, int], parent_dict: Dict[str,
             - labels : Label (str)
             - parents ids : Parent (str)
             - abundance value : Count (int)
-            - base abundance value : Base_count (int)
+            - reference abundance value : Reference_count (int)
     """
     data = {IDS: list(),
             PARENT: list(),
             LABEL: list(),
             COUNT: list(),
-            BASE_COUNT: list()}
+            REF_COUNT: list()}
     for c_label, c_abundance in classes_abondance.items():
         c_sub_abundance = get_sub_abundance(subset_abundance, c_label, c_abundance)
 
@@ -148,7 +148,7 @@ def add_value_data(data: Dict[str, List], m_id: str, label: str, value: int, bas
             - labels : Label (str)
             - parents ids : Parent (str)
             - abundance value : Count (int)
-            - base abundance value : Base_count (int)
+            - reference abundance value : Reference_count (int)
     m_id: str
         ID of the metabolite class to add
     label: str
@@ -168,13 +168,13 @@ def add_value_data(data: Dict[str, List], m_id: str, label: str, value: int, bas
             - labels : Label (str)
             - parents ids : Parent (str)
             - abundance value : Count (int)
-            - base abundance value : Base_count (int)
+            - reference abundance value : Reference_count (int)
     """
     data[IDS].append(m_id)
     data[LABEL].append(label)
     data[PARENT].append(parent)
     data[COUNT].append(value)
-    data[BASE_COUNT].append(base_value)
+    data[REF_COUNT].append(base_value)
     return data
 
 
@@ -192,7 +192,7 @@ def add_children(data: Dict[str, List], origin: str, child: str, parent: str,
             - labels : Label (str)
             - parents ids : Parent (str)
             - abundance value : Count (int)
-            - base abundance value : Base_count (int)
+            - reference abundance value : Reference_count (int)
     origin: str
         Origin of propagation : parent class of parent
     child: str
@@ -213,7 +213,7 @@ def add_children(data: Dict[str, List], origin: str, child: str, parent: str,
             - labels : Label (str)
             - parents ids : Parent (str)
             - abundance value : Count (int)
-            - base abundance value : Base_count (int)
+            - reference abundance value : Reference_count (int)
     """
     if child in classes_abondance.keys():
         c_sub_value = get_sub_abundance(subset_abundance, child, classes_abondance[child])
@@ -251,6 +251,7 @@ def get_data_proportion(data: Dict[str, List], total: bool) -> Dict[str, List]:
             - labels : Label (str)
             - parents ids : Parent (str)
             - abundance value : Count (int)
+            - reference abundance value : Reference_count (int)
     total: bool
         True to have branch values proportional of the total parent
 
@@ -262,24 +263,29 @@ def get_data_proportion(data: Dict[str, List], total: bool) -> Dict[str, List]:
             - labels : Label (str)
             - parents ids : Parent (str)
             - abundance value : Count (int)
-            - colors value : Proportion (0 < float <= 1)
+            - reference abundance value : Reference_count (int)
+            - proportion : Proportion (0 < float <= 1)
+            - reference proportion : Reference_proportion (0 < float <= 1)
             - branch proportion : Relative_prop
     """
     # Get total proportion
     max_abondance = int(np.nanmax(data[COUNT]))
     data[PROP] = [x / max_abondance for x in data[COUNT]]
+    # Get reference proportion
+    max_ref_abondance = np.max(data[REF_COUNT])
+    data[REF_PROP] = [x / max_ref_abondance for x in data[REF_COUNT]]
     # Get proportion relative to +1 parent proportion for total branch value
     if total:
-        data[R_PROP] = [x for x in data[PROP]]
+        data[RELAT_PROP] = [x for x in data[PROP]]
         p = ''
         data = get_relative_prop(data, p)
         # TODO : IDK WHY IT WORKS ???
-        missed = [data[IDS][i] for i in range(len(data[IDS])) if data[R_PROP][i] < 1]
+        missed = [data[IDS][i] for i in range(len(data[IDS])) if data[RELAT_PROP][i] < 1]
         if missed:
             parents = {data[PARENT][data[IDS].index(m)] for m in missed}
             for p in parents:
                 data = get_relative_prop(data, p)
-            missed = [data[IDS][i] for i in range(len(data[IDS])) if data[R_PROP][i] < 1]
+            missed = [data[IDS][i] for i in range(len(data[IDS])) if data[RELAT_PROP][i] < 1]
     return data
 
 
@@ -295,7 +301,9 @@ def get_relative_prop(data: Dict[str, List], p_id: str):
             - labels : Label (str)
             - parents ids : Parent (str)
             - abundance value : Count (int)
-            - colors value : Proportion (0 < float <= 1)
+            - reference abundance value : Reference_count (int)
+            - proportion : Proportion (0 < float <= 1)
+            - reference proportion : Reference_proportion (0 < float <= 1)
             - branch proportion : Relative_prop
     p_id: str
         ID of the parent
@@ -308,25 +316,27 @@ def get_relative_prop(data: Dict[str, List], p_id: str):
             - labels : Label (str)
             - parents ids : Parent (str)
             - abundance value : Count (int)
-            - colors value : Proportion (0 < float <= 1)
+            - reference abundance value : Reference_count (int)
+            - proportion : Proportion (0 < float <= 1)
+            - reference proportion : Reference_proportion (0 < float <= 1)
             - branch proportion : Relative_prop --> + actual children values
     """
     if p_id == '':
         prop_p = MAX_RELATIVE_NB
-        count_p = max(data[BASE_COUNT])
+        count_p = max(data[REF_COUNT])
     else:
-        prop_p = data[R_PROP][data[IDS].index(p_id)]
-        count_p = data[BASE_COUNT][data[IDS].index(p_id)]
+        prop_p = data[RELAT_PROP][data[IDS].index(p_id)]
+        count_p = data[REF_COUNT][data[IDS].index(p_id)]
     index_p = [i for i, v in enumerate(data[PARENT]) if v == p_id]
     p_children = [data[IDS][i] for i in index_p]
-    count_p_children = [data[BASE_COUNT][i] for i in index_p]
+    count_p_children = [data[REF_COUNT][i] for i in index_p]
     if sum(count_p_children) > count_p:
         total = sum(count_p_children)
     else:
         total = count_p
     for i, c in enumerate(p_children):
         prop_c = int((count_p_children[i] / total) * prop_p)
-        data[R_PROP][data[IDS].index(c)] = prop_c
+        data[RELAT_PROP][data[IDS].index(c)] = prop_c
     for c in p_children:
         if c in data[PARENT]:
             data = get_relative_prop(data, c)
@@ -334,7 +344,8 @@ def get_relative_prop(data: Dict[str, List], p_id: str):
 
 
 def get_data_enrichment_analysis(data: Dict[str, List], ref_classes_abundance: Dict[str, int],
-                                 test: str, names: bool) -> Tuple[Dict[str, List], Dict[str, float]]:
+                                 test: str, names: bool) -> Tuple[
+    Dict[str, List], Dict[str, float]]:
     """ Performs statistical tests for enrichment analysis.
 
     Parameters
@@ -345,7 +356,9 @@ def get_data_enrichment_analysis(data: Dict[str, List], ref_classes_abundance: D
             - labels : Label (str)
             - parents ids : Parent (str)
             - abundance value : Count (int)
-            - colors value : Proportion (0 < float <= 1)
+            - reference abundance value : Reference_count (int)
+            - proportion : Proportion (0 < float <= 1)
+            - reference proportion : Reference_proportion (0 < float <= 1)
             - branch proportion : Relative_prop
     ref_classes_abundance: Dict[str, int]
         Abundances of reference set classes
@@ -362,7 +375,9 @@ def get_data_enrichment_analysis(data: Dict[str, List], ref_classes_abundance: D
             - labels : Label (str)
             - parents ids : Parent (str)
             - abundance value : Count (int)
-            - colors value : Proportion (0 < float <= 1)
+            - reference abundance value : Reference_count (int)
+            - proportion : Proportion (0 < float <= 1)
+            - reference proportion : Reference_proportion (0 < float <= 1)
             - branch proportion : Relative_prop
             - p-value : P-values of enrichment analysis
     Dict[str, float]
@@ -381,8 +396,8 @@ def get_data_enrichment_analysis(data: Dict[str, List], ref_classes_abundance: D
     print(n_list)
     data[PVAL] = list()
     nb_classes = len(set([data[LABEL][i]
-                         for i in range(len(data[COUNT]))
-                         if data[COUNT][i] != np.nan]))
+                          for i in range(len(data[COUNT]))
+                          if data[COUNT][i] != np.nan]))
     significant_representation = dict()
     for i in range(len(m_list)):
         if type(n_list[i]) == int:
@@ -432,7 +447,7 @@ def data_cut_root(data: Dict[str, List], mode: str) -> Dict[str, List]:
     if mode == ROOT_UNCUT:
         return data
     else:
-        roots_ind = [i for i in range(len(data[IDS])) if data[R_PROP][i] == MAX_RELATIVE_NB]
+        roots_ind = [i for i in range(len(data[IDS])) if data[RELAT_PROP][i] == MAX_RELATIVE_NB]
         roots = [data[IDS][i] for i in roots_ind]
         for root_id in roots:
             root_ind = data[IDS].index(root_id)
@@ -446,9 +461,9 @@ def data_cut_root(data: Dict[str, List], mode: str) -> Dict[str, List]:
 
 
 def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: str = None,
-                          sb_type: str = PROPORTION_METHOD, ref_classes_abundance=None,
+                          analysis: str = TOPOLOGY_A, ref_classes_abundance=None,
                           test=BINOMIAL_TEST, names: bool = False, total: bool = True,
-                          root_cut: str = ROOT_CUT) -> go.Figure:
+                          root_cut: str = ROOT_CUT, ref_base: bool = True) -> go.Figure:
     """ Generate a Sunburst figure and save it to output path.
 
     Parameters
@@ -459,11 +474,14 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
             - labels : Label (str)
             - parents ids : Parent (str)
             - abundance value : Count (int)
-            - colors value : Proportion (0 < float <= 1)
+            - reference abundance value : Reference_count (int)
+            - proportion : Proportion (0 < float <= 1)
+            - reference proportion : Reference_proportion (0 < float <= 1)
+            - branch proportion : Relative_prop
     output: str (optional, default=None)
         Path to output to save the figure without extension
-    sb_type: str (optional, default=Proportion)
-        Type of sunburst : Proportion or Comparison
+    analysis: str (optional, default=topology)
+        Analysis mode : topology or enrichment
     ref_classes_abundance: Dict[str, int] (optional, default=None)
         Abundances of reference set classes
     test: str (optional, default=Binomial)
@@ -474,6 +492,7 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
         True to have branch values proportional of the total parent
     root_cut: str (optional, default=ROOT_CUT)
         mode for root cutting (uncut, cut, total)
+    ref_base: bool (optional, default=True)
 
     Returns
     -------
@@ -482,25 +501,22 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
     data = data_cut_root(data, root_cut)
     if total:
         branch_values = 'total'
-        values = data[R_PROP]
+        values = data[RELAT_PROP]
     else:
         branch_values = 'remainder'
         values = data[COUNT]
-    if sb_type == PROPORTION_METHOD:
+    if analysis == TOPOLOGY_A:
         fig = go.Figure(go.Sunburst(labels=data[LABEL], parents=data[PARENT], values=values,
                                     ids=data[IDS],
                                     hoverinfo='label+text', maxdepth=7,
                                     branchvalues=branch_values,
-                                    hovertext=[f'Count: {data[COUNT][i]}<br>'
-                                               f'Proportion: {round(data[PROP][i]*100, 2)}%<br>'
-                                               f'ID: {data[IDS][i]}'
-                                               for i in range(len(data[PROP]))],
+                                    hovertext=get_hover_fig_text(data, TOPOLOGY_A, ref_base),
                                     marker=dict(colors=data[COUNT],
                                                 colorscale=px.colors.sequential.Viridis,
                                                 cmin=1, showscale=True,
                                                 colorbar=dict(title=dict(text='Count')))))
         fig.update_layout(title=dict(text='Proportion of classes', x=0.5, xanchor='center'))
-    elif sb_type == COMPARISON_METHOD:
+    elif analysis == ENRICHMENT_A:
         data, signif = get_data_enrichment_analysis(data, ref_classes_abundance, test, names)
         fig = make_subplots(rows=1, cols=2,
                             column_widths=[0.3, 0.7],
@@ -511,16 +527,7 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
 
         fig.add_trace(go.Sunburst(labels=data[LABEL], parents=data[PARENT],
                                   values=values, ids=data[IDS],
-                                  hovertext=[f'P value: {10 ** (-data[PVAL][i])}<br>'
-                                             f'Count: {data[COUNT][i]}<br>'
-                                             f'Proportion: {round(data[PROP][i]*100, 2)}%<br>'
-                                             f'ID: {data[IDS][i]}'
-                                             if data[PVAL][i] > 0 else
-                                             f'P value: {10 ** data[PVAL][i]}<br>'
-                                             f'Count: {data[COUNT][i]}<br>'
-                                             f'Proportion: {round(data[PROP][i]*100, 2)}%<br>'
-                                             f'ID: {data[IDS][i]}'
-                                             for i in range(len(data[PVAL]))],
+                                  hovertext=get_hover_fig_text(data, ENRICHMENT_A, ref_base),
                                   hoverinfo='label+text', maxdepth=7,
                                   branchvalues=branch_values,
                                   marker=dict(colors=data[PVAL],
@@ -543,3 +550,34 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
     if output is not None:
         fig.write_html(f'{output}.html')
     return fig
+
+
+def get_hover_fig_text(data, analysis, ref_base):
+    if analysis == ENRICHMENT_A:
+        return [f'P value: {10 ** (-data[PVAL][i])}<br>'
+                f'{COUNT}: <b>{data[COUNT][i]}</b><br>'
+                f'{REF_COUNT}: {data[REF_COUNT][i]}<br>'
+                f'{PROP}: <b>{round(data[PROP][i] * 100, 2)}%</b><br>'
+                f'{REF_PROP}: {round(data[REF_PROP][i] * 100, 2)}%<br>'
+                f'{IDS}: {data[IDS][i]}'
+                if data[PVAL][i] > 0 else
+                f'P value: {10 ** data[PVAL][i]}<br>'
+                f'{COUNT}: <b>{data[COUNT][i]}</b><br>'
+                f'{REF_COUNT}: {data[REF_COUNT][i]}<br>'
+                f'{PROP}: <b>{round(data[PROP][i] * 100, 2)}%</b><br>'
+                f'{REF_PROP}: {round(data[REF_PROP][i] * 100, 2)}%<br>'
+                f'{IDS}: {data[IDS][i]}'
+                for i in range(len(data[PVAL]))]
+    elif analysis == TOPOLOGY_A:
+        if ref_base:
+            return [f'{COUNT}: <b>{data[COUNT][i]}</b><br>'
+                    f'{REF_COUNT}: {data[REF_COUNT][i]}<br>'
+                    f'{PROP}: <b>{round(data[PROP][i] * 100, 2)}%</b><br>'
+                    f'{REF_PROP}: {round(data[REF_PROP][i] * 100, 2)}%<br>'
+                    f'{IDS}: {data[IDS][i]}'
+                    for i in range(len(data[PROP]))]
+        else:
+            return [f'{COUNT}: <b>{data[COUNT][i]}</b><br>'
+                    f'{PROP}: <b>{round(data[PROP][i] * 100, 2)}%</b><br>'
+                    f'{IDS}: {data[IDS][i]}'
+                    for i in range(len(data[PROP]))]
