@@ -344,8 +344,8 @@ def get_relative_prop(data: Dict[str, List], p_id: str):
 
 
 def get_data_enrichment_analysis(data: Dict[str, List], ref_classes_abundance: Dict[str, int],
-                                 test: str, names: bool) -> Tuple[
-    Dict[str, List], Dict[str, float]]:
+                                 test: str, names: bool) \
+        -> Tuple[Dict[str, List], Dict[str, float]]:
     """ Performs statistical tests for enrichment analysis.
 
     Parameters
@@ -391,9 +391,7 @@ def get_data_enrichment_analysis(data: Dict[str, List], ref_classes_abundance: D
         m_list = [ref_classes_abundance[x] if x in ref_classes_abundance.keys() else 0 for x in
                   data[LABEL]]
     N = int(np.nanmax(data[COUNT]))
-    print(N)
     n_list = data[COUNT]
-    print(n_list)
     data[PVAL] = list()
     nb_classes = len(set([data[LABEL][i]
                           for i in range(len(data[COUNT]))
@@ -401,7 +399,6 @@ def get_data_enrichment_analysis(data: Dict[str, List], ref_classes_abundance: D
     significant_representation = dict()
     for i in range(len(m_list)):
         if type(n_list[i]) == int:
-            print(n_list[i])
             # Binomial Test
             if test == BINOMIAL_TEST:
                 p_val = stats.binomtest(n_list[i], N, m_list[i] / M, alternative='two-sided').pvalue

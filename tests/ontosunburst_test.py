@@ -75,11 +75,13 @@ REF_EC = {'2.6.1.45', '1.1.1.25', '1.1.1.140',
 class EcTest(unittest.TestCase):
 
     def test_ec_proportion(self):
-        fig = ec_ontosunburst(ec_set=REF_EC, output='test_ec_prop')
+        fig = ec_ontosunburst(ec_set=EC_SET, reference_set=REF_EC, output='test_ec_prop',
+                              ref_base=True)
         fig.write_image('test_ec_prop.png', width=1900, height=1000, scale=1)
 
     def test_ec_comparison(self):
-        fig = ec_ontosunburst(ec_set=EC_SET, reference_set=REF_EC, output='test_ec_comp')
+        fig = ec_ontosunburst(ec_set=EC_SET, reference_set=REF_EC, output='test_ec_comp',
+                              analysis=ENRICHMENT_A, ref_base=True)
         fig.write_image('test_ec_comp.png', width=1900, height=1000, scale=1)
 
 

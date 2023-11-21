@@ -223,8 +223,8 @@ def global_analysis(analysis, ref_leaf_classes, classes_abundance, d_classes_ont
         return topology_analysis(ref_leaf_classes=ref_leaf_classes,
                                  classes_abundance=classes_abundance,
                                  d_classes_ontology=d_classes_ontology,
-                                 output=output, full=full, names=None, total=total,
-                                 root=METACYC_ROOT, root_cut=root_cut, ref_base=ref_base)
+                                 output=output, full=full, names=names, total=total,
+                                 root=root, root_cut=root_cut, ref_base=ref_base)
 
     else:
         raise ValueError(f'Value of analysis parameter must be in : {[TOPOLOGY_A, ENRICHMENT_A]}')
@@ -324,8 +324,6 @@ def enrichment_analysis(ref_leaf_classes, classes_abundance, d_classes_ontology,
                                   children_dict=get_children_dict(d_classes_ontology),
                                   root_item=root, subset_abundance=classes_abundance,
                                   full=full, names=names)
-        for k, v in data.items():
-            print(k, len(v), v)
     else:
         data = get_fig_parameters(classes_abondance=classes_abundance,
                                   parent_dict=d_classes_ontology,
