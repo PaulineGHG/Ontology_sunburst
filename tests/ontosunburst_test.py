@@ -1,6 +1,5 @@
 import unittest
 from ontosunburst.ontosunburst import *
-
 """
 Tests manually good file creation.
 No automatic tests integrated.
