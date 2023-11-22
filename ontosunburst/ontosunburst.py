@@ -19,6 +19,8 @@ METACYC_FILE = os.path.join(CURRENT_DIR, 'Inputs/MetaCyc26_0_classes.json')
 # For EC numbers
 EC_ONTO_FILE = os.path.join(CURRENT_DIR, 'Inputs/enzymes_ontology.json')
 EC_NAMES_FILE = os.path.join(CURRENT_DIR, 'Inputs/enzymes_class_names.json')
+# For ChEBI
+CHEBI_URL = 'http://localhost:3030/chebi/'
 
 # ONTOLOGIES
 # ----------
@@ -40,12 +42,12 @@ def ontosunburst(ontology: str,
                  output: str = None,
                  class_file: str = None,
                  names_file: str = None,
-                 endpoint_url: str = None,
+                 endpoint_url: str = CHEBI_URL,
                  test: str = BINOMIAL_TEST,
                  full: bool = True,
                  total: bool = True,
                  root_cut: str = ROOT_CUT,
-                 ref_base: bool = True):
+                 ref_base: bool = False):
     """
 
     Parameters
@@ -74,7 +76,7 @@ def ontosunburst(ontology: str,
         True to have branch values proportional of the total parent (may not work in some cases)
     root_cut: str (optional, default=ROOT_CUT)
         mode for root cutting (uncut, cut, total)
-    ref_base: bool (optional, default=True)
+    ref_base: bool (optional, default=False)
         True to have the base classes representation of the reference set in the figure.
 
     Returns
