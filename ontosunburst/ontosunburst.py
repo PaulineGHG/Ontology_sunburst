@@ -17,8 +17,7 @@ from ontosunburst.sunburst_fig import get_fig_parameters, get_data_proportion, \
 # -------------
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 # For MetaCyc
-CLASS_FILE = os.path.join(CURRENT_DIR, 'Inputs/classes.json')
-METACYC_FILE = os.path.join(CURRENT_DIR, 'Inputs/metacyc_26.0_prot70.padmet')
+METACYC_FILE = os.path.join(CURRENT_DIR, 'Inputs/MetaCyc26_0_classes.json')
 # For EC numbers
 ENZYME_ONTO_FILE = os.path.join(CURRENT_DIR, 'Inputs/enzymes_ontology.json')
 NAMES_FILE = os.path.join(CURRENT_DIR, 'Inputs/enzymes_class_names.json')
@@ -30,11 +29,18 @@ CHEBI_ROLE_ROOT = 'role'
 EC_ROOT = 'Enzyme'
 
 
+def reduce_d_ontology(d_classes_ontology, classes_abundance):
+    reduced_d_ontology = dict()
+    for k, v in d_classes_ontology.items():
+        if k in classes_abundance:
+            reduced_d_ontology[k] = v
+    return reduced_d_ontology
+
+
 # WORKFLOW =========================================================================================
 def metacyc_ontosunburst(metabolic_objects: Collection[str], reference_set: Collection[str] = None,
-                         analysis: str = TOPOLOGY_A,
-                         output: str = None, class_file: str = CLASS_FILE,
-                         padmet_ref: str = METACYC_FILE, test: str = BINOMIAL_TEST,
+                         analysis: str = TOPOLOGY_A, output: str = None,
+                         class_file: str = METACYC_FILE, test: str = BINOMIAL_TEST,
                          full: bool = True, total: bool = True, root_cut: str = ROOT_CUT,
                          ref_base: bool = True) -> go.Figure:
     """ Classify and plot a sunburst from a list of metabolic objects with MetaCyc ontology Ids
@@ -70,21 +76,20 @@ def metacyc_ontosunburst(metabolic_objects: Collection[str], reference_set: Coll
         Plotly graph_objects figure of the sunburst
     """
     # Load files
-    padmet_ref = PadmetRef(padmet_ref)
     with open(class_file, 'r') as f:
         d_classes_ontology = json.load(f)
 
     # Extract set information
-    obj_leaf_classes = extract_metacyc_classes(metabolic_objects, padmet_ref)
+    obj_leaf_classes = extract_metacyc_classes(metabolic_objects, d_classes_ontology)
     obj_all_classes = get_all_classes(obj_leaf_classes, d_classes_ontology, METACYC_ROOT)
     classes_abundance = get_classes_abondance(obj_all_classes)
     if reference_set is not None:
-        ref_leaf_classes = extract_metacyc_classes(reference_set, padmet_ref)
+        ref_leaf_classes = extract_metacyc_classes(reference_set, d_classes_ontology)
     else:
         ref_leaf_classes = None
 
     if output is not None:
-        write_met_classes(obj_all_classes, output, padmet_ref)
+        write_met_classes(obj_all_classes, output, d_classes_ontology)
 
     return global_analysis(analysis=analysis, ref_leaf_classes=ref_leaf_classes,
                            classes_abundance=classes_abundance,
@@ -258,6 +263,7 @@ def topology_analysis(ref_leaf_classes, classes_abundance, d_classes_ontology, o
         else:
             ref_all_classes = get_all_classes(ref_leaf_classes, d_classes_ontology, root)
         ref_classes_abundance = get_classes_abondance(ref_all_classes)
+        d_classes_ontology = reduce_d_ontology(d_classes_ontology, ref_classes_abundance)
 
         if ref_base:
             data = get_fig_parameters(classes_abondance=ref_classes_abundance,
@@ -279,6 +285,7 @@ def topology_analysis(ref_leaf_classes, classes_abundance, d_classes_ontology, o
                                      total=total, root_cut=root_cut, ref_base=ref_base)
 
     else:
+        d_classes_ontology = reduce_d_ontology(d_classes_ontology, classes_abundance)
         data = get_fig_parameters(classes_abondance=classes_abundance,
                                   parent_dict=d_classes_ontology,
                                   children_dict=get_children_dict(d_classes_ontology),
@@ -342,7 +349,8 @@ def write_met_classes(all_classes, output, pref):
         f.write('\t'.join(['Compound', 'Classes', 'Common names', 'MetaCyc link']) + '\n')
         for met, classes, in all_classes.items():
             try:
-                name = ' / '.join(pref.dicOfNode[met].misc['COMMON-NAME'])
+                # name = ' / '.join(pref.dicOfNode[met].misc['COMMON-NAME'])
+                name = ''
             except KeyError:
                 name = ''
             link = f'https://metacyc.org/compound?orgid=META&id={met}'

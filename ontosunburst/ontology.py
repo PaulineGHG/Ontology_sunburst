@@ -42,18 +42,10 @@ def extract_metacyc_classes(metabolic_objects: Collection[str],
     print(f'{len(metabolic_objects)} metabolic objects to classify')
     for obj in metabolic_objects:
         try:
-            rel = padmet_ref.dicOfRelationIn[obj]
+            d_obj_classes[obj] = padmet_ref[obj]
+            classified = True
         except KeyError:
-            rel = None
-        classified = False
-
-        if rel is not None:
-            for r in rel:
-                if r.type == 'is_a_class':
-                    classified = True
-                    if obj not in d_obj_classes.keys():
-                        d_obj_classes[obj] = list()
-                    d_obj_classes[obj].append(r.id_out)
+            classified = False
         if not classified:
             print(f'{obj} not classified.')
     print(f'{len(d_obj_classes)}/{len(metabolic_objects)} metabolic objects classified')
