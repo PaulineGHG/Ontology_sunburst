@@ -8,8 +8,8 @@ import scipy.stats as stats
 # CONSTANTS
 # ==================================================================================================
 # Comparison tests
-BINOMIAL_TEST = 'Binomial'
-HYPERGEO_TEST = 'Hypergeometric'
+BINOMIAL_TEST = 'binomial'
+HYPERGEO_TEST = 'hypergeometric'
 
 # Analysis method
 TOPOLOGY_A = 'topology'

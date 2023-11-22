@@ -249,31 +249,9 @@ def get_children_dict(parent_dict: Dict[str, List[str]]) -> Dict[str, List[str]]
     return children_dict
 
 
-def select_root(count_input: Dict[str, int], parent: Dict[str, List[str]], act_root) \
-        -> Tuple[Set[str], str, Dict[str, List[str]]]:
-    # TODO: Fix, understand why it doesn't works everytime
-    """ Select the root to use and return tax IDs to exclude from the figure. Keep as root the tax
-    ID shared by all taxa having the lowest taxonomic rank.
-
-    Parameters
-    ----------
-    count_input: Dict[str, int]
-        Dictionary associating to each class, the count.
-    parent: Dict[str, List[str]]
-        Dictionary associating to each class, its parent classes.
-
-    Returns
-    -------
-    Tuple[Set[str], str, Dict[str, List[str]]]
-        Set of tax IDs to exclude and Parent dictionary modified for the root ID.
-    """
-    max_count = max(count_input.values())
-    roots = {x for x, y in count_input.items() if y == max_count}
-    root = 1
-    for met, ch_id in parent.items():
-        if ch_id != [act_root]:
-            for ch in ch_id:
-                if parent[ch][0] in roots and ch not in roots:
-                    root = parent[ch][0]
-    parent[root] = ['']
-    return set(roots).difference({root}), root, parent
+def reduce_d_ontology(d_classes_ontology, classes_abundance):
+    reduced_d_ontology = dict()
+    for k, v in d_classes_ontology.items():
+        if k in classes_abundance:
+            reduced_d_ontology[k] = v
+    return reduced_d_ontology
