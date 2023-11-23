@@ -3,8 +3,8 @@ import json
 from typing import Collection
 import plotly.graph_objects as go
 
-from ontosunburst.ontology import get_all_classes, get_classes_abondance, get_children_dict, \
-    extract_classes, reduce_d_ontology
+from ontosunburst.ontology import get_classes_abondance, get_children_dict, extract_classes, \
+    reduce_d_ontology, METACYC, CHEBI, EC, METACYC_ROOT, CHEBI_ROLE_ROOT, EC_ROOT
 
 from ontosunburst.sunburst_fig import get_fig_parameters, get_data_proportion, \
     generate_sunburst_fig, BINOMIAL_TEST, TOPOLOGY_A, ENRICHMENT_A, ROOT_CUT
@@ -21,16 +21,6 @@ EC_ONTO_FILE = os.path.join(CURRENT_DIR, 'Inputs', 'enzymes_ontology.json')
 EC_NAMES_FILE = os.path.join(CURRENT_DIR, 'Inputs', 'enzymes_class_names.json')
 # For ChEBI
 CHEBI_URL = 'http://localhost:3030/chebi/'
-
-# ONTOLOGIES
-# ----------
-METACYC_ROOT = 'FRAMES'
-CHEBI_ROLE_ROOT = 'role'
-EC_ROOT = 'Enzyme'
-
-METACYC = 'metacyc'
-EC = 'ec'
-CHEBI = 'chebi'
 
 
 # WORKFLOW =========================================================================================
@@ -109,6 +99,7 @@ def ontosunburst(ontology: str,
     # CHEBI ========================================================================================
     elif ontology == CHEBI:
         root = CHEBI_ROLE_ROOT
+        d_classes_ontology = None
         names = None
 
     else:
@@ -122,20 +113,20 @@ def ontosunburst(ontology: str,
 
 
 # FUNCTIONS ========================================================================================
-def _global_analysis(ontology, analysis, metabolic_objects, reference_set,  d_classes_ontology,
+def _global_analysis(ontology, analysis, metabolic_objects, reference_set, d_classes_ontology,
                      endpoint_url, output, full, names, total, test, root, root_cut, ref_base):
-    obj_all_classes = extract_classes(ontology, metabolic_objects, root,
-                                      d_classes_ontology=d_classes_ontology,
-                                      endpoint_url=endpoint_url)
+    obj_all_classes, d_classes_ontology = extract_classes(ontology, metabolic_objects, root,
+                                                          d_classes_ontology=d_classes_ontology,
+                                                          endpoint_url=endpoint_url)
     classes_abundance = get_classes_abondance(obj_all_classes)
 
     if output is not None and ontology == METACYC:
         write_met_classes(obj_all_classes, output)
 
     if reference_set is not None:
-        ref_all_classes = extract_classes(ontology, reference_set, root,
-                                          d_classes_ontology=d_classes_ontology,
-                                          endpoint_url=endpoint_url)
+        ref_all_classes, d_classes_ontology = extract_classes(ontology, reference_set, root,
+                                                              d_classes_ontology=d_classes_ontology,
+                                                              endpoint_url=endpoint_url)
     else:
         ref_all_classes = None
 

@@ -1,7 +1,17 @@
 import padmet.classes
 from typing import List, Set, Dict, Tuple, Collection
 from SPARQLWrapper import SPARQLWrapper, JSON
-from ontosunburst.ontosunburst import EC, METACYC, CHEBI
+
+
+# CONSTANTS ========================================================================================
+
+METACYC_ROOT = 'FRAMES'
+CHEBI_ROLE_ROOT = 'role'
+EC_ROOT = 'Enzyme'
+
+METACYC = 'metacyc'
+EC = 'ec'
+CHEBI = 'chebi'
 
 
 # For MetaCyc Ontology
@@ -88,7 +98,6 @@ def extract_chebi_roles(chebi_ids: Collection[str], endpoint_url: str) \
     all_roles = dict()
     for chebi_id in chebi_ids:
         roles = set()
-        molecule = chebi_id
         sparql = SPARQLWrapper(endpoint_url)
         sparql.setQuery(f"""
         PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -131,7 +140,7 @@ def extract_chebi_roles(chebi_ids: Collection[str], endpoint_url: str) \
             if role not in d_roles_ontology:
                 d_roles_ontology[role] = set()
             d_roles_ontology[role].add(parent_role)
-        roles.add('role')
+        roles.add(CHEBI_ROLE_ROOT)
         all_roles[chebi_id] = roles
 
     for c, p in d_roles_ontology.items():
@@ -143,10 +152,10 @@ def extract_chebi_roles(chebi_ids: Collection[str], endpoint_url: str) \
 def extract_classes(ontology, metabolic_objects, root, d_classes_ontology=None, endpoint_url=None):
     if ontology == METACYC:
         leaf_classes = extract_metacyc_classes(metabolic_objects, d_classes_ontology)
-        return get_all_classes(leaf_classes, d_classes_ontology, root)
+        return get_all_classes(leaf_classes, d_classes_ontology, root), d_classes_ontology
     if ontology == EC:
         leaf_classes = extract_ec_classes(metabolic_objects)
-        return get_all_classes(leaf_classes, d_classes_ontology, root)
+        return get_all_classes(leaf_classes, d_classes_ontology, root), d_classes_ontology
     if ontology == CHEBI:
         return extract_chebi_roles(metabolic_objects, endpoint_url)
 
