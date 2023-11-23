@@ -4,7 +4,7 @@ from typing import Collection
 import plotly.graph_objects as go
 
 from ontosunburst.ontology import get_all_classes, get_classes_abondance, get_children_dict, \
-    extract_chebi_roles, extract_metacyc_classes, extract_ec_classes, reduce_d_ontology
+    extract_classes, reduce_d_ontology
 
 from ontosunburst.sunburst_fig import get_fig_parameters, get_data_proportion, \
     generate_sunburst_fig, BINOMIAL_TEST, TOPOLOGY_A, ENRICHMENT_A, ROOT_CUT
@@ -94,19 +94,6 @@ def ontosunburst(ontology: str,
         with open(class_file, 'r') as f:
             d_classes_ontology = json.load(f)
 
-        #  TO MERGE
-        obj_leaf_classes = extract_metacyc_classes(metabolic_objects, d_classes_ontology)
-        obj_all_classes = get_all_classes(obj_leaf_classes, d_classes_ontology, METACYC_ROOT)
-        classes_abundance = get_classes_abondance(obj_all_classes)
-        if reference_set is not None:
-            ref_leaf_classes = extract_metacyc_classes(reference_set, d_classes_ontology)
-            ref_all_classes = get_all_classes(ref_leaf_classes, d_classes_ontology, root)
-        else:
-            ref_all_classes = None
-
-        if output is not None:
-            write_met_classes(obj_all_classes, output)
-
     # EC ===========================================================================================
     elif ontology == EC:
         root = EC_ROOT
@@ -119,43 +106,39 @@ def ontosunburst(ontology: str,
         with open(names_file, 'r') as f:
             names = json.load(f)
 
-        #  TO MERGE
-        ec_classes = extract_ec_classes(metabolic_objects)
-        all_classes = get_all_classes(ec_classes, d_classes_ontology, EC_ROOT)
-        classes_abundance = get_classes_abondance(all_classes)
-        if reference_set is not None:
-            ref_leaf_classes = extract_ec_classes(reference_set)
-            ref_all_classes = get_all_classes(ref_leaf_classes, d_classes_ontology, root)
-        else:
-            ref_all_classes = None
-
     # CHEBI ========================================================================================
     elif ontology == CHEBI:
         root = CHEBI_ROLE_ROOT
         names = None
 
-        #  TO MERGE
-        all_classes, d_classes_ontology = extract_chebi_roles(metabolic_objects, endpoint_url)
-        classes_abundance = get_classes_abondance(all_classes)
-        if reference_set is not None:
-            ref_all_classes, d_classes_ontology = extract_chebi_roles(reference_set, endpoint_url)
-        else:
-            ref_all_classes = None
-
     else:
         raise ValueError(f'ontology parameter must be in : {[METACYC, EC, CHEBI]}')
 
-    return _global_analysis(analysis=analysis, ref_all_classes=ref_all_classes,
-                            classes_abundance=classes_abundance,
-                            d_classes_ontology=d_classes_ontology,
+    return _global_analysis(ontology=ontology, analysis=analysis,
+                            metabolic_objects=metabolic_objects, reference_set=reference_set,
+                            d_classes_ontology=d_classes_ontology, endpoint_url=endpoint_url,
                             output=output, full=full, names=names, total=total, test=test,
-                            root=root,
-                            root_cut=root_cut, ref_base=ref_base)
+                            root=root, root_cut=root_cut, ref_base=ref_base)
 
 
 # FUNCTIONS ========================================================================================
-def _global_analysis(analysis, ref_all_classes, classes_abundance, d_classes_ontology, output,
-                     full, names, total, test, root, root_cut, ref_base):
+def _global_analysis(ontology, analysis, metabolic_objects, reference_set,  d_classes_ontology,
+                     endpoint_url, output, full, names, total, test, root, root_cut, ref_base):
+    obj_all_classes = extract_classes(ontology, metabolic_objects, root,
+                                      d_classes_ontology=d_classes_ontology,
+                                      endpoint_url=endpoint_url)
+    classes_abundance = get_classes_abondance(obj_all_classes)
+
+    if output is not None and ontology == METACYC:
+        write_met_classes(obj_all_classes, output)
+
+    if reference_set is not None:
+        ref_all_classes = extract_classes(ontology, reference_set, root,
+                                          d_classes_ontology=d_classes_ontology,
+                                          endpoint_url=endpoint_url)
+    else:
+        ref_all_classes = None
+
     # Enrichment figure
     if analysis == ENRICHMENT_A:
         if ref_all_classes is not None:

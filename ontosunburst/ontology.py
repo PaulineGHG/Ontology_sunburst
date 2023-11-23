@@ -1,6 +1,7 @@
 import padmet.classes
 from typing import List, Set, Dict, Tuple, Collection
 from SPARQLWrapper import SPARQLWrapper, JSON
+from ontosunburst.ontosunburst import EC, METACYC, CHEBI
 
 
 # For MetaCyc Ontology
@@ -22,15 +23,15 @@ def get_dict_ontology(padmet_ref: padmet.classes.PadmetRef):
 
 
 def extract_metacyc_classes(metabolic_objects: Collection[str],
-                            padmet_ref: padmet.classes.PadmetRef) -> Dict[str, List[str]]:
+                            d_classes_ontology: Dict[str, List[str]]) -> Dict[str, List[str]]:
     """ Extract +1 parent classes for each metabolite.
 
     Parameters
     ----------
     metabolic_objects: Collection[str]
         Collection of metabolic objects.
-    padmet_ref: padmet.classes.PadmetRef
-        The PadmetRef instance
+    d_classes_ontology: Dict[str, List[str]]
+        MetaCyc classes dictionary
 
     Returns
     -------
@@ -42,7 +43,7 @@ def extract_metacyc_classes(metabolic_objects: Collection[str],
     print(f'{len(metabolic_objects)} metabolic objects to classify')
     for obj in metabolic_objects:
         try:
-            d_obj_classes[obj] = padmet_ref[obj]
+            d_obj_classes[obj] = d_classes_ontology[obj]
             classified = True
         except KeyError:
             classified = False
@@ -137,6 +138,17 @@ def extract_chebi_roles(chebi_ids: Collection[str], endpoint_url: str) \
         d_roles_ontology[c] = list(p)
 
     return all_roles, d_roles_ontology
+
+
+def extract_classes(ontology, metabolic_objects, root, d_classes_ontology=None, endpoint_url=None):
+    if ontology == METACYC:
+        leaf_classes = extract_metacyc_classes(metabolic_objects, d_classes_ontology)
+        return get_all_classes(leaf_classes, d_classes_ontology, root)
+    if ontology == EC:
+        leaf_classes = extract_ec_classes(metabolic_objects)
+        return get_all_classes(leaf_classes, d_classes_ontology, root)
+    if ontology == CHEBI:
+        return extract_chebi_roles(metabolic_objects, endpoint_url)
 
 
 # For all Ontology - Utils
