@@ -133,16 +133,22 @@ def extract_chebi_roles(chebi_ids: Collection[str], endpoint_url: str) \
         """)
         sparql.setReturnFormat(JSON)
         results = sparql.query().convert()
-
+        parent_roles = set()
         for result in results["results"]["bindings"]:
             role = result['roleLabel']['value']
             parent_role = result['parentRoleLabel']['value']
+            parent_roles.add(parent_role)
             roles.add(result['roleLabel']['value'])
             if role not in d_roles_ontology:
                 d_roles_ontology[role] = set()
             d_roles_ontology[role].add(parent_role)
-        roles.add(CHEBI_ROLE_ROOT)
-        all_roles[chebi_id] = roles
+        if roles:
+            d_roles_ontology[chebi_id] = list(roles.difference(parent_roles))
+            roles.add(CHEBI_ROLE_ROOT)
+            all_roles[chebi_id] = roles
+
+        else:
+            print(f'No ChEBI role found for : {chebi_id}')
 
     for c, p in d_roles_ontology.items():
         d_roles_ontology[c] = list(p)
