@@ -84,7 +84,10 @@ def get_fig_parameters(classes_abondance: Dict[str, int], parent_dict: Dict[str,
             label = c_label
 
             if names is not None:
-                label = names[c_label]
+                try:
+                    label = names[c_label]
+                except KeyError:
+                    label = c_label
 
             data = add_value_data(data=data,
                                   m_id=m_id,

@@ -78,7 +78,7 @@ class EcTest(unittest.TestCase):
 
     def test_ec_proportion(self):
         fig = ontosunburst(ontology=EC, metabolic_objects=EC_SET, reference_set=REF_EC,
-                           output='test_ec_prop', ref_base=True)
+                           output='test_ec_prop', ref_base=True, show_leaves=True)
         fig.write_image('test_ec_prop.png', width=1900, height=1000, scale=1)
 
     def test_ec_comparison(self):

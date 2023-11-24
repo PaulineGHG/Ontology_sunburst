@@ -37,7 +37,8 @@ def ontosunburst(ontology: str,
                  full: bool = True,
                  total: bool = True,
                  root_cut: str = ROOT_CUT,
-                 ref_base: bool = False) -> go.Figure:
+                 ref_base: bool = False,
+                 show_leaves: bool = False) -> go.Figure:
     """
 
     Parameters
@@ -68,6 +69,8 @@ def ontosunburst(ontology: str,
         mode for root cutting (uncut, cut, total)
     ref_base: bool (optional, default=False)
         True to have the base classes representation of the reference set in the figure.
+    show_leaves: bool (optional, default=False)
+        True to show input metabolic objets at sunburst leaves
 
     Returns
     -------
@@ -109,16 +112,18 @@ def ontosunburst(ontology: str,
                             metabolic_objects=metabolic_objects, reference_set=reference_set,
                             d_classes_ontology=d_classes_ontology, endpoint_url=endpoint_url,
                             output=output, full=full, names=names, total=total, test=test,
-                            root=root, root_cut=root_cut, ref_base=ref_base)
+                            root=root, root_cut=root_cut, ref_base=ref_base,
+                            show_leaves=show_leaves)
 
 
 # FUNCTIONS ========================================================================================
 def _global_analysis(ontology, analysis, metabolic_objects, reference_set, d_classes_ontology,
-                     endpoint_url, output, full, names, total, test, root, root_cut, ref_base):
+                     endpoint_url, output, full, names, total, test, root, root_cut, ref_base,
+                     show_leaves):
     obj_all_classes, d_classes_ontology = extract_classes(ontology, metabolic_objects, root,
                                                           d_classes_ontology=d_classes_ontology,
                                                           endpoint_url=endpoint_url)
-    classes_abundance = get_classes_abondance(obj_all_classes)
+    classes_abundance = get_classes_abondance(obj_all_classes, show_leaves)
 
     if output is not None and ontology == METACYC:
         write_met_classes(obj_all_classes, output)
@@ -137,7 +142,8 @@ def _global_analysis(ontology, analysis, metabolic_objects, reference_set, d_cla
                                         classes_abundance=classes_abundance,
                                         d_classes_ontology=d_classes_ontology,
                                         output=output, full=full, names=names, total=total,
-                                        test=test, root=root, root_cut=root_cut, ref_base=ref_base)
+                                        test=test, root=root, root_cut=root_cut, ref_base=ref_base,
+                                        show_leaves=show_leaves)
         else:
             raise AttributeError('Missing reference set parameter')
 
@@ -147,14 +153,15 @@ def _global_analysis(ontology, analysis, metabolic_objects, reference_set, d_cla
                                   classes_abundance=classes_abundance,
                                   d_classes_ontology=d_classes_ontology,
                                   output=output, full=full, names=names, total=total,
-                                  root=root, root_cut=root_cut, ref_base=ref_base)
+                                  root=root, root_cut=root_cut, ref_base=ref_base,
+                                  show_leaves=show_leaves)
 
     else:
         raise ValueError(f'Value of analysis parameter must be in : {[TOPOLOGY_A, ENRICHMENT_A]}')
 
 
 def _topology_analysis(ref_all_classes, classes_abundance, d_classes_ontology, output, full,
-                       names, total, root, root_cut, ref_base) -> go.Figure:
+                       names, total, root, root_cut, ref_base, show_leaves) -> go.Figure:
     """ Performs the proportion analysis
 
     Parameters
@@ -176,7 +183,7 @@ def _topology_analysis(ref_all_classes, classes_abundance, d_classes_ontology, o
         Plotly graph_objects figure of the sunburst
     """
     if ref_all_classes is not None:
-        ref_classes_abundance = get_classes_abondance(ref_all_classes)
+        ref_classes_abundance = get_classes_abondance(ref_all_classes, show_leaves)
         d_classes_ontology = reduce_d_ontology(d_classes_ontology, ref_classes_abundance)
 
         if ref_base:
@@ -211,7 +218,7 @@ def _topology_analysis(ref_all_classes, classes_abundance, d_classes_ontology, o
 
 
 def _enrichment_analysis(ref_all_classes, classes_abundance, d_classes_ontology, output, full,
-                         names, total, test, root, root_cut, ref_base: bool = True) -> go.Figure:
+                         names, total, test, root, root_cut, ref_base, show_leaves) -> go.Figure:
     """ Performs the comparison analysis
 
     Parameters
@@ -233,7 +240,7 @@ def _enrichment_analysis(ref_all_classes, classes_abundance, d_classes_ontology,
     go.Figure
         Plotly graph_objects figure of the sunburst
     """
-    ref_classes_abundance = get_classes_abondance(ref_all_classes)
+    ref_classes_abundance = get_classes_abondance(ref_all_classes, show_leaves)
 
     if ref_base:
         data = get_fig_parameters(classes_abondance=ref_classes_abundance,

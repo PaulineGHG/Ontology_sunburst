@@ -65,14 +65,15 @@ def extract_metacyc_classes(metabolic_objects: Collection[str],
 
 # For EC
 # --------------------------------------------------------------------------------------------------
-def extract_ec_classes(ec_set: Collection[str]):
+def extract_ec_classes(ec_set: Collection[str], d_classes_ontology):
     ec_classes = dict()
     for ec in ec_set:
         parent = ec.split('.')
         parent[-1] = '-'
         parent = '.'.join(parent)
+        d_classes_ontology[ec] = [parent]
         ec_classes[ec] = [parent]
-    return ec_classes
+    return ec_classes, d_classes_ontology
 
 
 # For ChEBI Ontology
@@ -154,7 +155,7 @@ def extract_classes(ontology, metabolic_objects, root, d_classes_ontology=None, 
         leaf_classes = extract_metacyc_classes(metabolic_objects, d_classes_ontology)
         return get_all_classes(leaf_classes, d_classes_ontology, root), d_classes_ontology
     if ontology == EC:
-        leaf_classes = extract_ec_classes(metabolic_objects)
+        leaf_classes, d_classes_ontology = extract_ec_classes(metabolic_objects, d_classes_ontology)
         return get_all_classes(leaf_classes, d_classes_ontology, root), d_classes_ontology
     if ontology == CHEBI:
         return extract_chebi_roles(metabolic_objects, endpoint_url)
@@ -224,13 +225,15 @@ def get_all_classes(met_classes: Dict[str, List[str]], d_classes_ontology: Dict[
     return all_classes_met
 
 
-def get_classes_abondance(all_classes: Dict[str, Set[str]]) -> Dict[str, int]:
+def get_classes_abondance(all_classes: Dict[str, Set[str]], show_leaves: bool) -> Dict[str, int]:
     """ Indicate for each class the number of metabolites found belonging to the class
 
     Parameters
     ----------
     all_classes: Dict[str, Set[str]] (Dict[metabolite, Set[class]])
         Dictionary associating for each metabolite the list of all parent classes it belongs to.
+    show_leaves: bool
+        True to show input metabolic objets at sunburst leaves
 
     Returns
     -------
@@ -239,7 +242,8 @@ def get_classes_abondance(all_classes: Dict[str, Set[str]]) -> Dict[str, int]:
     """
     classes_abondance = dict()
     for met, classes in all_classes.items():
-        # classes_abondance[met] = 1
+        if show_leaves:
+            classes_abondance[met] = 1
         for c in classes:
             if c not in classes_abondance.keys():
                 classes_abondance[c] = 1
