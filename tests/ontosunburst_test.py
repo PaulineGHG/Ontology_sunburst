@@ -101,10 +101,11 @@ class ChEbiTest(unittest.TestCase):
 
     def test_chebi_proportion(self):
         fig = ontosunburst(ontology=CHEBI, metabolic_objects=CH_SET, reference_set=REF_CH,
-                           output='test_chebi_prop', ref_base=True)
+                           endpoint_url=URL, output='test_chebi_prop', ref_base=True)
         fig.write_image('test_chebi_prop.png', width=1900, height=1000, scale=1)
 
     def test_chebi_comparison(self):
         fig = ontosunburst(ontology=CHEBI, metabolic_objects=CH_SET, reference_set=REF_CH,
-                           output='test_chebi_comp', analysis=ENRICHMENT_A, ref_base=True)
+                           endpoint_url=URL, output='test_chebi_comp', analysis=ENRICHMENT_A,
+                           ref_base=True)
         fig.write_image('test_chebi_comp.png', width=1900, height=1000, scale=1)

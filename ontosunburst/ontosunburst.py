@@ -9,7 +9,9 @@ from ontosunburst.ontology import get_classes_abondance, get_children_dict, extr
 from ontosunburst.sunburst_fig import get_fig_parameters, get_data_proportion, \
     generate_sunburst_fig, BINOMIAL_TEST, TOPOLOGY_A, ENRICHMENT_A, ROOT_CUT
 
-# CONSTANTS ========================================================================================
+# ==================================================================================================
+#                                           CONSTANTS
+# ==================================================================================================
 
 # DEFAULT FILES
 # -------------
@@ -23,7 +25,9 @@ EC_NAMES_FILE = os.path.join(CURRENT_DIR, 'Inputs', 'enzymes_class_names.json')
 CHEBI_URL = 'http://localhost:3030/chebi/'
 
 
-# WORKFLOW =========================================================================================
+# ==================================================================================================
+#                                            WORKFLOW
+# ==================================================================================================
 
 def ontosunburst(ontology: str,
                  metabolic_objects: Collection[str],
@@ -78,7 +82,7 @@ def ontosunburst(ontology: str,
         Plotly graph_objects figure of the sunburst
     """
 
-    # METACYC ======================================================================================
+    # METACYC --------------------------------------------------------------------------------------
     if ontology == METACYC:
         root = METACYC_ROOT
         if class_file is None:
@@ -86,8 +90,7 @@ def ontosunburst(ontology: str,
         names = None
         with open(class_file, 'r') as f:
             d_classes_ontology = json.load(f)
-
-    # EC ===========================================================================================
+    # EC -------------------------------------------------------------------------------------------
     elif ontology == EC:
         root = EC_ROOT
         if class_file is None:
@@ -98,16 +101,15 @@ def ontosunburst(ontology: str,
             d_classes_ontology = json.load(f)
         with open(names_file, 'r') as f:
             names = json.load(f)
-
-    # CHEBI ========================================================================================
+    # CHEBI ----------------------------------------------------------------------------------------
     elif ontology == CHEBI:
         root = CHEBI_ROLE_ROOT
         d_classes_ontology = None
         names = None
-
+    # ELSE -----------------------------------------------------------------------------------------
     else:
         raise ValueError(f'ontology parameter must be in : {[METACYC, EC, CHEBI]}')
-
+    # WORKFLOW -------------------------------------------------------------------------------------
     return _global_analysis(ontology=ontology, analysis=analysis,
                             metabolic_objects=metabolic_objects, reference_set=reference_set,
                             d_classes_ontology=d_classes_ontology, endpoint_url=endpoint_url,
@@ -116,7 +118,9 @@ def ontosunburst(ontology: str,
                             show_leaves=show_leaves)
 
 
-# FUNCTIONS ========================================================================================
+# ==================================================================================================
+#                                             FUNCTIONS
+# ==================================================================================================
 def _global_analysis(ontology, analysis, metabolic_objects, reference_set, d_classes_ontology,
                      endpoint_url, output, full, names, total, test, root, root_cut, ref_base,
                      show_leaves):
