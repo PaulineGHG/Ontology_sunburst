@@ -8,6 +8,7 @@ from SPARQLWrapper import SPARQLWrapper, JSON
 METACYC_ROOT = 'FRAMES'
 CHEBI_ROLE_ROOT = 'role'
 EC_ROOT = 'Enzyme'
+GO_ROOT = 'GO'
 
 METACYC = 'metacyc'
 EC = 'ec'
@@ -146,7 +147,6 @@ def extract_chebi_roles(chebi_ids: Collection[str], endpoint_url: str) \
             d_roles_ontology[chebi_id] = list(roles.difference(parent_roles))
             roles.add(CHEBI_ROLE_ROOT)
             all_roles[chebi_id] = roles
-
         else:
             print(f'No ChEBI role found for : {chebi_id}')
 
@@ -154,6 +154,83 @@ def extract_chebi_roles(chebi_ids: Collection[str], endpoint_url: str) \
         d_roles_ontology[c] = list(p)
 
     return all_roles, d_roles_ontology
+
+
+def extract_go_classes(go_ids: Collection[str], endpoint_url: str) \
+        -> Tuple[Dict[str, Set[str]], Dict[str, List[str]]]:
+    """
+
+    Parameters
+    ----------
+    go_ids: Collection[str]
+        Collection of GO IDs
+    endpoint_url: str
+        URL endpoint string
+
+    Returns
+    -------
+    Tuple[Dict[str, Set[str]], Dict[str, List[str]]]
+        Dictionary of all roles associated for each ChEBI ID
+        Dictionary of roles ontology, associating for each role, its parent roles
+    """
+    d_classes_ontology = dict()
+    all_classes = dict()
+    for go in go_ids:
+        go = go.lower()
+        print(go)
+        go_classes = set()
+        sparql = SPARQLWrapper(endpoint_url)
+        sparql.setQuery(f"""
+        PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>
+        PREFIX owl: <http://www.w3.org/2002/07/owl#>
+        PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+        PREFIX dc: <http://purl.org/dc/elements/1.1/>
+        PREFIX dcterms: <http://purl.org/dc/terms/>
+        PREFIX oboInOwl: <http://www.geneontology.org/formats/oboInOwl#>
+        PREFIX taxon: <http://purl.uniprot.org/taxonomy/>
+        PREFIX uniprot: <http://purl.uniprot.org/uniprot/>
+        PREFIX up:<http://purl.uniprot.org/core/>
+        PREFIX go: <http://purl.obolibrary.org/obo/GO_>
+        PREFIX goavoc: <http://bio2rdf.org/goa_vocabulary:>
+        
+        SELECT ?goLabel ?parentGoLabel
+        WHERE {{
+           {go} rdfs:subClassOf* ?go .
+           ?go rdfs:label ?goLabel .
+           ?go rdf:type owl:Class .
+           ?go rdfs:subClassOf ?parentGo .
+           ?parentGo rdfs:label ?parentGoLabel .
+           ?parentGo rdf:type owl:Class .
+        }}
+        """)
+        sparql.setReturnFormat(JSON)
+        results = sparql.query().convert()
+        parent_classes = set()
+        for result in results["results"]["bindings"]:
+            go_class = result['goLabel']['value']
+            parent_class = result['parentGoLabel']['value']
+            parent_classes.add(parent_class)
+            go_classes.add(go_class)
+            if go_class not in d_classes_ontology:
+                d_classes_ontology[go_class] = set()
+            d_classes_ontology[go_class].add(parent_class)
+        if go_classes:
+            d_classes_ontology[go] = list(go_classes.difference(parent_classes))
+            go_classes.add(GO_ROOT)
+            all_classes[go] = go_classes
+        else:
+            print(f'No GO class found for : {go}')
+
+    for c, p in d_classes_ontology.items():
+        d_classes_ontology[c] = list(p)
+
+    return all_classes, d_classes_ontology
+
+
+extract_go_classes(['GO:0043226', 'GO:0043227', 'GO:0043229', 'GO:0043231', 'GO:0044422',
+                    'GO:0044424', 'GO:0044429', 'GO:0044444'],
+                   'http://localhost:3030/go/')
 
 
 def extract_classes(ontology, metabolic_objects, root, d_classes_ontology=None, endpoint_url=None):

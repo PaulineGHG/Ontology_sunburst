@@ -1,3 +1,4 @@
+import os.path
 from typing import List, Dict, Tuple
 import plotly.express as px
 import plotly.graph_objects as go
@@ -515,7 +516,8 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
                                                 colorscale=px.colors.sequential.Viridis,
                                                 cmin=1, showscale=True,
                                                 colorbar=dict(title=dict(text='Count')))))
-        fig.update_layout(title=dict(text='Proportion of classes', x=0.5, xanchor='center'))
+        fig.update_layout(title=dict(text=f'{os.path.basename(output)} : Proportion of classes',
+                                     x=0.5, xanchor='center'))
     elif analysis == ENRICHMENT_A:
         data, signif = get_data_enrichment_analysis(data, ref_classes_abundance, test, names)
         fig = make_subplots(rows=1, cols=2,
