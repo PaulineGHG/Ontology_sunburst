@@ -118,5 +118,5 @@ class GOTest(unittest.TestCase):
 
     def test_go_proportion(self):
         fig = ontosunburst(ontology=GO, metabolic_objects=GO_EX,
-                           output='test_go_prop', ref_base=False)
+                           output='test_go_prop', ref_base=False, show_leaves=True)
         fig.write_image('test_go_prop.png', width=1900, height=1000, scale=1)

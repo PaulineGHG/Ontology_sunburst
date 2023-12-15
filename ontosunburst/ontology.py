@@ -9,6 +9,7 @@ METACYC_ROOT = 'FRAMES'
 CHEBI_ROLE_ROOT = 'role'
 EC_ROOT = 'Enzyme'
 GO_ROOT = 'GO'
+GO_ROOTS = ['cellular_component']
 
 METACYC = 'metacyc'
 EC = 'ec'
@@ -178,7 +179,6 @@ def extract_go_classes(go_ids: Collection[str], endpoint_url: str) \
     all_classes = dict()
     for go in go_ids:
         go = go.lower()
-        print(go)
         go_classes = set()
         sparql = SPARQLWrapper(endpoint_url)
         sparql.setQuery(f"""
@@ -213,6 +213,9 @@ def extract_go_classes(go_ids: Collection[str], endpoint_url: str) \
             parent_class = result['parentGoLabel']['value']
             parent_classes.add(parent_class)
             go_classes.add(go_class)
+            go_classes.add(parent_class)
+            if parent_class in GO_ROOTS:
+                d_classes_ontology[parent_class] = [GO_ROOT]
             if go_class not in d_classes_ontology:
                 d_classes_ontology[go_class] = set()
             d_classes_ontology[go_class].add(parent_class)
@@ -225,7 +228,8 @@ def extract_go_classes(go_ids: Collection[str], endpoint_url: str) \
 
     for c, p in d_classes_ontology.items():
         d_classes_ontology[c] = list(p)
-
+    print(all_classes)
+    print(d_classes_ontology)
     return all_classes, d_classes_ontology
 
 
