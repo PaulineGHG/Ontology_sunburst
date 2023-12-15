@@ -9,7 +9,7 @@ METACYC_ROOT = 'FRAMES'
 CHEBI_ROLE_ROOT = 'role'
 EC_ROOT = 'Enzyme'
 GO_ROOT = 'GO'
-GO_ROOTS = ['cellular_component']
+GO_ROOTS = ['cellular_component', 'biological_process', 'molecular_function']
 
 METACYC = 'metacyc'
 EC = 'ec'
