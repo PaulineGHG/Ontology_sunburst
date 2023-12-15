@@ -4,7 +4,7 @@ from typing import Collection
 import plotly.graph_objects as go
 
 from ontosunburst.ontology import get_classes_abondance, get_children_dict, extract_classes, \
-    reduce_d_ontology, METACYC, CHEBI, EC, METACYC_ROOT, CHEBI_ROLE_ROOT, EC_ROOT
+    reduce_d_ontology, METACYC, CHEBI, EC, GO, METACYC_ROOT, CHEBI_ROLE_ROOT, EC_ROOT, GO_ROOT
 
 from ontosunburst.sunburst_fig import get_fig_parameters, get_data_proportion, \
     generate_sunburst_fig, BINOMIAL_TEST, TOPOLOGY_A, ENRICHMENT_A, ROOT_CUT
@@ -23,6 +23,7 @@ EC_ONTO_FILE = os.path.join(CURRENT_DIR, 'Inputs', 'enzymes_ontology.json')
 EC_NAMES_FILE = os.path.join(CURRENT_DIR, 'Inputs', 'enzymes_class_names.json')
 # For ChEBI
 CHEBI_URL = 'http://localhost:3030/chebi/'
+GO_URL = 'http://localhost:3030/go/'
 
 
 # ==================================================================================================
@@ -36,7 +37,7 @@ def ontosunburst(ontology: str,
                  output: str = None,
                  class_file: str = None,
                  names_file: str = None,
-                 endpoint_url: str = CHEBI_URL,
+                 endpoint_url: str = None,
                  test: str = BINOMIAL_TEST,
                  full: bool = True,
                  total: bool = True,
@@ -104,11 +105,18 @@ def ontosunburst(ontology: str,
     # CHEBI ----------------------------------------------------------------------------------------
     elif ontology == CHEBI:
         root = CHEBI_ROLE_ROOT
+        endpoint_url = CHEBI_URL
+        d_classes_ontology = None
+        names = None
+    # GO -------------------------------------------------------------------------------------------
+    elif ontology == GO:
+        root = GO_ROOT
+        endpoint_url = GO_URL
         d_classes_ontology = None
         names = None
     # ELSE -----------------------------------------------------------------------------------------
     else:
-        raise ValueError(f'ontology parameter must be in : {[METACYC, EC, CHEBI]}')
+        raise ValueError(f'ontology parameter must be in : {[METACYC, EC, CHEBI, GO]}')
     # WORKFLOW -------------------------------------------------------------------------------------
     return _global_analysis(ontology=ontology, analysis=analysis,
                             metabolic_objects=metabolic_objects, reference_set=reference_set,

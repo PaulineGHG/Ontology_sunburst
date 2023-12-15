@@ -13,6 +13,7 @@ GO_ROOT = 'GO'
 METACYC = 'metacyc'
 EC = 'ec'
 CHEBI = 'chebi'
+GO = 'go'
 
 
 # For MetaCyc Ontology
@@ -228,11 +229,6 @@ def extract_go_classes(go_ids: Collection[str], endpoint_url: str) \
     return all_classes, d_classes_ontology
 
 
-extract_go_classes(['GO:0043226', 'GO:0043227', 'GO:0043229', 'GO:0043231', 'GO:0044422',
-                    'GO:0044424', 'GO:0044429', 'GO:0044444'],
-                   'http://localhost:3030/go/')
-
-
 def extract_classes(ontology, metabolic_objects, root, d_classes_ontology=None, endpoint_url=None):
     if ontology == METACYC:
         leaf_classes = extract_metacyc_classes(metabolic_objects, d_classes_ontology)
@@ -242,6 +238,8 @@ def extract_classes(ontology, metabolic_objects, root, d_classes_ontology=None, 
         return get_all_classes(leaf_classes, d_classes_ontology, root), d_classes_ontology
     if ontology == CHEBI:
         return extract_chebi_roles(metabolic_objects, endpoint_url)
+    if ontology == GO:
+        return extract_go_classes(metabolic_objects, endpoint_url)
 
 
 # For all Ontology - Utils
