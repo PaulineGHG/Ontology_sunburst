@@ -5,16 +5,17 @@ from SPARQLWrapper import SPARQLWrapper, JSON
 
 # CONSTANTS ========================================================================================
 
-METACYC_ROOT = 'FRAMES'
-CHEBI_ROLE_ROOT = 'role'
-EC_ROOT = 'Enzyme'
-GO_ROOT = 'GO'
-GO_ROOTS = ['cellular_component', 'biological_process', 'molecular_function']
 
 METACYC = 'metacyc'
 EC = 'ec'
 CHEBI = 'chebi'
 GO = 'go'
+
+ROOTS = {METACYC: 'FRAMES',
+         CHEBI: 'role',
+         EC: 'Enzyme',
+         GO: 'GO'}
+GO_ROOTS = ['cellular_component', 'biological_process', 'molecular_function']
 
 
 # For MetaCyc Ontology
@@ -147,7 +148,7 @@ def extract_chebi_roles(chebi_ids: Collection[str], endpoint_url: str) \
             d_roles_ontology[role].add(parent_role)
         if roles:
             d_roles_ontology[chebi_id] = list(roles.difference(parent_roles))
-            roles.add(CHEBI_ROLE_ROOT)
+            roles.add(ROOTS[CHEBI])
             all_roles[chebi_id] = roles
         else:
             print(f'No ChEBI role found for : {chebi_id}')
@@ -215,13 +216,13 @@ def extract_go_classes(go_ids: Collection[str], endpoint_url: str) \
             go_classes.add(go_class)
             go_classes.add(parent_class)
             if parent_class in GO_ROOTS:
-                d_classes_ontology[parent_class] = [GO_ROOT]
+                d_classes_ontology[parent_class] = [ROOTS[GO]]
             if go_class not in d_classes_ontology:
                 d_classes_ontology[go_class] = set()
             d_classes_ontology[go_class].add(parent_class)
         if go_classes:
             d_classes_ontology[go] = list(go_classes.difference(parent_classes))
-            go_classes.add(GO_ROOT)
+            go_classes.add(ROOTS[GO])
             all_classes[go] = go_classes
         else:
             print(f'No GO class found for : {go}')

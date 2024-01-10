@@ -4,7 +4,7 @@ from typing import Collection
 import plotly.graph_objects as go
 
 from ontosunburst.ontology import get_classes_abondance, get_children_dict, extract_classes, \
-    reduce_d_ontology, METACYC, CHEBI, EC, GO, METACYC_ROOT, CHEBI_ROLE_ROOT, EC_ROOT, GO_ROOT
+    reduce_d_ontology, METACYC, CHEBI, EC, GO, ROOTS
 
 from ontosunburst.sunburst_fig import get_fig_parameters, get_data_proportion, \
     generate_sunburst_fig, BINOMIAL_TEST, TOPOLOGY_A, ENRICHMENT_A, ROOT_CUT
@@ -85,7 +85,6 @@ def ontosunburst(ontology: str,
 
     # METACYC --------------------------------------------------------------------------------------
     if ontology == METACYC:
-        root = METACYC_ROOT
         if class_file is None:
             class_file = METACYC_FILE
         names = None
@@ -93,7 +92,6 @@ def ontosunburst(ontology: str,
             d_classes_ontology = json.load(f)
     # EC -------------------------------------------------------------------------------------------
     elif ontology == EC:
-        root = EC_ROOT
         if class_file is None:
             class_file = EC_ONTO_FILE
         if names_file is None:
@@ -104,13 +102,11 @@ def ontosunburst(ontology: str,
             names = json.load(f)
     # CHEBI ----------------------------------------------------------------------------------------
     elif ontology == CHEBI:
-        root = CHEBI_ROLE_ROOT
         endpoint_url = CHEBI_URL
         d_classes_ontology = None
         names = None
     # GO -------------------------------------------------------------------------------------------
     elif ontology == GO:
-        root = GO_ROOT
         endpoint_url = GO_URL
         d_classes_ontology = None
         names = None
@@ -122,7 +118,7 @@ def ontosunburst(ontology: str,
                             metabolic_objects=metabolic_objects, reference_set=reference_set,
                             d_classes_ontology=d_classes_ontology, endpoint_url=endpoint_url,
                             output=output, full=full, names=names, total=total, test=test,
-                            root=root, root_cut=root_cut, ref_base=ref_base,
+                            root=ROOTS[ontology], root_cut=root_cut, ref_base=ref_base,
                             show_leaves=show_leaves)
 
 
