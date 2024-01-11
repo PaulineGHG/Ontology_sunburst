@@ -232,8 +232,6 @@ def extract_go_classes(go_ids: Collection[str], endpoint_url: str) \
 
     for c, p in d_classes_ontology.items():
         d_classes_ontology[c] = list(p)
-    print(all_classes)
-    print(d_classes_ontology)
     return all_classes, d_classes_ontology
 
 
@@ -248,6 +246,9 @@ def extract_classes(ontology, metabolic_objects, root, d_classes_ontology=None, 
         return extract_chebi_roles(metabolic_objects, endpoint_url)
     if ontology == GO:
         return extract_go_classes(metabolic_objects, endpoint_url)
+    if ontology == KEGG:
+        leaf_classes = extract_metacyc_classes(metabolic_objects, d_classes_ontology)
+        return get_all_classes(leaf_classes, d_classes_ontology, root), d_classes_ontology
 
 
 # For all Ontology - Utils
