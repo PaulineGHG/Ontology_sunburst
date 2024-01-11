@@ -10,11 +10,14 @@ METACYC = 'metacyc'
 EC = 'ec'
 CHEBI = 'chebi'
 GO = 'go'
+KEGG = 'kegg'
 
 ROOTS = {METACYC: 'FRAMES',
          CHEBI: 'role',
          EC: 'Enzyme',
-         GO: 'GO'}
+         GO: 'GO',
+         KEGG: ''}
+
 GO_ROOTS = ['cellular_component', 'biological_process', 'molecular_function']
 
 
