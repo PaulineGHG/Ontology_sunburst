@@ -16,7 +16,7 @@ ROOTS = {METACYC: 'FRAMES',
          CHEBI: 'role',
          EC: 'Enzyme',
          GO: 'GO',
-         KEGG: ''}
+         KEGG: 'kegg'}
 
 GO_ROOTS = ['cellular_component', 'biological_process', 'molecular_function']
 

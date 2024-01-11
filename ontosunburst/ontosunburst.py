@@ -4,7 +4,7 @@ from typing import Collection
 import plotly.graph_objects as go
 
 from ontosunburst.ontology import get_classes_abondance, get_children_dict, extract_classes, \
-    reduce_d_ontology, METACYC, CHEBI, EC, GO, ROOTS
+    reduce_d_ontology, METACYC, CHEBI, EC, GO, KEGG, ROOTS
 
 from ontosunburst.sunburst_fig import get_fig_parameters, get_data_proportion, \
     generate_sunburst_fig, BINOMIAL_TEST, TOPOLOGY_A, ENRICHMENT_A, ROOT_CUT
@@ -21,8 +21,11 @@ METACYC_FILE = os.path.join(CURRENT_DIR, 'Inputs', 'MetaCyc26_0_classes.json')
 # For EC numbers
 EC_ONTO_FILE = os.path.join(CURRENT_DIR, 'Inputs', 'enzymes_ontology.json')
 EC_NAMES_FILE = os.path.join(CURRENT_DIR, 'Inputs', 'enzymes_class_names.json')
+# For KEGG
+KEGG_ONTO_FILE = os.path.join(CURRENT_DIR, 'Inputs', 'kegg_onto.json')
 # For ChEBI
 CHEBI_URL = 'http://localhost:3030/chebi/'
+# For GO
 GO_URL = 'http://localhost:3030/go/'
 
 
@@ -100,6 +103,13 @@ def ontosunburst(ontology: str,
             d_classes_ontology = json.load(f)
         with open(names_file, 'r') as f:
             names = json.load(f)
+    # KEGG -----------------------------------------------------------------------------------------
+    elif ontology == KEGG:
+        if class_file is None:
+            class_file = KEGG_ONTO_FILE
+        names = None
+        with open(class_file, 'r') as f:
+            d_classes_ontology = json.load(f)
     # CHEBI ----------------------------------------------------------------------------------------
     elif ontology == CHEBI:
         endpoint_url = CHEBI_URL
@@ -112,7 +122,7 @@ def ontosunburst(ontology: str,
         names = None
     # ELSE -----------------------------------------------------------------------------------------
     else:
-        raise ValueError(f'ontology parameter must be in : {[METACYC, EC, CHEBI, GO]}')
+        raise ValueError(f'ontology parameter must be in : {[METACYC, EC, KEGG, CHEBI, GO]}')
     # WORKFLOW -------------------------------------------------------------------------------------
     return _global_analysis(ontology=ontology, analysis=analysis,
                             metabolic_objects=metabolic_objects, reference_set=reference_set,
