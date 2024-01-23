@@ -4,7 +4,7 @@ from typing import Collection
 import plotly.graph_objects as go
 
 from ontosunburst.ontology import get_classes_abondance, get_children_dict, extract_classes, \
-    reduce_d_ontology, METACYC, CHEBI, EC, METACYC_ROOT, CHEBI_ROLE_ROOT, EC_ROOT
+    reduce_d_ontology, METACYC, CHEBI, EC, GO, KEGG, ROOTS
 
 from ontosunburst.sunburst_fig import get_fig_parameters, get_data_proportion, \
     generate_sunburst_fig, BINOMIAL_TEST, TOPOLOGY_A, ENRICHMENT_A, ROOT_CUT
@@ -21,8 +21,12 @@ METACYC_FILE = os.path.join(CURRENT_DIR, 'Inputs', 'MetaCyc26_0_classes.json')
 # For EC numbers
 EC_ONTO_FILE = os.path.join(CURRENT_DIR, 'Inputs', 'enzymes_ontology.json')
 EC_NAMES_FILE = os.path.join(CURRENT_DIR, 'Inputs', 'enzymes_class_names.json')
+# For KEGG
+KEGG_ONTO_FILE = os.path.join(CURRENT_DIR, 'Inputs', 'kegg_onto.json')
 # For ChEBI
 CHEBI_URL = 'http://localhost:3030/chebi/'
+# For GO
+GO_URL = 'http://localhost:3030/go/'
 
 
 # ==================================================================================================
@@ -36,7 +40,7 @@ def ontosunburst(ontology: str,
                  output: str = None,
                  class_file: str = None,
                  names_file: str = None,
-                 endpoint_url: str = CHEBI_URL,
+                 endpoint_url: str = None,
                  test: str = BINOMIAL_TEST,
                  full: bool = True,
                  total: bool = True,
@@ -84,7 +88,6 @@ def ontosunburst(ontology: str,
 
     # METACYC --------------------------------------------------------------------------------------
     if ontology == METACYC:
-        root = METACYC_ROOT
         if class_file is None:
             class_file = METACYC_FILE
         names = None
@@ -92,7 +95,6 @@ def ontosunburst(ontology: str,
             d_classes_ontology = json.load(f)
     # EC -------------------------------------------------------------------------------------------
     elif ontology == EC:
-        root = EC_ROOT
         if class_file is None:
             class_file = EC_ONTO_FILE
         if names_file is None:
@@ -101,20 +103,32 @@ def ontosunburst(ontology: str,
             d_classes_ontology = json.load(f)
         with open(names_file, 'r') as f:
             names = json.load(f)
+    # KEGG -----------------------------------------------------------------------------------------
+    elif ontology == KEGG:
+        if class_file is None:
+            class_file = KEGG_ONTO_FILE
+        names = None
+        with open(class_file, 'r') as f:
+            d_classes_ontology = json.load(f)
     # CHEBI ----------------------------------------------------------------------------------------
     elif ontology == CHEBI:
-        root = CHEBI_ROLE_ROOT
+        endpoint_url = CHEBI_URL
+        d_classes_ontology = None
+        names = None
+    # GO -------------------------------------------------------------------------------------------
+    elif ontology == GO:
+        endpoint_url = GO_URL
         d_classes_ontology = None
         names = None
     # ELSE -----------------------------------------------------------------------------------------
     else:
-        raise ValueError(f'ontology parameter must be in : {[METACYC, EC, CHEBI]}')
+        raise ValueError(f'ontology parameter must be in : {[METACYC, EC, KEGG, CHEBI, GO]}')
     # WORKFLOW -------------------------------------------------------------------------------------
     return _global_analysis(ontology=ontology, analysis=analysis,
                             metabolic_objects=metabolic_objects, reference_set=reference_set,
                             d_classes_ontology=d_classes_ontology, endpoint_url=endpoint_url,
                             output=output, full=full, names=names, total=total, test=test,
-                            root=root, root_cut=root_cut, ref_base=ref_base,
+                            root=ROOTS[ontology], root_cut=root_cut, ref_base=ref_base,
                             show_leaves=show_leaves)
 
 

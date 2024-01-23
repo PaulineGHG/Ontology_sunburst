@@ -109,3 +109,32 @@ class ChEbiTest(unittest.TestCase):
                            endpoint_url=URL, output='test_chebi_comp', analysis=ENRICHMENT_A,
                            ref_base=True)
         fig.write_image('test_chebi_comp.png', width=1900, height=1000, scale=1)
+
+
+# GO
+# ==================================================================================================
+
+GO_EX = ['GO:0043226', 'GO:0043227', 'GO:0043229', 'GO:0043231', 'GO:0044422', 'GO:0044424',
+         'GO:0044429', 'GO:0044444']
+
+
+class GOTest(unittest.TestCase):
+
+    def test_go_proportion(self):
+        fig = ontosunburst(ontology=GO, metabolic_objects=GO_EX,
+                           output='test_go_prop', ref_base=False, show_leaves=True)
+        fig.write_image('test_go_prop.png', width=1900, height=1000, scale=1)
+
+
+# KEGG
+# ==================================================================================================
+
+KEGG_EX = ['M00572', 'M00308', 'M00844', 'M00633', 'M00176', 'M00535', 'M00573', 'M00970', 'M00131',
+           'M00620']
+
+class KeggTest(unittest.TestCase):
+
+    def test_kegg_proportion(self):
+        fig = ontosunburst(ontology=GO, metabolic_objects=GO_EX,
+                           output='test_go_prop', ref_base=False, show_leaves=True)
+        fig.write_image('test_kegg_prop.png', width=1900, height=1000, scale=1)

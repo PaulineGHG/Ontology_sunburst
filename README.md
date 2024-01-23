@@ -5,6 +5,9 @@ of metabolic objects
 
 ## Requirements
 
+### Mandatory
+Python 3.10 recommended
+
 Requirements from `requirements.txt`
 
 - numpy>=1.22.0
@@ -13,21 +16,62 @@ Requirements from `requirements.txt`
 - scipy>=1.8.1
 - SPARQLWrapper>=2.0.0
 
-### Installation
+### Optional
+
+Need *Apache Jena Fuseki* SPARQL server for ChEBI and GO requests and their OWL files.
+
+- Download *Apache Jena Fuseki* : https://jena.apache.org/download/index.cgi 
+- Download ChEBI ontology : https://ftp.ebi.ac.uk/pub/databases/chebi/ontology/
+  (chebi.owl or chebi_lite.owl)
+- Download GO ontology : https://geneontology.org/docs/download-ontology/ (go.owl)
+
+## Installation
 
 ```commandline
 pip install -r requirements.txt
 pip install -e .
 ```
+
+### Set up Jena SPARQL server (optional : for ChEBI and GO)
+
+Execute followed bash script to launch server.
+
+#### ChEBI
+
+```bash
+#!/bin/bash
+
+FUSEKI_PATH=/path/to/apache-jena-fuseki-x.x.x
+CHEBI_PATH=/path/to//chebi_lite.owl
+
+${FUSEKI_PATH}/fuseki-server --file=${CHEBI_PATH} /chebi
+```
+
+#### GO
+
+```bash
+#!/bin/bash
+
+FUSEKI_PATH=/path/to/apache-jena-fuseki-x.x.x
+GO_PATH=/path/to/go.owl
+
+${FUSEKI_PATH}/fuseki-server --file=${GO_PATH} /go
+```
+
 ## Utilisation
 
 ### Availabilities
 
-#### 3 **Ontologies :**
+#### 5 **Ontologies :**
 
-- MetaCyc (compounds, reactions and pathways)
-- ChEBI (chebi roles)
+With local files :
+- MetaCyc (compounds, reactions, pathways)
 - EC (EC-numbers)
+- KEGG Ontology (modules, pathways, ko, ko_transporter, metabolite, metabolite_lipid)
+
+With SPARQL server :
+- ChEBI (chebi roles)
+- Gene Ontology (works well only with small set)
 
 #### 2 **Analysis :**
 
@@ -48,22 +92,20 @@ functions from `obj_extraction`
 
 #### Ontology
 
-#### 1. Files (MetaCyc, EC)
+#### 1. Files (MetaCyc, EC, KEGG)
 
 Intern tool files (in `Inputs` folder) by default
 
 Specified user local files
-- MetaCyc (Data Base Padmet Reference (metacyc_x.xx.padmet) + 
-Classes ontology json file)
+- MetaCyc (Classes ontology json file)
 - EC (Classes ontology json file + Names json file)
+- KEGG (Classes ontology json file)
 
-#### 2. SPARQL server url (ChEBI)
+#### 2. SPARQL server url (ChEBI, GO)
 
+See **Set up Jena SPARQL server (optional : for ChEBI and GO)** for 
+install guide.
 
-## Run
-
-Codes to run workflows (proportion or comparison) to create sunburst in
-`ontosunburst.py`
 
 
 ## Main workflow function : `ontosunburst.ontosunburst`
@@ -73,7 +115,7 @@ Codes to run workflows (proportion or comparison) to create sunburst in
 ---------- REQUIRED ----------
 
 `ontology` : `str`
-- Ontology to use, must be in : [metacyc, ec, chebi]
+- Ontology to use, must be in : [metacyc, ec, kegg, chebi, go]
 
 `metabolic_objects` : `Collection[str]`
 - Set of metabolic objects to classify
