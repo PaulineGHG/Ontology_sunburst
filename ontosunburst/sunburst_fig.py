@@ -547,7 +547,7 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
                       row=1, col=1)
     else:
         raise ValueError('Wrong type input')
-    fig.update_layout(paper_bgcolor="#888888", font_color='#111111', font_size=20)
+    fig.update_layout(paper_bgcolor="rgba(255, 255, 255, 0)", font_color='#111111', font_size=20)
     fig.update_annotations(font_size=28)
     if output is not None:
         fig.write_html(f'{output}.html')
