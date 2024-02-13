@@ -1,6 +1,6 @@
 import os
 import json
-from typing import Collection
+from typing import Collection, List
 import plotly.graph_objects as go
 
 from ontosunburst.ontology import get_classes_abondance, get_children_dict, extract_classes, \
@@ -35,6 +35,7 @@ GO_URL = 'http://localhost:3030/go/'
 
 def ontosunburst(ontology: str,
                  metabolic_objects: Collection[str],
+                 abundances: List[float] = None,
                  reference_set: Collection[str] = None,
                  analysis: str = TOPOLOGY_A,
                  output: str = None,
@@ -55,6 +56,8 @@ def ontosunburst(ontology: str,
         Ontology to use, must be in : [metacyc, ec, chebi]
     metabolic_objects: Collection[str]
         Set of metabolic objects to classify
+    abundances: List[str] (optional, default=None)
+        Abundance values associated to metabolic_objects list parameter
     reference_set: Collection[str] (optional, default=None)
         Set of reference metabolic objects
     analysis: str (optional, default=topology)
@@ -125,23 +128,28 @@ def ontosunburst(ontology: str,
         raise ValueError(f'ontology parameter must be in : {[METACYC, EC, KEGG, CHEBI, GO]}')
     # WORKFLOW -------------------------------------------------------------------------------------
     return _global_analysis(ontology=ontology, analysis=analysis,
-                            metabolic_objects=metabolic_objects, reference_set=reference_set,
-                            d_classes_ontology=d_classes_ontology, endpoint_url=endpoint_url,
-                            output=output, full=full, names=names, total=total, test=test,
-                            root=ROOTS[ontology], root_cut=root_cut, ref_base=ref_base,
-                            show_leaves=show_leaves)
+                            metabolic_objects=metabolic_objects, abundances=abundances,
+                            reference_set=reference_set, d_classes_ontology=d_classes_ontology,
+                            endpoint_url=endpoint_url, output=output, full=full, names=names,
+                            total=total, test=test, root=ROOTS[ontology], root_cut=root_cut,
+                            ref_base=ref_base, show_leaves=show_leaves)
 
 
 # ==================================================================================================
 #                                             FUNCTIONS
 # ==================================================================================================
-def _global_analysis(ontology, analysis, metabolic_objects, reference_set, d_classes_ontology,
-                     endpoint_url, output, full, names, total, test, root, root_cut, ref_base,
-                     show_leaves):
+def _global_analysis(ontology, analysis, metabolic_objects, abundances, reference_set,
+                     d_classes_ontology, endpoint_url, output, full, names, total, test, root,
+                     root_cut, ref_base, show_leaves):
+
+    abundances_dict = get_abundance_dict(abundances=abundances, ref_base=ref_base,
+                                         metabolic_objects=metabolic_objects,
+                                         reference_set=reference_set)
+
     obj_all_classes, d_classes_ontology = extract_classes(ontology, metabolic_objects, root,
                                                           d_classes_ontology=d_classes_ontology,
                                                           endpoint_url=endpoint_url)
-    classes_abundance = get_classes_abondance(obj_all_classes, show_leaves)
+    classes_abundance = get_classes_abondance(obj_all_classes, abundances_dict, show_leaves)
 
     if output is not None and ontology == METACYC:
         write_met_classes(obj_all_classes, output)
@@ -150,13 +158,15 @@ def _global_analysis(ontology, analysis, metabolic_objects, reference_set, d_cla
         ref_all_classes, d_classes_ontology = extract_classes(ontology, reference_set, root,
                                                               d_classes_ontology=d_classes_ontology,
                                                               endpoint_url=endpoint_url)
+        ref_classes_abundance = get_classes_abondance(ref_all_classes, abundances_dict, show_leaves)
+
     else:
-        ref_all_classes = None
+        ref_classes_abundance = None
 
     # Enrichment figure
     if analysis == ENRICHMENT_A:
-        if ref_all_classes is not None:
-            return _enrichment_analysis(ref_all_classes=ref_all_classes,
+        if ref_classes_abundance is not None:
+            return _enrichment_analysis(ref_classes_abundance=ref_classes_abundance,
                                         classes_abundance=classes_abundance,
                                         d_classes_ontology=d_classes_ontology,
                                         output=output, full=full, names=names, total=total,
@@ -167,7 +177,7 @@ def _global_analysis(ontology, analysis, metabolic_objects, reference_set, d_cla
 
     # Proportion figure
     elif analysis == TOPOLOGY_A:
-        return _topology_analysis(ref_all_classes=ref_all_classes,
+        return _topology_analysis(ref_classes_abundance=ref_classes_abundance,
                                   classes_abundance=classes_abundance,
                                   d_classes_ontology=d_classes_ontology,
                                   output=output, full=full, names=names, total=total,
@@ -178,13 +188,13 @@ def _global_analysis(ontology, analysis, metabolic_objects, reference_set, d_cla
         raise ValueError(f'Value of analysis parameter must be in : {[TOPOLOGY_A, ENRICHMENT_A]}')
 
 
-def _topology_analysis(ref_all_classes, classes_abundance, d_classes_ontology, output, full,
+def _topology_analysis(ref_classes_abundance, classes_abundance, d_classes_ontology, output, full,
                        names, total, root, root_cut, ref_base, show_leaves) -> go.Figure:
     """ Performs the proportion analysis
 
     Parameters
     ----------
-    ref_all_classes
+    ref_classes_abundance
     classes_abundance
     d_classes_ontology
     output
@@ -200,8 +210,7 @@ def _topology_analysis(ref_all_classes, classes_abundance, d_classes_ontology, o
     go.Figure
         Plotly graph_objects figure of the sunburst
     """
-    if ref_all_classes is not None:
-        ref_classes_abundance = get_classes_abondance(ref_all_classes, show_leaves)
+    if ref_classes_abundance is not None:
         d_classes_ontology = reduce_d_ontology(d_classes_ontology, ref_classes_abundance)
 
         if ref_base:
@@ -235,13 +244,13 @@ def _topology_analysis(ref_all_classes, classes_abundance, d_classes_ontology, o
                                      names=names, total=total, root_cut=root_cut, ref_base=ref_base)
 
 
-def _enrichment_analysis(ref_all_classes, classes_abundance, d_classes_ontology, output, full,
+def _enrichment_analysis(ref_classes_abundance, classes_abundance, d_classes_ontology, output, full,
                          names, total, test, root, root_cut, ref_base, show_leaves) -> go.Figure:
     """ Performs the comparison analysis
 
     Parameters
     ----------
-    ref_all_classes
+    ref_classes_abundance
     classes_abundance
     d_classes_ontology
     output
@@ -258,8 +267,6 @@ def _enrichment_analysis(ref_all_classes, classes_abundance, d_classes_ontology,
     go.Figure
         Plotly graph_objects figure of the sunburst
     """
-    ref_classes_abundance = get_classes_abondance(ref_all_classes, show_leaves)
-
     if ref_base:
         data = get_fig_parameters(classes_abondance=ref_classes_abundance,
                                   parent_dict=d_classes_ontology,
@@ -277,6 +284,26 @@ def _enrichment_analysis(ref_all_classes, classes_abundance, d_classes_ontology,
     return generate_sunburst_fig(data=data, output=output, analysis=ENRICHMENT_A,
                                  ref_classes_abundance=ref_classes_abundance, test=test,
                                  names=names, total=total, root_cut=root_cut)
+
+
+def get_abundance_dict(abundances, ref_base, metabolic_objects, reference_set):
+    abundances_dict = None
+    if abundances is not None:
+        if not ref_base and len(metabolic_objects) == len(abundances):
+            abundances_dict = {}
+            for i in range(len(metabolic_objects)):
+                abundances_dict[metabolic_objects[i]] = abundances[i]
+        elif ref_base and len(reference_set) == len(abundances):
+            abundances_dict = {}
+            for i in range(len(reference_set)):
+                abundances_dict[reference_set[i]] = abundances[i]
+        elif not ref_base:
+            raise AttributeError('Length of "metabolic_objects" parameter must be equal to '
+                                 '"abundances" parameter length')
+        else:
+            raise AttributeError('Length of "reference_set" parameter must be equal to '
+                                 '"abundances" parameter length')
+    return abundances_dict
 
 
 def write_met_classes(all_classes, output):

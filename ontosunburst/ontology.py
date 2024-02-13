@@ -315,7 +315,8 @@ def get_all_classes(met_classes: Dict[str, List[str]], d_classes_ontology: Dict[
     return all_classes_met
 
 
-def get_classes_abondance(all_classes: Dict[str, Set[str]], show_leaves: bool) -> Dict[str, int]:
+def get_classes_abondance(all_classes: Dict[str, Set[str]], abundances_dict, show_leaves: bool) \
+        -> Dict[str, int]:
     """ Indicate for each class the number of metabolites found belonging to the class
 
     Parameters
@@ -330,15 +331,20 @@ def get_classes_abondance(all_classes: Dict[str, Set[str]], show_leaves: bool) -
     Dict[str, int]
         Dictionary associating for each class the number of metabolites found belonging to the class.
     """
+    if abundances_dict is None:
+        abundances_dict = {}
+        for met in all_classes:
+            abundances_dict[met] = 1
+
     classes_abondance = dict()
     for met, classes in all_classes.items():
         if show_leaves:
-            classes_abondance[met] = 1
+            classes_abondance[met] = abundances_dict[met]
         for c in classes:
             if c not in classes_abondance.keys():
-                classes_abondance[c] = 1
+                classes_abondance[c] = abundances_dict[met]
             else:
-                classes_abondance[c] += 1
+                classes_abondance[c] += abundances_dict[met]
     return dict(reversed(sorted(classes_abondance.items(), key=lambda item: item[1])))
 
 

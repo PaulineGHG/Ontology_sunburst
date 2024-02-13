@@ -8,58 +8,61 @@ No automatic tests integrated.
 # METACYC
 # ==================================================================================================
 
-MET_SET = {'CPD-24674', 'CPD-24687', 'CPD-24688'}
-REF_MET = {'CPD-24674', 'CPD-24687', 'CPD-24688',
+MET_LST = ['CPD-24674', 'CPD-24687', 'CPD-24688']
+MET_REF = ['CPD-24674', 'CPD-24687', 'CPD-24688',
            'CPD-12782', 'CPD-12784', 'CPD-12787',
            'CPD-12788', 'CPD-12789', 'CPD-12796',
            'CPD-12797', 'CPD-12798', 'CPD-12805',
            'CPD-12806', 'CPD-12812', 'CPD-12816',
-           'CPD-1282', 'CPD-12824', 'CPD-1283'}
+           'CPD-1282', 'CPD-12824', 'CPD-1283']
+MET_LAB = [1, 2, 3]
+MET_RAB = [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
-RXN_SET = {'CROTCOALIG-RXN', 'CYSTHIOCYS-RXN', 'NQOR-RXN'}
-REF_RXN = {'CROTCOALIG-RXN', 'CYSTHIOCYS-RXN', 'NQOR-RXN',
+RXN_LST = ['CROTCOALIG-RXN', 'CYSTHIOCYS-RXN', 'NQOR-RXN']
+RXN_REF = ['CROTCOALIG-RXN', 'CYSTHIOCYS-RXN', 'NQOR-RXN',
            'RXN-14859', 'RXN-14873', 'RXN-14920',
            'RXN-14939', 'RXN-14975', 'RXN-21632',
-           'RXN-21638', 'RXN-21652', 'RXN-8954'}
+           'RXN-21638', 'RXN-21652', 'RXN-8954']
 
-PWY_SET = {'2ASDEG-PWY', '4AMINOBUTMETAB-PWY', 'ALLANTOINDEG-PWY'}
-REF_PWY = {'2ASDEG-PWY', '4AMINOBUTMETAB-PWY', 'ALLANTOINDEG-PWY',
+PWY_LST = ['2ASDEG-PWY', '4AMINOBUTMETAB-PWY', 'ALLANTOINDEG-PWY']
+PWY_REF = ['2ASDEG-PWY', '4AMINOBUTMETAB-PWY', 'ALLANTOINDEG-PWY',
            'CRNFORCAT-PWY', 'PWY-7195', 'PWY-7219',
            'PWY-7251', 'PWY-7351', 'PWY-7401',
-           'PWY18C3-22', 'PWY0-1600', 'SERDEG-PWY'}
+           'PWY18C3-22', 'PWY0-1600', 'SERDEG-PWY']
 
 
 class MetacycTest(unittest.TestCase):
     # Compounds
     def test_cpd_metacyc_proportion(self):
-        fig = ontosunburst(ontology=METACYC, metabolic_objects=MET_SET, reference_set=REF_MET,
-                           output='test_mc_cpd_prop', ref_base=True)
+        fig = ontosunburst(ontology=METACYC, metabolic_objects=MET_LST, reference_set=MET_REF,
+                           output='test_mc_cpd_prop', ref_base=True, abundances=MET_RAB,
+                           show_leaves=True)
         fig.write_image('test_mc_cpd_prop.png', width=1900, height=1000, scale=1)
 
     def test_cpd_metacyc_comparison(self):
-        fig = ontosunburst(ontology=METACYC, metabolic_objects=MET_SET, reference_set=REF_MET,
+        fig = ontosunburst(ontology=METACYC, metabolic_objects=MET_LST, reference_set=MET_REF,
                            analysis=ENRICHMENT_A, output='test_mc_cpd_comp', ref_base=True)
         fig.write_image('test_mc_cpd_comp.png', width=1900, height=1000, scale=1)
 
     # Reactions
     def test_rxn_metacyc_proportion(self):
-        fig = ontosunburst(ontology=METACYC, metabolic_objects=RXN_SET, reference_set=REF_RXN,
+        fig = ontosunburst(ontology=METACYC, metabolic_objects=RXN_LST, reference_set=RXN_REF,
                            output='test_mc_rxn_prop', ref_base=True)
         fig.write_image('test_mc_rxn_prop.png', width=1900, height=1000, scale=1)
 
     def test_rxn_metacyc_comparison(self):
-        fig = ontosunburst(ontology=METACYC, metabolic_objects=RXN_SET, reference_set=REF_RXN,
+        fig = ontosunburst(ontology=METACYC, metabolic_objects=RXN_LST, reference_set=RXN_REF,
                            analysis=ENRICHMENT_A, output='test_mc_rxn_comp', ref_base=True)
         fig.write_image('test_mc_rxn_comp.png', width=1900, height=1000, scale=1)
 
     # Pathways
     def test_pwy_metacyc_proportion(self):
-        fig = ontosunburst(ontology=METACYC, metabolic_objects=PWY_SET, reference_set=REF_PWY,
+        fig = ontosunburst(ontology=METACYC, metabolic_objects=PWY_LST, reference_set=PWY_REF,
                            output='test_mc_pwy_prop', ref_base=True)
         fig.write_image('test_mc_pwy_prop.png', width=1900, height=1000, scale=1)
 
     def test_pwy_metacyc_comparison(self):
-        fig = ontosunburst(ontology=METACYC, metabolic_objects=PWY_SET, reference_set=REF_PWY,
+        fig = ontosunburst(ontology=METACYC, metabolic_objects=PWY_LST, reference_set=PWY_REF,
                            analysis=ENRICHMENT_A, output='test_mc_pwy_comp', ref_base=True)
         fig.write_image('test_mc_pwy_comp.png', width=1900, height=1000, scale=1)
 
