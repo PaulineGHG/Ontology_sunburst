@@ -1,3 +1,5 @@
+import sys
+
 import padmet.classes
 from typing import List, Set, Dict, Tuple, Collection
 from SPARQLWrapper import SPARQLWrapper, JSON
@@ -104,6 +106,8 @@ def extract_chebi_roles(chebi_ids: Collection[str], endpoint_url: str) \
     """
     d_roles_ontology = dict()
     all_roles = dict()
+    chebi_ok = 0
+    total_nb = len(chebi_ids)
     for chebi_id in chebi_ids:
         roles = set()
         sparql = SPARQLWrapper(endpoint_url)
@@ -150,6 +154,7 @@ def extract_chebi_roles(chebi_ids: Collection[str], endpoint_url: str) \
                 d_roles_ontology[role] = set()
             d_roles_ontology[role].add(parent_role)
         if roles:
+            chebi_ok += 1
             d_roles_ontology[chebi_id] = list(roles.difference(parent_roles))
             roles.add(ROOTS[CHEBI])
             all_roles[chebi_id] = roles
@@ -159,6 +164,7 @@ def extract_chebi_roles(chebi_ids: Collection[str], endpoint_url: str) \
     for c, p in d_roles_ontology.items():
         d_roles_ontology[c] = list(p)
 
+    print(f'{chebi_ok}/{total_nb} chebi id with roles associated.')
     return all_roles, d_roles_ontology
 
 

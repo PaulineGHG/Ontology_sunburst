@@ -57,7 +57,7 @@ def ontosunburst(ontology: str,
     metabolic_objects: Collection[str]
         Set of metabolic objects to classify
     abundances: List[str] (optional, default=None)
-        Abundance values associated to metabolic_objects list parameter
+        Abundance values associated to metabolic_objects or reference_set list parameter
     reference_set: Collection[str] (optional, default=None)
         Set of reference metabolic objects
     analysis: str (optional, default=topology)
@@ -150,6 +150,10 @@ def _global_analysis(ontology, analysis, metabolic_objects, abundances, referenc
                                                           d_classes_ontology=d_classes_ontology,
                                                           endpoint_url=endpoint_url)
     classes_abundance = get_classes_abondance(obj_all_classes, abundances_dict, show_leaves)
+
+    if not obj_all_classes:
+        print('No metabolic object classified, passing.')
+        return None
 
     if output is not None and ontology == METACYC:
         write_met_classes(obj_all_classes, output)
