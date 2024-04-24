@@ -1,7 +1,5 @@
-import sys
-
 import padmet.classes
-from typing import List, Set, Dict, Tuple, Collection
+from typing import List, Set, Dict, Tuple
 from SPARQLWrapper import SPARQLWrapper, JSON
 
 
@@ -41,14 +39,14 @@ def get_dict_ontology(padmet_ref: padmet.classes.PadmetRef):
     return dict_ontology
 
 
-def extract_metacyc_classes(metabolic_objects: Collection[str],
+def extract_metacyc_classes(metabolic_objects: List[str],
                             d_classes_ontology: Dict[str, List[str]]) -> Dict[str, List[str]]:
     """ Extract +1 parent classes for each metabolite.
 
     Parameters
     ----------
-    metabolic_objects: Collection[str]
-        Collection of metabolic objects.
+    metabolic_objects: List[str]
+        List of metabolic objects.
     d_classes_ontology: Dict[str, List[str]]
         MetaCyc classes dictionary
 
@@ -74,7 +72,7 @@ def extract_metacyc_classes(metabolic_objects: Collection[str],
 
 # For EC
 # --------------------------------------------------------------------------------------------------
-def extract_ec_classes(ec_set: Collection[str], d_classes_ontology):
+def extract_ec_classes(ec_set: List[str], d_classes_ontology):
     ec_classes = dict()
     for ec in ec_set:
         parent = ec.split('.')
@@ -87,14 +85,14 @@ def extract_ec_classes(ec_set: Collection[str], d_classes_ontology):
 
 # For ChEBI Ontology
 # --------------------------------------------------------------------------------------------------
-def extract_chebi_roles(chebi_ids: Collection[str], endpoint_url: str) \
+def extract_chebi_roles(chebi_ids: List[str], endpoint_url: str) \
         -> Tuple[Dict[str, Set[str]], Dict[str, List[str]]]:
     """
 
     Parameters
     ----------
-    chebi_ids: Collection[str]
-        Collection of ChEBI IDs to extract roles associated
+    chebi_ids: List[str]
+        List of ChEBI IDs to extract roles associated
     endpoint_url: str
         URL endpoint string
 
@@ -168,14 +166,14 @@ def extract_chebi_roles(chebi_ids: Collection[str], endpoint_url: str) \
     return all_roles, d_roles_ontology
 
 
-def extract_go_classes(go_ids: Collection[str], endpoint_url: str) \
+def extract_go_classes(go_ids: List[str], endpoint_url: str) \
         -> Tuple[Dict[str, Set[str]], Dict[str, List[str]]]:
     """
 
     Parameters
     ----------
-    go_ids: Collection[str]
-        Collection of GO IDs
+    go_ids: List[str]
+        List of GO IDs
     endpoint_url: str
         URL endpoint string
 
@@ -321,27 +319,43 @@ def get_all_classes(met_classes: Dict[str, List[str]], d_classes_ontology: Dict[
     return all_classes_met
 
 
-def get_classes_abondance(all_classes: Dict[str, Set[str]], abundances_dict, show_leaves: bool) \
-        -> Dict[str, int]:
+def get_abundance_dict(abundances: List[float], metabolic_objects: List[str], ref: bool)\
+        -> Dict[str, float]:
+    if abundances is None:
+        abundances = len(metabolic_objects) * [1]
+        print(abundances)
+    if len(metabolic_objects) == len(abundances):
+        abundances_dict = {}
+        for i in range(len(metabolic_objects)):
+            abundances_dict[metabolic_objects[i]] = abundances[i]
+    else:
+        if ref:
+            raise AttributeError('Length of "reference_set" parameter must be equal to '
+                                 '"ref_abundances" parameter length')
+        else:
+            raise AttributeError('Length of "metabolic_objects" parameter must be equal to '
+                                 '"abundances" parameter length')
+    return abundances_dict
+
+
+def get_classes_abondance(all_classes: Dict[str, Set[str]], abundances_dict: Dict[str, float],
+                          show_leaves: bool) -> Dict[str, float]:
     """ Indicate for each class the number of metabolites found belonging to the class
 
     Parameters
     ----------
     all_classes: Dict[str, Set[str]] (Dict[metabolite, Set[class]])
         Dictionary associating for each metabolite the list of all parent classes it belongs to.
+    abundances_dict: Dict[str, float]
+        Dictionary associating for each concept, its abundance value
     show_leaves: bool
         True to show input metabolic objets at sunburst leaves
 
     Returns
     -------
-    Dict[str, int]
-        Dictionary associating for each class the number of metabolites found belonging to the class.
+    Dict[str, float]
+        Dictionary associating for each class the weight of concepts found belonging to the class.
     """
-    if abundances_dict is None:
-        abundances_dict = {}
-        for met in all_classes:
-            abundances_dict[met] = 1
-
     classes_abondance = dict()
     for met, classes in all_classes.items():
         if show_leaves:

@@ -35,8 +35,8 @@ class MetacycTest(unittest.TestCase):
     # Compounds
     def test_cpd_metacyc_proportion(self):
         fig = ontosunburst(ontology=METACYC, metabolic_objects=MET_LST, reference_set=MET_REF,
-                           output='test_mc_cpd_prop', ref_base=True, abundances=MET_RAB,
-                           show_leaves=True)
+                           output='test_mc_cpd_prop', ref_base=True, abundances=MET_LAB,
+                           ref_abundances=MET_RAB, show_leaves=True)
         fig.write_image('test_mc_cpd_prop.png', width=1900, height=1000, scale=1)
 
     def test_cpd_metacyc_comparison(self):
@@ -70,22 +70,22 @@ class MetacycTest(unittest.TestCase):
 # EC
 # ==================================================================================================
 
-EC_SET = {'2.6.1.45', '1.1.1.25', '1.1.1.140'}
-REF_EC = {'2.6.1.45', '1.1.1.25', '1.1.1.140',
+EC_LST = ['2.6.1.45', '1.1.1.25', '1.1.1.140']
+REF_EC = ['2.6.1.45', '1.1.1.25', '1.1.1.140',
           '1.14.14.52', '2.7.1.137', '7.1.1.8',
           '1.17.4.5', '2.3.1.165', '3.2.1.53',
-          '3.2.1.91', '6.3.4.2', '5.4.99.8'}
+          '3.2.1.91', '6.3.4.2', '5.4.99.8']
 
 
 class EcTest(unittest.TestCase):
 
     def test_ec_proportion(self):
-        fig = ontosunburst(ontology=EC, metabolic_objects=EC_SET, reference_set=REF_EC,
+        fig = ontosunburst(ontology=EC, metabolic_objects=EC_LST, reference_set=REF_EC,
                            output='test_ec_prop', ref_base=True, show_leaves=True)
         fig.write_image('test_ec_prop.png', width=1900, height=1000, scale=1)
 
     def test_ec_comparison(self):
-        fig = ontosunburst(ontology=EC, metabolic_objects=EC_SET, reference_set=REF_EC,
+        fig = ontosunburst(ontology=EC, metabolic_objects=EC_LST, reference_set=REF_EC,
                            output='test_ec_comp', analysis=ENRICHMENT_A, ref_base=True)
         fig.write_image('test_ec_comp.png', width=1900, height=1000, scale=1)
 
@@ -94,21 +94,21 @@ class EcTest(unittest.TestCase):
 # ==================================================================================================
 
 URL = 'http://localhost:3030/chebi/'
-CH_SET = {'38028', '28604', '85146'}
-REF_CH = {'38028', '28604', '85146',
+CH_LST = ['38028', '28604', '85146']
+REF_CH = ['38028', '28604', '85146',
           '23066', '27803', '37565',
-          '58215', '79983', '42639'}
+          '58215', '79983', '42639']
 
 
 class ChEbiTest(unittest.TestCase):
 
     def test_chebi_proportion(self):
-        fig = ontosunburst(ontology=CHEBI, metabolic_objects=CH_SET, reference_set=REF_CH,
+        fig = ontosunburst(ontology=CHEBI, metabolic_objects=CH_LST, reference_set=REF_CH,
                            endpoint_url=URL, output='test_chebi_prop', ref_base=True)
         fig.write_image('test_chebi_prop.png', width=1900, height=1000, scale=1)
 
     def test_chebi_comparison(self):
-        fig = ontosunburst(ontology=CHEBI, metabolic_objects=CH_SET, reference_set=REF_CH,
+        fig = ontosunburst(ontology=CHEBI, metabolic_objects=CH_LST, reference_set=REF_CH,
                            endpoint_url=URL, output='test_chebi_comp', analysis=ENRICHMENT_A,
                            ref_base=True)
         fig.write_image('test_chebi_comp.png', width=1900, height=1000, scale=1)
