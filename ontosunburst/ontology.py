@@ -323,7 +323,6 @@ def get_abundance_dict(abundances: List[float], metabolic_objects: List[str], re
         -> Dict[str, float]:
     if abundances is None:
         abundances = len(metabolic_objects) * [1]
-        print(abundances)
     if len(metabolic_objects) == len(abundances):
         abundances_dict = {}
         for i in range(len(metabolic_objects)):
