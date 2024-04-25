@@ -158,8 +158,8 @@ def _global_analysis(ontology, analysis, metabolic_objects, abundances, referenc
         print('No metabolic object classified, passing.')
         return None
 
-    if output is not None and ontology == METACYC:
-        write_met_classes(obj_all_classes, output)
+    if output is not None:
+        write_met_classes(ontology, obj_all_classes, output)
 
     if reference_set is not None:
         ref_abundances_dict = get_abundance_dict(abundances=ref_abundances,
@@ -297,14 +297,14 @@ def _enrichment_analysis(ref_classes_abundance, classes_abundance, d_classes_ont
                                  names=names, total=total, root_cut=root_cut)
 
 
-def write_met_classes(all_classes, output):
+def write_met_classes(ontology, all_classes, output):
+    links_dict = {METACYC: 'https://metacyc.org/compound?orgid=META&id=',
+                  CHEBI: 'https://www.ebi.ac.uk/chebi/searchId.do?chebiId=CHEBI:',
+                  EC: 'https://enzyme.expasy.org/EC/',
+                  KEGG: 'https://www.genome.jp/entry/',
+                  GO: 'https://amigo.geneontology.org/amigo/term/'}
     with open(f'{output}.tsv', 'w') as f:
-        f.write('\t'.join(['Compound', 'Classes', 'Common names', 'MetaCyc link']) + '\n')
+        f.write('\t'.join(['ID', 'Classes', 'Link']) + '\n')
         for met, classes, in all_classes.items():
-            try:
-                # name = ' / '.join(pref.dicOfNode[met].misc['COMMON-NAME'])
-                name = ''
-            except KeyError:
-                name = ''
-            link = f'https://metacyc.org/compound?orgid=META&id={met}'
-            f.write('\t'.join([met, ', '.join(classes), name, link]) + '\n')
+            link = links_dict[ontology] + met
+            f.write('\t'.join([met, ', '.join(classes), link]) + '\n')

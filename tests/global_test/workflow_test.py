@@ -35,7 +35,7 @@ class MetacycTest(unittest.TestCase):
     # Compounds
     def test_cpd_metacyc_proportion(self):
         fig = ontosunburst(ontology=METACYC, metabolic_objects=MET_LST, reference_set=MET_REF,
-                           output='test_mc_cpd_prop', ref_base=True, abundances=MET_LAB,
+                           output='test_mc_cpd_prop', ref_base=False, abundances=MET_LAB,
                            ref_abundances=MET_RAB, show_leaves=True)
         fig.write_image('test_mc_cpd_prop.png', width=1900, height=1000, scale=1)
 
