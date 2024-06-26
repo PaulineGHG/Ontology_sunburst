@@ -48,7 +48,8 @@ def ontosunburst(ontology: str,
                  total: bool = True,
                  root_cut: str = ROOT_CUT,
                  ref_base: bool = False,
-                 show_leaves: bool = False) -> go.Figure:
+                 show_leaves: bool = False,
+                 **kwargs) -> go.Figure:
     """
 
     Parameters
@@ -136,7 +137,7 @@ def ontosunburst(ontology: str,
                             d_classes_ontology=d_classes_ontology, endpoint_url=endpoint_url,
                             output=output, full=full, names=names, total=total, test=test,
                             root=ROOTS[ontology], root_cut=root_cut, ref_base=ref_base,
-                            show_leaves=show_leaves)
+                            show_leaves=show_leaves, **kwargs)
 
 
 # ==================================================================================================
@@ -144,7 +145,7 @@ def ontosunburst(ontology: str,
 # ==================================================================================================
 def _global_analysis(ontology, analysis, metabolic_objects, abundances, reference_set,
                      ref_abundances, d_classes_ontology, endpoint_url, output, full, names, total,
-                     test, root, root_cut, ref_base, show_leaves):
+                     test, root, root_cut, ref_base, show_leaves, **kwargs):
     abundances_dict = get_abundance_dict(abundances=abundances,
                                          metabolic_objects=metabolic_objects,
                                          ref=False)
@@ -182,7 +183,7 @@ def _global_analysis(ontology, analysis, metabolic_objects, abundances, referenc
                                         d_classes_ontology=d_classes_ontology,
                                         output=output, full=full, names=names, total=total,
                                         test=test, root=root, root_cut=root_cut, ref_base=ref_base,
-                                        show_leaves=show_leaves)
+                                        **kwargs)
         else:
             raise AttributeError('Missing reference set parameter')
 
@@ -192,15 +193,14 @@ def _global_analysis(ontology, analysis, metabolic_objects, abundances, referenc
                                   classes_abundance=classes_abundance,
                                   d_classes_ontology=d_classes_ontology,
                                   output=output, full=full, names=names, total=total,
-                                  root=root, root_cut=root_cut, ref_base=ref_base,
-                                  show_leaves=show_leaves)
+                                  root=root, root_cut=root_cut, ref_base=ref_base, **kwargs)
 
     else:
         raise ValueError(f'Value of analysis parameter must be in : {[TOPOLOGY_A, ENRICHMENT_A]}')
 
 
 def _topology_analysis(ref_classes_abundance, classes_abundance, d_classes_ontology, output, full,
-                       names, total, root, root_cut, ref_base, show_leaves) -> go.Figure:
+                       names, total, root, root_cut, ref_base, **kwargs) -> go.Figure:
     """ Performs the proportion analysis
 
     Parameters
@@ -241,7 +241,7 @@ def _topology_analysis(ref_classes_abundance, classes_abundance, d_classes_ontol
         names = names is not None
         return generate_sunburst_fig(data=data, output=output, analysis=TOPOLOGY_A,
                                      ref_classes_abundance=ref_classes_abundance, names=names,
-                                     total=total, root_cut=root_cut, ref_base=ref_base)
+                                     total=total, root_cut=root_cut, ref_base=ref_base, **kwargs)
 
     else:
         d_classes_ontology = reduce_d_ontology(d_classes_ontology, classes_abundance)
@@ -251,12 +251,12 @@ def _topology_analysis(ref_classes_abundance, classes_abundance, d_classes_ontol
                                   root_item=root, full=full, names=names)
         data = get_data_proportion(data, total)
         names = names is not None
-        return generate_sunburst_fig(data=data, output=output, analysis=TOPOLOGY_A,
-                                     names=names, total=total, root_cut=root_cut, ref_base=ref_base)
+        return generate_sunburst_fig(data=data, output=output, analysis=TOPOLOGY_A, names=names,
+                                     total=total, root_cut=root_cut, ref_base=ref_base, **kwargs)
 
 
 def _enrichment_analysis(ref_classes_abundance, classes_abundance, d_classes_ontology, output, full,
-                         names, total, test, root, root_cut, ref_base, show_leaves) -> go.Figure:
+                         names, total, test, root, root_cut, ref_base, **kwargs) -> go.Figure:
     """ Performs the comparison analysis
 
     Parameters
@@ -294,7 +294,7 @@ def _enrichment_analysis(ref_classes_abundance, classes_abundance, d_classes_ont
     names = names is not None
     return generate_sunburst_fig(data=data, output=output, analysis=ENRICHMENT_A,
                                  ref_classes_abundance=ref_classes_abundance, test=test,
-                                 names=names, total=total, root_cut=root_cut)
+                                 names=names, total=total, root_cut=root_cut, **kwargs)
 
 
 def write_met_classes(ontology, all_classes, output):

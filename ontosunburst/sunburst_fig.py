@@ -461,10 +461,39 @@ def data_cut_root(data: Dict[str, List], mode: str) -> Dict[str, List]:
     return data
 
 
+def get_fig_kwargs(analysis, output, **kwargs):
+    def_colorscale = {TOPOLOGY_A: 'Viridis',
+                      ENRICHMENT_A: 'RdBu'}
+    def_titles = {TOPOLOGY_A: f'{os.path.basename(output)} : Proportion of classes',
+                  ENRICHMENT_A: f'{os.path.basename(output)} : Classes enrichment representation'}
+    def_colorbar = {TOPOLOGY_A: 'Count',
+                    ENRICHMENT_A: 'Log10(p-value)'}
+    def_cmin = {TOPOLOGY_A: 1, ENRICHMENT_A: -10}
+    def_cmax = {TOPOLOGY_A: None, ENRICHMENT_A: 10}
+    def_cmid = {TOPOLOGY_A: None, ENRICHMENT_A: 0}
+
+    cmin = kwargs.get('cmin', def_cmin[analysis])
+    cmax = kwargs.get('cmax', def_cmax[analysis])
+    cmid = kwargs.get('cmid', def_cmid[analysis])
+    maxdepth = kwargs.get('maxdepth', 7)
+    colorscale = px.colors.get_colorscale(kwargs.get('colorscale', def_colorscale[analysis]))
+    title = kwargs.get('title', def_titles[analysis])
+    colorbar_legend = kwargs.get('colorbarlegend', def_colorbar[analysis])
+    background_color = kwargs.get('bg_color', 'rgba(255, 255, 255, 0)')
+    font_color = kwargs.get('font_color', '#111111')
+    font_size = kwargs.get('font_size', 20)
+    table_title = kwargs.get('table_title', 'Significant p-values')
+    table_legend = kwargs.get('table_legend', 'IDs')
+    table_color = kwargs.get('table_color', '#666666')
+
+    return cmin, cmax, cmid, maxdepth, colorscale, title, colorbar_legend, background_color, \
+        font_color, font_size, table_title, table_legend, table_color
+
+
 def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: str = None,
                           analysis: str = TOPOLOGY_A, ref_classes_abundance=None,
                           test=BINOMIAL_TEST, names: bool = False, total: bool = True,
-                          root_cut: str = ROOT_CUT, ref_base: bool = True) -> go.Figure:
+                          root_cut: str = ROOT_CUT, ref_base: bool = True, **kwargs) -> go.Figure:
     """ Generate a Sunburst figure and save it to output path.
 
     Parameters
@@ -499,6 +528,10 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
     -------
     go.Figure
     """
+    cmin, cmax, cmid, maxdepth, colorscale, title, colorbar_legend, background_color, font_color, \
+        font_size, table_title, table_legend, table_color = get_fig_kwargs(analysis, output,
+                                                                           **kwargs)
+
     data = data_cut_root(data, root_cut)
     if total:
         branch_values = 'total'
@@ -506,49 +539,47 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
     else:
         branch_values = 'remainder'
         values = data[COUNT]
+
     if analysis == TOPOLOGY_A:
         fig = go.Figure(go.Sunburst(labels=data[LABEL], parents=data[PARENT], values=values,
                                     ids=data[IDS],
-                                    hoverinfo='label+text', maxdepth=7,
+                                    hoverinfo='label+text', maxdepth=maxdepth,
                                     branchvalues=branch_values,
                                     hovertext=get_hover_fig_text(data, TOPOLOGY_A, ref_base),
-                                    marker=dict(colors=data[COUNT],
-                                                colorscale=px.colors.sequential.Viridis,
-                                                cmin=1, showscale=True,
-                                                colorbar=dict(title=dict(text='Count')))))
-        fig.update_layout(title=dict(text=f'{os.path.basename(output)} : Proportion of classes',
-                                     x=0.5, xanchor='center'))
+                                    marker=dict(colors=data[COUNT], colorscale=colorscale,
+                                                cmin=cmin, cmax=cmax, cmid=cmid, showscale=True,
+                                                colorbar=dict(title=dict(text=colorbar_legend)))))
+        fig.update_layout(title=dict(text=title, x=0.5, xanchor='center'))
+
     elif analysis == ENRICHMENT_A:
         data, signif = get_data_enrichment_analysis(data, ref_classes_abundance, test, names)
         fig = make_subplots(rows=1, cols=2,
                             column_widths=[0.3, 0.7],
                             vertical_spacing=0.03,
-                            subplot_titles=('Significant p-values',
-                                            'Classes enrichment representation'),
+                            subplot_titles=(table_title, title),
                             specs=[[{'type': 'table'}, {'type': 'sunburst'}]])
 
         fig.add_trace(go.Sunburst(labels=data[LABEL], parents=data[PARENT],
                                   values=values, ids=data[IDS],
                                   hovertext=get_hover_fig_text(data, ENRICHMENT_A, ref_base),
-                                  hoverinfo='label+text', maxdepth=7,
+                                  hoverinfo='label+text', maxdepth=maxdepth,
                                   branchvalues=branch_values,
-                                  marker=dict(colors=data[PVAL],
-                                              colorscale=px.colors.diverging.RdBu,
-                                              cmid=0, cmax=10.0, cmin=-10.0, showscale=True,
-                                              colorbar=dict(title=dict(text='Log10(p-value)')))),
+                                  marker=dict(colors=data[PVAL], colorscale=colorscale,
+                                              cmid=cmid, cmax=cmax, cmin=cmin, showscale=True,
+                                              colorbar=dict(title=dict(text=colorbar_legend)))),
                       row=1, col=2)
 
-        fig.add_trace(go.Table(header=dict(values=['Metabolite', f'{test} test P-value'],
-                                           fill=dict(color='#666666'), height=40,
-                                           font=dict(size=20)),
+        fig.add_trace(go.Table(header=dict(values=[table_legend, f'{test} test P-value'],
+                                           fill=dict(color=table_color), height=40,
+                                           font=dict(size=font_size)),
                                cells=dict(values=[list(signif.keys()), list(signif.values())],
-                                          fill=dict(color='#777777'), height=35,
-                                          font=dict(size=16))),
+                                          fill=dict(color=table_color), height=35,
+                                          font=dict(size=font_size*0.80))),
                       row=1, col=1)
     else:
         raise ValueError('Wrong type input')
-    fig.update_layout(paper_bgcolor="rgba(255, 255, 255, 0)", font_color='#111111', font_size=20)
-    fig.update_annotations(font_size=28)
+    fig.update_layout(paper_bgcolor=background_color, font_color=font_color, font_size=font_size)
+    fig.update_annotations(font_size=font_size*1.5)
     if output is not None:
         fig.write_html(f'{output}.html')
     return fig

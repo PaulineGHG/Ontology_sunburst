@@ -34,9 +34,9 @@ PWY_REF = ['2ASDEG-PWY', '4AMINOBUTMETAB-PWY', 'ALLANTOINDEG-PWY',
 class MetacycTest(unittest.TestCase):
     # Compounds
     def test_cpd_metacyc_proportion(self):
-        fig = ontosunburst(ontology=METACYC, metabolic_objects=MET_LST, reference_set=MET_REF,
+        fig = ontosunburst(ontology=METACYC, metabolic_objects=MET_LST,
                            output='test_mc_cpd_prop', ref_base=False, abundances=MET_LAB,
-                           ref_abundances=MET_RAB, show_leaves=True)
+                           show_leaves=True)
         fig.write_image('test_mc_cpd_prop.png', width=1900, height=1000, scale=1)
 
     def test_cpd_metacyc_comparison(self):
@@ -81,7 +81,7 @@ class EcTest(unittest.TestCase):
 
     def test_ec_proportion(self):
         fig = ontosunburst(ontology=EC, metabolic_objects=EC_LST, reference_set=REF_EC,
-                           output='test_ec_prop', ref_base=True, show_leaves=True)
+                           output='test_ec_prop', ref_base=False, show_leaves=True, names_file=None)
         fig.write_image('test_ec_prop.png', width=1900, height=1000, scale=1)
 
     def test_ec_comparison(self):
