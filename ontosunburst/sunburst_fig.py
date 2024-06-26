@@ -461,7 +461,16 @@ def data_cut_root(data: Dict[str, List], mode: str) -> Dict[str, List]:
     return data
 
 
-def get_fig_kwargs(analysis, output, **kwargs):
+def get_fig_kwargs(output: str, analysis: str, **kwargs):
+    """ Generate a Sunburst figure and save it to output path.
+
+        Parameters
+        ----------
+        output: str (optional, default=None)
+            Path to output to save the figure without extension
+        analysis: str (optional, default=topology)
+            Analysis mode : topology or enrichment
+        """
     def_colorscale = {TOPOLOGY_A: 'Viridis',
                       ENRICHMENT_A: 'RdBu'}
     def_titles = {TOPOLOGY_A: f'{os.path.basename(output)} : Proportion of classes',
@@ -529,7 +538,7 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
     go.Figure
     """
     cmin, cmax, cmid, maxdepth, colorscale, title, colorbar_legend, background_color, font_color, \
-        font_size, table_title, table_legend, table_color = get_fig_kwargs(analysis, output,
+        font_size, table_title, table_legend, table_color = get_fig_kwargs(output, analysis,
                                                                            **kwargs)
 
     data = data_cut_root(data, root_cut)

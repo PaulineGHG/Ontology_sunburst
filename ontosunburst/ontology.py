@@ -23,22 +23,6 @@ GO_ROOTS = ['cellular_component', 'biological_process', 'molecular_function']
 
 # For MetaCyc Ontology
 # --------------------------------------------------------------------------------------------------
-def get_dict_ontology(padmet_ref: padmet.classes.PadmetRef):
-    # TODO: fix, understand why it doesn't work
-    dict_ontology = dict()
-    for e, node in padmet_ref.dicOfNode.items():
-        if node.type == 'class' or node.type == 'compound' and e != 'FRAMES':
-            try:
-                rel = padmet_ref.dicOfRelationIn[e]
-                dict_ontology[e] = list()
-                for r in rel:
-                    if r.type == 'is_a_class':
-                        dict_ontology[e].append(r.id_out)
-            except KeyError:
-                pass
-    return dict_ontology
-
-
 def extract_metacyc_classes(metabolic_objects: List[str],
                             d_classes_ontology: Dict[str, List[str]]) -> Dict[str, List[str]]:
     """ Extract +1 parent classes for each metabolite.
@@ -73,13 +57,26 @@ def extract_metacyc_classes(metabolic_objects: List[str],
 # For EC
 # --------------------------------------------------------------------------------------------------
 def extract_ec_classes(ec_set: List[str], d_classes_ontology):
+    print(f'{len(ec_set)} EC numbers to classify')
     ec_classes = dict()
     for ec in ec_set:
-        parent = ec.split('.')
-        parent[-1] = '-'
-        parent = '.'.join(parent)
-        d_classes_ontology[ec] = [parent]
-        ec_classes[ec] = [parent]
+        dec_ec = ec.split('.')
+        while len(dec_ec) < 4:
+            dec_ec.append('-')
+        if dec_ec.count('-') == 3 and ec in d_classes_ontology:
+            parent = ROOTS[EC]
+        else:
+            for i in range(3):
+                if dec_ec.count('-') == i:
+                    dec_ec[3-i] = '-'
+                    break
+            parent = '.'.join(dec_ec)
+        if parent in d_classes_ontology or parent == ROOTS[EC]:
+            d_classes_ontology[ec] = [parent]
+            ec_classes[ec] = [parent]
+        else:
+            print(f'{ec} not classified')
+    print(f'{len(ec_classes)}/{len(ec_set)} EC numbers classified')
     return ec_classes, d_classes_ontology
 
 
