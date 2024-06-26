@@ -1,4 +1,3 @@
-import padmet.classes
 from typing import List, Set, Dict, Tuple
 from SPARQLWrapper import SPARQLWrapper, JSON
 
@@ -21,22 +20,22 @@ ROOTS = {METACYC: 'FRAMES',
 GO_ROOTS = ['cellular_component', 'biological_process', 'molecular_function']
 
 
-# For MetaCyc Ontology
+# For MetaCyc and Kegg Ontology
 # --------------------------------------------------------------------------------------------------
-def extract_metacyc_classes(metabolic_objects: List[str],
-                            d_classes_ontology: Dict[str, List[str]]) -> Dict[str, List[str]]:
-    """ Extract +1 parent classes for each metabolite.
+def extract_met_classes(metabolic_objects: List[str],
+                        d_classes_ontology: Dict[str, List[str]]) -> Dict[str, List[str]]:
+    """ Extract +1 parent classes for each metabolic object.
 
     Parameters
     ----------
     metabolic_objects: List[str]
         List of metabolic objects.
     d_classes_ontology: Dict[str, List[str]]
-        MetaCyc classes dictionary
+        Ontology classes dictionary : Dict[object, List[parents]]
 
     Returns
     -------
-    Dict[str, List[str]] (Dict[metabolite, List[class]])
+    Dict[str, List[str]], (Dict[object, List[parents]])
         Dictionary associating for each metabolic object, the list of +1 parent classes it belongs
         to.
     """
@@ -56,10 +55,28 @@ def extract_metacyc_classes(metabolic_objects: List[str],
 
 # For EC
 # --------------------------------------------------------------------------------------------------
-def extract_ec_classes(ec_set: List[str], d_classes_ontology):
-    print(f'{len(ec_set)} EC numbers to classify')
+def extract_ec_classes(ec_list: List[str], d_classes_ontology: Dict[str, List[str]]) \
+        -> Tuple[Dict[str, List[str]], Dict[str, List[str]]]:
+    """ Extract +1 parent classes for each EC number.
+
+    Parameters
+    ----------
+    ec_list: List[str]
+        List of EC numbers
+    d_classes_ontology: Dict[str, List[str]]
+        EC Ontology classes dictionary : Dict[object, List[parents]]
+
+    Returns
+    -------
+    Dict[str, List[str]]
+        Dictionary associating for each metabolic object, the list of +1 parent classes it belongs
+        to.
+    Dict[str, List[str]]
+        EC Ontology classes dictionary : Dict[object, List[parents]]
+    """
+    print(f'{len(ec_list)} EC numbers to classify')
     ec_classes = dict()
-    for ec in ec_set:
+    for ec in ec_list:
         dec_ec = ec.split('.')
         while len(dec_ec) < 4:
             dec_ec.append('-')
@@ -76,7 +93,7 @@ def extract_ec_classes(ec_set: List[str], d_classes_ontology):
             ec_classes[ec] = [parent]
         else:
             print(f'{ec} not classified')
-    print(f'{len(ec_classes)}/{len(ec_set)} EC numbers classified')
+    print(f'{len(ec_classes)}/{len(ec_list)} EC numbers classified')
     return ec_classes, d_classes_ontology
 
 
@@ -236,9 +253,63 @@ def extract_go_classes(go_ids: List[str], endpoint_url: str) \
     return all_classes, d_classes_ontology
 
 
-def extract_classes(ontology, metabolic_objects, root, d_classes_ontology=None, endpoint_url=None):
+def get_all_classes(obj_classes: Dict[str, List[str]], d_classes_ontology: Dict[str, List[str]],
+                    root_item: str) -> Dict[str, Set[str]]:
+    """ Extract all parent classes for each metabolite.
+
+    Parameters
+    ----------
+    obj_classes: Dict[str, List[str]] (Dict[metabolite, List[class]])
+        Dictionary associating for each object the list of +1 parent classes it belongs to.
+    d_classes_ontology: Dict[str, List[str]]
+        Dictionary of the classes ontology associating for each class its +1 parent classes.
+    root_item: str
+        Name of the root item of the ontology.
+
+    Returns
+    -------
+    Dict[str, Set[str]] (Dict[metabolite, Set[class]])
+        Dictionary associating for each metabolite the list of all parent classes it belongs to.
+    """
+    all_classes_met = dict()
+    for met, classes in obj_classes.items():
+
+        all_classes = set(classes)
+        for c in classes:
+            m_classes = get_parents(c, set(d_classes_ontology[c]), d_classes_ontology, root_item)
+            all_classes = all_classes.union(m_classes)
+
+        all_classes_met[met] = all_classes
+    return all_classes_met
+
+
+def extract_classes(ontology: str, metabolic_objects: List[str], root: str,
+                    d_classes_ontology: Dict[str, List[str]] = None, endpoint_url: str = None)\
+        -> Tuple[Dict[str, Set[str]], Dict[str, List[str]]]:
+    """ Extract all parent classes (until root) from a list of metabolic objects.
+
+    Parameters
+    ----------
+    ontology: str
+        Name of the ontology considered
+    metabolic_objects: List[str]
+        List of metabolic object to classify
+    root: str
+        Root item of the ontology
+    d_classes_ontology: Dict[str, List[str]], optional (default=None)
+        Dictionary of the classes ontology associating for each class its +1 parent classes.
+    endpoint_url: str, optional (default=None)
+        URL for the SPARQL server (for GO and ChEBI ontologies)
+
+    Returns
+    -------
+    Dict[str, Set[str]]
+        Dictionary associating to each object all its parent classes (until the root)
+    Dict[str, List[str]]
+        Dictionary of the classes ontology associating for each class its +1 parent classes.
+    """
     if ontology == METACYC:
-        leaf_classes = extract_metacyc_classes(metabolic_objects, d_classes_ontology)
+        leaf_classes = extract_met_classes(metabolic_objects, d_classes_ontology)
         return get_all_classes(leaf_classes, d_classes_ontology, root), d_classes_ontology
     if ontology == EC:
         leaf_classes, d_classes_ontology = extract_ec_classes(metabolic_objects, d_classes_ontology)
@@ -248,7 +319,7 @@ def extract_classes(ontology, metabolic_objects, root, d_classes_ontology=None, 
     if ontology == GO:
         return extract_go_classes(metabolic_objects, endpoint_url)
     if ontology == KEGG:
-        leaf_classes = extract_metacyc_classes(metabolic_objects, d_classes_ontology)
+        leaf_classes = extract_met_classes(metabolic_objects, d_classes_ontology)
         return get_all_classes(leaf_classes, d_classes_ontology, root), d_classes_ontology
 
 
@@ -284,36 +355,6 @@ def get_parents(child: str, parent_set: Set[str], d_classes_ontology: Dict[str, 
             parent_set = get_parents(p, parent_set, d_classes_ontology, root_item)
 
     return parent_set
-
-
-def get_all_classes(met_classes: Dict[str, List[str]], d_classes_ontology: Dict[str, List[str]],
-                    root_item: str) -> Dict[str, Set[str]]:
-    """ Extract all parent classes for each metabolite.
-
-    Parameters
-    ----------
-    met_classes: Dict[str, List[str]] (Dict[metabolite, List[class]])
-        Dictionary associating for each metabolite the list of +1 parent classes it belongs to.
-    d_classes_ontology: Dict[str, List[str]]
-        Dictionary of the classes ontology associating for each class its parent classes.
-    root_item: str
-        Name of the root item of the ontology.
-
-    Returns
-    -------
-    Dict[str, Set[str]] (Dict[metabolite, Set[class]])
-        Dictionary associating for each metabolite the list of all parent classes it belongs to.
-    """
-    all_classes_met = dict()
-    for met, classes in met_classes.items():
-
-        all_classes = set(classes)
-        for c in classes:
-            m_classes = get_parents(c, set(d_classes_ontology[c]), d_classes_ontology, root_item)
-            all_classes = all_classes.union(m_classes)
-
-        all_classes_met[met] = all_classes
-    return all_classes_met
 
 
 def get_abundance_dict(abundances: List[float], metabolic_objects: List[str], ref: bool)\
