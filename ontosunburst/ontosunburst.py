@@ -3,7 +3,7 @@ import json
 from typing import List
 import plotly.graph_objects as go
 
-from ontosunburst.ontology import get_abundance_dict, get_classes_abondance, get_children_dict, \
+from ontosunburst.ontology import get_abundance_dict, get_classes_abundance, get_children_dict, \
     extract_classes, reduce_d_ontology, METACYC, CHEBI, EC, GO, KEGG, ROOTS
 
 from ontosunburst.sunburst_fig import get_fig_parameters, get_data_proportion, \
@@ -155,7 +155,7 @@ def _global_analysis(ontology, analysis, metabolic_objects, abundances, referenc
     obj_all_classes, d_classes_ontology = extract_classes(ontology, metabolic_objects, root,
                                                           d_classes_ontology=d_classes_ontology,
                                                           endpoint_url=endpoint_url)
-    classes_abundance = get_classes_abondance(obj_all_classes, abundances_dict, show_leaves)
+    classes_abundance = get_classes_abundance(obj_all_classes, abundances_dict, show_leaves)
 
     if not obj_all_classes:
         print('No metabolic object classified, passing.')
@@ -171,7 +171,7 @@ def _global_analysis(ontology, analysis, metabolic_objects, abundances, referenc
         ref_all_classes, d_classes_ontology = extract_classes(ontology, reference_set, root,
                                                               d_classes_ontology=d_classes_ontology,
                                                               endpoint_url=endpoint_url)
-        ref_classes_abundance = get_classes_abondance(ref_all_classes, ref_abundances_dict,
+        ref_classes_abundance = get_classes_abundance(ref_all_classes, ref_abundances_dict,
                                                       show_leaves)
 
     else:

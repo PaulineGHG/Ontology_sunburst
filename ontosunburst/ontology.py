@@ -371,7 +371,7 @@ def get_abundance_dict(abundances: List[float] or None, metabolic_objects: List[
     return abundances_dict
 
 
-def get_classes_abondance(all_classes: Dict[str, Set[str]], abundances_dict: Dict[str, float],
+def get_classes_abundance(all_classes: Dict[str, Set[str]], abundances_dict: Dict[str, float],
                           show_leaves: bool) -> Dict[str, float]:
     """ Indicate for each class the number of metabolites found belonging to the class
 
