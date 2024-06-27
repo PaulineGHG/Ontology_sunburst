@@ -253,6 +253,35 @@ def extract_go_classes(go_ids: List[str], endpoint_url: str) \
     return all_classes, d_classes_ontology
 
 
+def get_parents(child: str, parent_set: Set[str], d_classes_ontology: Dict[str, List[str]],
+                root_item) -> Set[str]:
+    """ Get recursively from a child class, all its parents classes found in ontology.
+
+    Parameters
+    ----------
+    child: str
+        Child class
+    parent_set: Set[str]
+        Set of all parents from previous classes
+    d_classes_ontology: Dict[str, List[str]]
+        Dictionary of the classes ontology of MetaCyc associating for each class its parent classes.
+    root_item: str
+        Name of the root item of the ontology
+
+    Returns
+    -------
+    Set[str]
+        Set of the union of the set  of child parent classes and the set of all previous parents.
+    """
+    parents = d_classes_ontology[child]
+    for p in parents:
+        parent_set.add(p)
+    if parents != [root_item]:
+        for p in parents:
+            parent_set = get_parents(p, parent_set, d_classes_ontology, root_item)
+    return parent_set
+
+
 def get_all_classes(obj_classes: Dict[str, List[str]], d_classes_ontology: Dict[str, List[str]],
                     root_item: str) -> Dict[str, Set[str]]:
     """ Extract all parent classes for each metabolite.
@@ -322,35 +351,7 @@ def extract_classes(ontology: str, metabolic_objects: List[str], root: str,
 # For all Ontology - Utils
 # --------------------------------------------------------------------------------------------------
 
-def get_parents(child: str, parent_set: Set[str], d_classes_ontology: Dict[str, List[str]],
-                root_item) -> Set[str]:
-    """ Get recursively from a child class, all its parents classes found in ontology.
 
-    Parameters
-    ----------
-    child: str
-        Child class
-    parent_set: Set[str]
-        Set of all parents from previous classes
-    d_classes_ontology: Dict[str, List[str]]
-        Dictionary of the classes ontology of MetaCyc associating for each class its parent classes.
-    root_item: str
-        Name of the root item of the ontology
-
-    Returns
-    -------
-    Set[str]
-        Set of the union of the set  of child parent classes and the set of all previous parents.
-    """
-    parents = d_classes_ontology[child]
-    for p in parents:
-        parent_set.add(p)
-
-    if parents != [root_item]:
-        for p in parents:
-            parent_set = get_parents(p, parent_set, d_classes_ontology, root_item)
-
-    return parent_set
 
 
 def get_abundance_dict(abundances: List[float], metabolic_objects: List[str], ref: bool)\

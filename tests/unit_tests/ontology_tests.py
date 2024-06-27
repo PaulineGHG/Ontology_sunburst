@@ -39,6 +39,11 @@ EC_ONTO = {'1.4.5.-': ['1.4.-.-'], '1.4.6.-': ['1.4.-.-'], '2.1.2.-': ['2.1.-.-'
            '1.5.3.-': ['1.5.-.-'], '1.6.9.-': ['1.6.-.-'],
            '1.4.-.-': ['1.-.-.-'], '2.1.-.-': ['2.-.-.-'], '1.5.-.-': ['1.-.-.-'],
            '1.6.-.-': ['1.-.-.-'], '1.-.-.-': [ROOTS[EC]], '2.-.-.-': [ROOTS[EC]]}
+EC_ONTO_FULL = {'1.4.5.-': ['1.4.-.-'], '1.4.6.-': ['1.4.-.-'], '2.1.2.-': ['2.1.-.-'],
+                '1.5.3.-': ['1.5.-.-'], '1.6.9.-': ['1.6.-.-'], '1.4.-.-': ['1.-.-.-'],
+                '2.1.-.-': ['2.-.-.-'], '1.5.-.-': ['1.-.-.-'], '1.6.-.-': ['1.-.-.-'],
+                '1.-.-.-': ['Enzyme'], '2.-.-.-': ['Enzyme'], '1.4.5.6': ['1.4.5.-'],
+                '1.4.6.7': ['1.4.6.-'], '2.1.2.3': ['2.1.2.-'], '1.5.3': ['1.5.-.-']}
 
 # CHEBI
 # --------------------------------------------------------------------------------------------------
@@ -84,7 +89,7 @@ class DualWriter(io.StringIO):
 # --------------------------------------------------------------------------------------------------
 class TestClassesExtraction(unittest.TestCase):
     @patch('sys.stdout', new_callable=lambda: DualWriter(sys.stdout))
-    def test_extract_met_classes_1(self, mock_stdout):
+    def test_extract_met_classes_input_ok(self, mock_stdout):
         d_obj = extract_met_classes(MET_LST, MC_ONTO)
         output = mock_stdout.getvalue().strip()
         self.assertEqual(output, '3 metabolic objects to classify\n'
@@ -92,7 +97,7 @@ class TestClassesExtraction(unittest.TestCase):
         self.assertEqual(d_obj, {'a': ['ab'], 'b': ['ab'], 'c': ['cde', 'cf']})
 
     @patch('sys.stdout', new_callable=lambda: DualWriter(sys.stdout))
-    def test_extract_met_classes_2(self, mock_stdout):
+    def test_extract_met_classes_input_errors(self, mock_stdout):
         d_obj = extract_met_classes(MET_LST + ['x'], MC_ONTO)
         output = mock_stdout.getvalue().strip()
         self.assertEqual(output, '4 metabolic objects to classify\n'
@@ -101,7 +106,7 @@ class TestClassesExtraction(unittest.TestCase):
         self.assertEqual(d_obj, {'a': ['ab'], 'b': ['ab'], 'c': ['cde', 'cf']})
 
     @patch('sys.stdout', new_callable=lambda: DualWriter(sys.stdout))
-    def test_extract_ec_classes_1(self, mock_stdout):
+    def test_extract_ec_classes_input_ok(self, mock_stdout):
         d_obj, d_onto = extract_ec_classes(EC_LST, EC_ONTO)
         output = mock_stdout.getvalue().strip()
         wanted_d_obj = {'1.4.5.6': ['1.4.5.-'], '1.4.6.7': ['1.4.6.-'], '2.1.2.3': ['2.1.2.-'],
@@ -110,10 +115,10 @@ class TestClassesExtraction(unittest.TestCase):
         self.assertEqual(output, '7 EC numbers to classify\n'
                                  '7/7 EC numbers classified')
         self.assertEqual(d_obj, wanted_d_obj)
-        self.assertEqual(d_onto, {**EC_ONTO, **wanted_d_obj})
+        self.assertEqual(d_onto, EC_ONTO_FULL)
 
     @patch('sys.stdout', new_callable=lambda: DualWriter(sys.stdout))
-    def test_extract_ec_classes_2(self, mock_stdout):
+    def test_extract_ec_classes_input_errors(self, mock_stdout):
         d_obj, d_onto = extract_ec_classes(EC_LST + ['3.5.6.9', 'ecID'], EC_ONTO)
         output = mock_stdout.getvalue().strip()
         wanted_d_obj = {'1.4.5.6': ['1.4.5.-'], '1.4.6.7': ['1.4.6.-'], '2.1.2.3': ['2.1.2.-'],
@@ -124,7 +129,27 @@ class TestClassesExtraction(unittest.TestCase):
                                  'ecID not classified\n'
                                  '7/9 EC numbers classified')
         self.assertEqual(d_obj, wanted_d_obj)
-        self.assertEqual(d_onto, {**EC_ONTO, **wanted_d_obj})
+        self.assertEqual(d_onto, EC_ONTO_FULL)
+
+    def test_get_parents_linear_path(self):
+        # Simple linear direction
+        parents = get_parents('a', {'ab'}, MC_ONTO, ROOTS[METACYC])
+        self.assertEqual(parents, {'FRAMES', 'ab'})
+
+    def test_get_parents_complex_path(self):
+        # With multiple parents having multiple parents and different size of path until root
+        parents = get_parents('c', {'cde', 'cf'}, MC_ONTO, ROOTS[METACYC])
+        self.assertEqual(parents, {'cdeeg+', 'FRAMES', 'cf', 'cde', 'cdecf', 'cdeeg'})
+
+    def test_get_parents_ec(self):
+        # With EC (simple path)
+        parents = get_parents('2.1.2.3', {'2.1.2.-'}, EC_ONTO_FULL, ROOTS[EC])
+        self.assertEqual(parents, {'Enzyme', '2.1.-.-', '2.-.-.-', '2.1.2.-'})
+
+    def test_get_parents_direct_root_child(self):
+        # With direct child of root item
+        parents = get_parents('1.-.-.-', {'Enzyme'}, EC_ONTO_FULL, ROOTS[EC])
+        self.assertEqual(parents, {'Enzyme'})
 
     def test_get_all_classes(self):
         leaf_classes = {'a': ['ab'], 'b': ['ab'], 'c': ['cde', 'cf']}
@@ -132,7 +157,8 @@ class TestClassesExtraction(unittest.TestCase):
         wanted_all_classes = {'a': {'FRAMES', 'ab'}, 'b': {'FRAMES', 'ab'},
                               'c': {'cdeeg+', 'cde', 'cdeeg', 'FRAMES', 'cdecf', 'cf'}}
         self.assertEqual(all_classes_met, wanted_all_classes)
-        # EC
+
+    def test_get_all_classes_ec(self):
         ec_leaf_classes = {'1.4.5.6': ['1.4.5.-'], '1.4.6.7': ['1.4.6.-'], '2.1.2.3': ['2.1.2.-'],
                            '1.5.3': ['1.5.-.-'], '1.6.9.-': ['1.6.-.-'], '1.-.-.-': ['Enzyme'],
                            '1.4.-.-': ['1.-.-.-']}
@@ -145,22 +171,23 @@ class TestClassesExtraction(unittest.TestCase):
         all_classes_ec = get_all_classes(ec_leaf_classes, EC_ONTO, ROOTS[EC])
         self.assertEqual(all_classes_ec, wanted_all_classes)
 
-    def test_extract_classes(self):
-        # METACYC
+    def test_extract_classes_metacyc(self):
         mc_classes, d_classes_ontology = extract_classes(METACYC, MET_LST, ROOTS[METACYC], MC_ONTO,
                                                          None)
         wanted_mc_classes = {'a': {'FRAMES', 'ab'}, 'b': {'FRAMES', 'ab'},
                              'c': {'cdeeg+', 'cde', 'cdeeg', 'FRAMES', 'cdecf', 'cf'}}
         self.assertEqual(mc_classes, wanted_mc_classes)
         self.assertTrue(dicts_with_sorted_lists_equal(d_classes_ontology, MC_ONTO))
-        # KEGG
+
+    def test_extract_classes_kegg(self):
         kg_classes, d_classes_ontology = extract_classes(KEGG, MET_LST, ROOTS[KEGG], KG_ONTO, None)
         print(kg_classes)
         wanted_kg_classes = {'a': {'ab', 'kegg'}, 'b': {'ab', 'kegg'},
                              'c': {'cde', 'cdeeg+', 'kegg', 'cdecf', 'cdeeg', 'cf'}}
         self.assertEqual(kg_classes, wanted_kg_classes)
         self.assertTrue(dicts_with_sorted_lists_equal(d_classes_ontology, KG_ONTO))
-        # EC
+
+    def test_extract_classes_ec(self):
         ec_classes, d_classes_ontology = extract_classes(EC, EC_LST, ROOTS[EC], EC_ONTO, None)
         print(ec_classes)
         wanted_ec_classes = {'1.4.5.6': {'1.4.5.-', '1.4.-.-', 'Enzyme', '1.-.-.-'},
@@ -169,15 +196,11 @@ class TestClassesExtraction(unittest.TestCase):
                              '1.5.3': {'1.5.-.-', 'Enzyme', '1.-.-.-'},
                              '1.6.9.-': {'1.6.-.-', 'Enzyme', '1.-.-.-'},
                              '1.-.-.-': {'Enzyme'}, '1.4.-.-': {'Enzyme', '1.-.-.-'}}
-        wanted_ec_leaf = {'1.4.5.6': ['1.4.5.-'], '1.4.6.7': ['1.4.6.-'], '2.1.2.3': ['2.1.2.-'],
-                          '1.5.3': ['1.5.-.-'], '1.6.9.-': ['1.6.-.-'], '1.-.-.-': ['Enzyme'],
-                          '1.4.-.-': ['1.-.-.-']}
         self.assertEqual(ec_classes, wanted_ec_classes)
-        self.assertTrue(
-            dicts_with_sorted_lists_equal(d_classes_ontology, {**EC_ONTO, **wanted_ec_leaf}))
+        self.assertTrue(dicts_with_sorted_lists_equal(d_classes_ontology, EC_ONTO_FULL))
 
 
-# TEST CHEBI + GO : NEED DEDICATED SPARQL SERVER TO EXECUTE
+# TEST CHEBI + GO : NEED DEDICATED SPARQL SERVER RUNNING TO EXECUTE
 # --------------------------------------------------------------------------------------------------
 # ChEBI
 class TestChEBIClassesExtraction(unittest.TestCase):
