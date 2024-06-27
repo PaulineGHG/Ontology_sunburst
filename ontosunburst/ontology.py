@@ -273,12 +273,11 @@ def get_all_classes(obj_classes: Dict[str, List[str]], d_classes_ontology: Dict[
     """
     all_classes_met = dict()
     for met, classes in obj_classes.items():
-
         all_classes = set(classes)
         for c in classes:
-            m_classes = get_parents(c, set(d_classes_ontology[c]), d_classes_ontology, root_item)
-            all_classes = all_classes.union(m_classes)
-
+            if c != root_item:
+                m_classes = get_parents(c, set(d_classes_ontology[c]), d_classes_ontology, root_item)
+                all_classes = all_classes.union(m_classes)
         all_classes_met[met] = all_classes
     return all_classes_met
 
@@ -308,7 +307,7 @@ def extract_classes(ontology: str, metabolic_objects: List[str], root: str,
     Dict[str, List[str]]
         Dictionary of the classes ontology associating for each class its +1 parent classes.
     """
-    if ontology == METACYC:
+    if ontology == METACYC or ontology == KEGG or ontology is None:
         leaf_classes = extract_met_classes(metabolic_objects, d_classes_ontology)
         return get_all_classes(leaf_classes, d_classes_ontology, root), d_classes_ontology
     if ontology == EC:
@@ -318,9 +317,6 @@ def extract_classes(ontology: str, metabolic_objects: List[str], root: str,
         return extract_chebi_roles(metabolic_objects, endpoint_url)
     if ontology == GO:
         return extract_go_classes(metabolic_objects, endpoint_url)
-    if ontology == KEGG:
-        leaf_classes = extract_met_classes(metabolic_objects, d_classes_ontology)
-        return get_all_classes(leaf_classes, d_classes_ontology, root), d_classes_ontology
 
 
 # For all Ontology - Utils
