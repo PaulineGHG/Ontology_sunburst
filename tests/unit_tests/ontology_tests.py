@@ -9,7 +9,6 @@ Tests manually good file creation.
 No automatic tests integrated.
 """
 
-
 # ==================================================================================================
 # GLOBAL
 # ==================================================================================================
@@ -35,6 +34,7 @@ KG_ONTO = {'a': ['ab'], 'b': ['ab'], 'c': ['cde', 'cf'], 'd': ['cde'], 'e': ['cd
 # EC
 # --------------------------------------------------------------------------------------------------
 EC_LST = ['1.4.5.6', '1.4.6.7', '2.1.2.3', '1.5.3', '1.6.9.-', '1.-.-.-', '1.4.-.-']
+# EC_LST = ['1.4.5.6', '1.4.6.7', '2.1.2.3', '1.5.3', '1.6.9.-', '1.4.-.-']
 EC_ONTO = {'1.4.5.-': ['1.4.-.-'], '1.4.6.-': ['1.4.-.-'], '2.1.2.-': ['2.1.-.-'],
            '1.5.3.-': ['1.5.-.-'], '1.6.9.-': ['1.6.-.-'],
            '1.4.-.-': ['1.-.-.-'], '2.1.-.-': ['2.-.-.-'], '1.5.-.-': ['1.-.-.-'],
@@ -132,10 +132,49 @@ class TestClassesExtraction(unittest.TestCase):
         wanted_all_classes = {'a': {'FRAMES', 'ab'}, 'b': {'FRAMES', 'ab'},
                               'c': {'cdeeg+', 'cde', 'cdeeg', 'FRAMES', 'cdecf', 'cf'}}
         self.assertEqual(all_classes_met, wanted_all_classes)
+        # EC
+        ec_leaf_classes = {'1.4.5.6': ['1.4.5.-'], '1.4.6.7': ['1.4.6.-'], '2.1.2.3': ['2.1.2.-'],
+                           '1.5.3': ['1.5.-.-'], '1.6.9.-': ['1.6.-.-'], '1.-.-.-': ['Enzyme'],
+                           '1.4.-.-': ['1.-.-.-']}
+        wanted_all_classes = {'1.4.5.6': {'1.4.5.-', '1.4.-.-', 'Enzyme', '1.-.-.-'},
+                              '1.4.6.7': {'Enzyme', '1.4.-.-', '1.4.6.-', '1.-.-.-'},
+                              '2.1.2.3': {'2.-.-.-', '2.1.-.-', '2.1.2.-', 'Enzyme'},
+                              '1.5.3': {'1.5.-.-', 'Enzyme', '1.-.-.-'},
+                              '1.6.9.-': {'1.6.-.-', 'Enzyme', '1.-.-.-'},
+                              '1.-.-.-': {'Enzyme'}, '1.4.-.-': {'Enzyme', '1.-.-.-'}}
+        all_classes_ec = get_all_classes(ec_leaf_classes, EC_ONTO, ROOTS[EC])
+        self.assertEqual(all_classes_ec, wanted_all_classes)
 
     def test_extract_classes(self):
-        all_classes, d_classes_ontology = extract_classes(METACYC, MET_LST, ROOTS[METACYC],
-        MC_ONTO, None)
+        # METACYC
+        mc_classes, d_classes_ontology = extract_classes(METACYC, MET_LST, ROOTS[METACYC], MC_ONTO,
+                                                         None)
+        wanted_mc_classes = {'a': {'FRAMES', 'ab'}, 'b': {'FRAMES', 'ab'},
+                             'c': {'cdeeg+', 'cde', 'cdeeg', 'FRAMES', 'cdecf', 'cf'}}
+        self.assertEqual(mc_classes, wanted_mc_classes)
+        self.assertTrue(dicts_with_sorted_lists_equal(d_classes_ontology, MC_ONTO))
+        # KEGG
+        kg_classes, d_classes_ontology = extract_classes(KEGG, MET_LST, ROOTS[KEGG], KG_ONTO, None)
+        print(kg_classes)
+        wanted_kg_classes = {'a': {'ab', 'kegg'}, 'b': {'ab', 'kegg'},
+                             'c': {'cde', 'cdeeg+', 'kegg', 'cdecf', 'cdeeg', 'cf'}}
+        self.assertEqual(kg_classes, wanted_kg_classes)
+        self.assertTrue(dicts_with_sorted_lists_equal(d_classes_ontology, KG_ONTO))
+        # EC
+        ec_classes, d_classes_ontology = extract_classes(EC, EC_LST, ROOTS[EC], EC_ONTO, None)
+        print(ec_classes)
+        wanted_ec_classes = {'1.4.5.6': {'1.4.5.-', '1.4.-.-', 'Enzyme', '1.-.-.-'},
+                             '1.4.6.7': {'Enzyme', '1.4.-.-', '1.4.6.-', '1.-.-.-'},
+                             '2.1.2.3': {'2.-.-.-', '2.1.-.-', '2.1.2.-', 'Enzyme'},
+                             '1.5.3': {'1.5.-.-', 'Enzyme', '1.-.-.-'},
+                             '1.6.9.-': {'1.6.-.-', 'Enzyme', '1.-.-.-'},
+                             '1.-.-.-': {'Enzyme'}, '1.4.-.-': {'Enzyme', '1.-.-.-'}}
+        wanted_ec_leaf = {'1.4.5.6': ['1.4.5.-'], '1.4.6.7': ['1.4.6.-'], '2.1.2.3': ['2.1.2.-'],
+                          '1.5.3': ['1.5.-.-'], '1.6.9.-': ['1.6.-.-'], '1.-.-.-': ['Enzyme'],
+                          '1.4.-.-': ['1.-.-.-']}
+        self.assertEqual(ec_classes, wanted_ec_classes)
+        self.assertTrue(
+            dicts_with_sorted_lists_equal(d_classes_ontology, {**EC_ONTO, **wanted_ec_leaf}))
 
 
 # TEST CHEBI + GO : NEED DEDICATED SPARQL SERVER TO EXECUTE

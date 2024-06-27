@@ -71,7 +71,7 @@ def ontosunburst(metabolic_objects: List[str],
     analysis: str (optional, default=topology)
         Analysis mode, must be in : [topology, enrichment]
     output: str (optional, default=None)
-        Path to output to save figure
+        Path of the output to save figure
     class_file: str (optional, default=None)
         Path to class ontology file
     names_file: str (optional, default=default)
@@ -84,7 +84,7 @@ def ontosunburst(metabolic_objects: List[str],
         True to duplicate labels if +1 parents (False to take exactly 1 random parent)
     total: bool (optional, default=True)
         True to have branch values proportional of the total parent (may not work in some cases)
-    root_cut: str (optional, default=ROOT_CUT)
+    root_cut: str (optional, default=cut)
         mode for root cutting (uncut, cut, total)
     ref_base: bool (optional, default=False)
         True to have the base classes representation of the reference set in the figure.
