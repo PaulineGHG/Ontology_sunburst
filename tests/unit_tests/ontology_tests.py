@@ -26,6 +26,11 @@ MC_ONTO = {'a': ['ab'], 'b': ['ab'], 'c': ['cde', 'cf'], 'd': ['cde'], 'e': ['cd
            'ab': [ROOTS[METACYC]], 'cde': ['cdecf', 'cdeeg'], 'cf': ['cdecf'],
            'eg': [ROOTS[METACYC], 'cdeeg'], 'gh': [ROOTS[METACYC]],
            'cdecf': [ROOTS[METACYC]], 'cdeeg': ['cdeeg+'], 'cdeeg+': [ROOTS[METACYC]]}
+KG_ONTO = {'a': ['ab'], 'b': ['ab'], 'c': ['cde', 'cf'], 'd': ['cde'], 'e': ['cde', 'eg'],
+           'f': ['cf'], 'g': ['gh', 'eg'], 'h': ['gh'],
+           'ab': [ROOTS[KEGG]], 'cde': ['cdecf', 'cdeeg'], 'cf': ['cdecf'],
+           'eg': [ROOTS[KEGG], 'cdeeg'], 'gh': [ROOTS[KEGG]],
+           'cdecf': [ROOTS[KEGG]], 'cdeeg': ['cdeeg+'], 'cdeeg+': [ROOTS[KEGG]]}
 
 # EC
 # --------------------------------------------------------------------------------------------------
@@ -129,7 +134,8 @@ class TestClassesExtraction(unittest.TestCase):
         self.assertEqual(all_classes_met, wanted_all_classes)
 
     def test_extract_classes(self):
-        pass
+        all_classes, d_classes_ontology = extract_classes(METACYC, MET_LST, ROOTS[METACYC],
+        MC_ONTO, None)
 
 
 # TEST CHEBI + GO : NEED DEDICATED SPARQL SERVER TO EXECUTE

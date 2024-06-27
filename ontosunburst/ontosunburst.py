@@ -13,35 +13,37 @@ from ontosunburst.sunburst_fig import get_fig_parameters, get_data_proportion, \
 #                                           CONSTANTS
 # ==================================================================================================
 
-# DEFAULT FILES
-# -------------
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
-# For MetaCyc
-METACYC_FILE = os.path.join(CURRENT_DIR, 'Inputs', 'MetaCyc26_0_classes.json')
-# For EC numbers
-EC_ONTO_FILE = os.path.join(CURRENT_DIR, 'Inputs', 'enzymes_ontology.json')
-EC_NAMES_FILE = os.path.join(CURRENT_DIR, 'Inputs', 'enzymes_class_names.json')
-# For KEGG
-KEGG_ONTO_FILE = os.path.join(CURRENT_DIR, 'Inputs', 'kegg_onto.json')
-# For ChEBI
-CHEBI_URL = 'http://localhost:3030/chebi/'
-# For GO
-GO_URL = 'http://localhost:3030/go/'
+# Dictionary json files
+# ---------------------
+DEFAULT_FILE = {METACYC: os.path.join(CURRENT_DIR, 'Inputs', 'MetaCyc26_0_classes.json'),
+                EC: os.path.join(CURRENT_DIR, 'Inputs', 'enzymes_ontology.json'),
+                KEGG: os.path.join(CURRENT_DIR, 'Inputs', 'kegg_onto.json')}
+# Names json files
+# ----------------
+DEFAULT_NAMES = {EC: os.path.join(CURRENT_DIR, 'Inputs', 'enzymes_class_names.json'),
+                 METACYC: None, KEGG: None, CHEBI: None, GO: None}
+DEFAULT = 'default'
+# Sparql URL
+# ----------
+DEFAULT_URL = {CHEBI: 'http://localhost:3030/chebi/',
+               GO: 'http://localhost:3030/go/'}
 
 
 # ==================================================================================================
 #                                            WORKFLOW
 # ==================================================================================================
 
-def ontosunburst(ontology: str,
-                 metabolic_objects: List[str],
+def ontosunburst(metabolic_objects: List[str],
+                 ontology: str = None,
+                 root: str = None,
                  abundances: List[float] = None,
                  reference_set: List[str] = None,
                  ref_abundances: List[float] = None,
                  analysis: str = TOPOLOGY_A,
                  output: str = None,
                  class_file: str = None,
-                 names_file: str = None,
+                 names_file: str = DEFAULT,
                  endpoint_url: str = None,
                  test: str = BINOMIAL_TEST,
                  full: bool = True,
@@ -50,14 +52,16 @@ def ontosunburst(ontology: str,
                  ref_base: bool = False,
                  show_leaves: bool = False,
                  **kwargs) -> go.Figure:
-    """
+    """ Main function to be called generating the sunburst figure
 
     Parameters
     ----------
-    ontology: str
-        Ontology to use, must be in : [metacyc, ec, chebi]
     metabolic_objects: List[str]
         Set of metabolic objects to classify
+    ontology: str (optional, default=None)
+        Ontology to use, must be in : [metacyc, ec, chebi, kegg, go]
+    root: str (optional, default=None)
+        Root item of the ontology.
     abundances: List[str] (optional, default=None)
         Abundance values associated to metabolic_objects list parameter
     reference_set: List[str] (optional, default=None)
@@ -70,10 +74,10 @@ def ontosunburst(ontology: str,
         Path to output to save figure
     class_file: str (optional, default=None)
         Path to class ontology file
-    names_file: str (optional, default=None)
-        Path to EC_ID - EC_NAME association json file
+    names_file: str (optional, default=default)
+        Path to ID-LABELS association json file
     endpoint_url: str (optional, default=None)
-        URL of ChEBI ontology for SPARQL requests
+        URL of ChEBI or GO ontology for SPARQL requests
     test: str (optional, default=binomial)
         Type of test if analysis=enrichment, must be in : [binomial, hypergeometric]
     full: bool (optional, default=True)
@@ -92,51 +96,49 @@ def ontosunburst(ontology: str,
     go.Figure
         Plotly graph_objects figure of the sunburst
     """
-
-    # METACYC --------------------------------------------------------------------------------------
-    if ontology == METACYC:
-        if class_file is None:
-            class_file = METACYC_FILE
-        names = None
-        with open(class_file, 'r') as f:
-            d_classes_ontology = json.load(f)
-    # EC -------------------------------------------------------------------------------------------
-    elif ontology == EC:
-        if class_file is None:
-            class_file = EC_ONTO_FILE
-        if names_file is None:
-            names_file = EC_NAMES_FILE
-        with open(class_file, 'r') as f:
-            d_classes_ontology = json.load(f)
+    # LOAD NAMES -----------------------------------------------------------------------------------
+    if names_file == DEFAULT:
+        if ontology is not None:
+            names_file = DEFAULT_NAMES[ontology]
+        else:
+            names_file = None
+    if names_file is not None:
         with open(names_file, 'r') as f:
             names = json.load(f)
-    # KEGG -----------------------------------------------------------------------------------------
-    elif ontology == KEGG:
-        if class_file is None:
-            class_file = KEGG_ONTO_FILE
+    else:
         names = None
+    # DICTIONARY JSON INPUT ------------------------------------------------------------------------
+    if ontology == METACYC or ontology == EC or ontology == KEGG:
+        if class_file is None:
+            class_file = DEFAULT_FILE[ontology]
         with open(class_file, 'r') as f:
             d_classes_ontology = json.load(f)
-    # CHEBI ----------------------------------------------------------------------------------------
-    elif ontology == CHEBI:
-        endpoint_url = CHEBI_URL
+    # SPARQL URL INPUT -----------------------------------------------------------------------------
+    elif ontology == CHEBI or ontology == GO:
+        if endpoint_url is None:
+            endpoint_url = DEFAULT_URL[ontology]
         d_classes_ontology = None
-        names = None
-    # GO -------------------------------------------------------------------------------------------
-    elif ontology == GO:
-        endpoint_url = GO_URL
-        d_classes_ontology = None
-        names = None
+    # ELSE : EXTERNAL USER INPUT -------------------------------------------------------------------
+    elif ontology is None:
+        if class_file is None:
+            raise ValueError('If no default ontology used, must refer a class ontology json file')
+        if root is None:
+            raise ValueError('If no default ontology used, must refer the root item of the ontology')
+        with open(class_file, 'r') as f:
+            d_classes_ontology = json.load(f)
     # ELSE -----------------------------------------------------------------------------------------
     else:
-        raise ValueError(f'ontology parameter must be in : {[METACYC, EC, KEGG, CHEBI, GO]}')
+        raise ValueError(f'ontology parameter must be in {[METACYC, EC, KEGG, GO, CHEBI, None]}')
+    # GET ROOT -------------------------------------------------------------------------------------
+    if ontology is not None:
+        root = ROOTS[ontology]
     # WORKFLOW -------------------------------------------------------------------------------------
     return _global_analysis(ontology=ontology, analysis=analysis,
                             metabolic_objects=metabolic_objects, abundances=abundances,
                             reference_set=reference_set, ref_abundances=ref_abundances,
                             d_classes_ontology=d_classes_ontology, endpoint_url=endpoint_url,
                             output=output, full=full, names=names, total=total, test=test,
-                            root=ROOTS[ontology], root_cut=root_cut, ref_base=ref_base,
+                            root=root, root_cut=root_cut, ref_base=ref_base,
                             show_leaves=show_leaves, **kwargs)
 
 
