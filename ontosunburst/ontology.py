@@ -351,10 +351,7 @@ def extract_classes(ontology: str, metabolic_objects: List[str], root: str,
 # For all Ontology - Utils
 # --------------------------------------------------------------------------------------------------
 
-
-
-
-def get_abundance_dict(abundances: List[float], metabolic_objects: List[str], ref: bool)\
+def get_abundance_dict(abundances: List[float] or None, metabolic_objects: List[str], ref: bool)\
         -> Dict[str, float]:
     if abundances is None:
         abundances = len(metabolic_objects) * [1]
@@ -364,11 +361,13 @@ def get_abundance_dict(abundances: List[float], metabolic_objects: List[str], re
             abundances_dict[metabolic_objects[i]] = abundances[i]
     else:
         if ref:
-            raise AttributeError('Length of "reference_set" parameter must be equal to '
-                                 '"ref_abundances" parameter length')
+            raise AttributeError(f'Length of "reference_set" parameter must be equal to '
+                                 f'"ref_abundances" parameter length : {len(metabolic_objects)} '
+                                 f'!= {len(abundances)}')
         else:
-            raise AttributeError('Length of "metabolic_objects" parameter must be equal to '
-                                 '"abundances" parameter length')
+            raise AttributeError(f'Length of "metabolic_objects" parameter must be equal to '
+                                 f'"abundances" parameter length : {len(metabolic_objects)} '
+                                 f'!= {len(abundances)}')
     return abundances_dict
 
 

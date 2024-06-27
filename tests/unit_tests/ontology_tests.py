@@ -267,3 +267,42 @@ class TestGOClassesExtraction(unittest.TestCase):
         self.assertEqual(output, 'No GO class found for : go:0044422')
         self.assertDictEqual(all_classes, wanted_classes)
         self.assertTrue(dicts_with_sorted_lists_equal(d_classes_ontology, wanted_ontology))
+
+
+# TEST ABUNDANCES
+# --------------------------------------------------------------------------------------------------
+
+class TestAbundances(unittest.TestCase):
+    def test_get_abundance_dict_abundances_not_ref(self):
+        abundance_dict = get_abundance_dict(abundances=MET_LAB, metabolic_objects=MET_LST,
+                                            ref=False)
+        self.assertEqual(abundance_dict, {'a': 1, 'b': 2, 'c': 3})
+
+    def test_get_abundance_dict_no_abundances_not_ref(self):
+        abundance_dict = get_abundance_dict(abundances=None, metabolic_objects=MET_LST,
+                                            ref=False)
+        self.assertEqual(abundance_dict, {'a': 1, 'b': 1, 'c': 1})
+
+    def test_get_abundance_dict_abundances_ref(self):
+        abundance_dict = get_abundance_dict(abundances=MET_RAB, metabolic_objects=MET_REF,
+                                            ref=True)
+        self.assertEqual(abundance_dict, {'a': 1, 'b': 2, 'c': 3, 'd': 4,
+                                          'e': 5, 'f': 6, 'g': 7, 'h': 8})
+
+    def test_get_abundance_dict_no_abundances_ref(self):
+        abundance_dict = get_abundance_dict(abundances=None, metabolic_objects=MET_REF,
+                                            ref=True)
+        self.assertEqual(abundance_dict, {'a': 1, 'b': 1, 'c': 1, 'd': 1,
+                                          'e': 1, 'f': 1, 'g': 1, 'h': 1})
+
+    def test_get_abundance_dict_errors_not_ref(self):
+        with self.assertRaises(AttributeError) as e:
+            get_abundance_dict(abundances=MET_LAB + [4], metabolic_objects=MET_LST, ref=False)
+        self.assertEqual(str(e.exception), 'Length of "metabolic_objects" parameter must be '
+                                           'equal to "abundances" parameter length : 3 != 4')
+
+    def test_get_abundance_dict_errors_ref(self):
+        with self.assertRaises(AttributeError) as e:
+            get_abundance_dict(abundances=MET_RAB[:-1], metabolic_objects=MET_REF, ref=True)
+        self.assertEqual(str(e.exception), 'Length of "reference_set" parameter must be '
+                                           'equal to "ref_abundances" parameter length : 8 != 7')

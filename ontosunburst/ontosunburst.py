@@ -224,7 +224,8 @@ def _topology_analysis(ref_classes_abundance, classes_abundance, d_classes_ontol
         Plotly graph_objects figure of the sunburst
     """
     if ref_classes_abundance is not None:
-        d_classes_ontology = reduce_d_ontology(d_classes_ontology, ref_classes_abundance)
+        d_classes_ontology = reduce_d_ontology(d_classes_ontology,
+                                               {**ref_classes_abundance, **classes_abundance})
 
         if ref_base:
             data = get_fig_parameters(classes_abondance=ref_classes_abundance,
