@@ -3,7 +3,7 @@ from unittest.mock import patch
 import io
 import sys
 from functools import wraps
-from ontosunburst.sunburst_fig import *
+from ontosunburst.data_table_tree import *
 from ontosunburst.ontology import *
 
 """
@@ -88,7 +88,7 @@ class DualWriter(io.StringIO):
 # TEST
 # --------------------------------------------------------------------------------------------------
 
-class TestSunburstFigure(unittest.TestCase):
+class TestDataTable(unittest.TestCase):
     @test_for(extract_met_classes)
     @patch('sys.stdout', new_callable=lambda: DualWriter(sys.stdout))
     def test_extract_met_classes_input_ok(self, mock_stdout):
