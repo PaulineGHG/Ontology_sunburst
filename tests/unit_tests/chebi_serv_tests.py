@@ -89,3 +89,7 @@ class TestChEBIClassesExtraction(unittest.TestCase):
         self.assertEqual(output, '3/3 chebi id with roles associated.')
         self.assertDictEqual(all_roles, wanted_roles)
         self.assertTrue(dicts_with_sorted_lists_equal(d_roles_ontology, wanted_ontology))
+
+    @test_for(extract_classes)
+    def test_extract_classes_chebi(self):
+        pass

@@ -35,7 +35,6 @@ KG_ONTO = {'a': ['ab'], 'b': ['ab'], 'c': ['cde', 'cf'], 'd': ['cde'], 'e': ['cd
 # EC
 # --------------------------------------------------------------------------------------------------
 EC_LST = ['1.4.5.6', '1.4.6.7', '2.1.2.3', '1.5.3', '1.6.9.-', '1.-.-.-', '1.4.-.-']
-# EC_LST = ['1.4.5.6', '1.4.6.7', '2.1.2.3', '1.5.3', '1.6.9.-', '1.4.-.-']
 EC_ONTO = {'1.4.5.-': ['1.4.-.-'], '1.4.6.-': ['1.4.-.-'], '2.1.2.-': ['2.1.-.-'],
            '1.5.3.-': ['1.5.-.-'], '1.6.9.-': ['1.6.-.-'],
            '1.4.-.-': ['1.-.-.-'], '2.1.-.-': ['2.-.-.-'], '1.5.-.-': ['1.-.-.-'],
@@ -64,8 +63,10 @@ def test_for(func):
         @wraps(test_func)
         def wrapper(*args, **kwargs):
             return test_func(*args, **kwargs)
+
         wrapper._test_for = func
         return wrapper
+
     return decorator
 
 
@@ -191,7 +192,6 @@ class TestClassesExtraction(unittest.TestCase):
     @test_for(extract_classes)
     def test_extract_classes_kegg(self):
         kg_classes, d_classes_ontology = extract_classes(KEGG, MET_LST, ROOTS[KEGG], KG_ONTO, None)
-        print(kg_classes)
         wanted_kg_classes = {'a': {'ab', 'kegg'}, 'b': {'ab', 'kegg'},
                              'c': {'cde', 'cdeeg+', 'kegg', 'cdecf', 'cdeeg', 'cf'}}
         self.assertEqual(kg_classes, wanted_kg_classes)
@@ -200,7 +200,6 @@ class TestClassesExtraction(unittest.TestCase):
     @test_for(extract_classes)
     def test_extract_classes_ec(self):
         ec_classes, d_classes_ontology = extract_classes(EC, EC_LST, ROOTS[EC], EC_ONTO, None)
-        print(ec_classes)
         wanted_ec_classes = {'1.4.5.6': {'1.4.5.-', '1.4.-.-', 'Enzyme', '1.-.-.-'},
                              '1.4.6.7': {'Enzyme', '1.4.-.-', '1.4.6.-', '1.-.-.-'},
                              '2.1.2.3': {'2.-.-.-', '2.1.-.-', '2.1.2.-', 'Enzyme'},
@@ -256,6 +255,50 @@ class TestAbundances(unittest.TestCase):
                                            'equal to "ref_abundances" parameter length : 8 != 7')
 
     @test_for(get_classes_abundance)
-    def test_get_classes_abundance(self):
-        classes_abundances = get_classes_abundance(all_classes={}, abundances_dict={},
-                                                   show_leaves=False)
+    def test_get_classes_abundance_leaves(self):
+        all_classes = {'a': {'FRAMES', 'ab'}, 'b': {'FRAMES', 'ab'},
+                       'c': {'cdecf', 'cdeeg+', 'FRAMES', 'cde', 'cdeeg', 'cf'},
+                       'd': {'cdecf', 'cdeeg+', 'FRAMES', 'cde', 'cdeeg'},
+                       'e': {'cdeeg+', 'FRAMES', 'cde', 'cdecf', 'eg', 'cdeeg'},
+                       'f': {'cdecf', 'FRAMES', 'cf'},
+                       'g': {'cdeeg', 'cdeeg+', 'FRAMES', 'eg', 'gh'}, 'h': {'FRAMES', 'gh'}}
+        abundances_dict = {'a': 1, 'b': 2, 'c': 3, 'd': 4, 'e': 5, 'f': 6, 'g': 7, 'h': 8}
+        classes_abundances = get_classes_abundance(all_classes, abundances_dict, show_leaves=True)
+        wanted_abundances = {'FRAMES': 36, 'cdeeg+': 19, 'cdeeg': 19, 'cdecf': 18, 'gh': 15,
+                             'eg': 12, 'cde': 12, 'cf': 9, 'h': 8, 'g': 7, 'f': 6, 'e': 5,
+                             'd': 4, 'c': 3, 'ab': 3, 'b': 2, 'a': 1}
+        self.assertEqual(classes_abundances, wanted_abundances)
+
+    @test_for(get_classes_abundance)
+    def test_get_classes_abundance_leaves_sub(self):
+        all_classes = {'a': {'FRAMES', 'ab'}, 'b': {'FRAMES', 'ab'},
+                       'c': {'cdeeg+', 'cde', 'cdeeg', 'FRAMES', 'cdecf', 'cf'}}
+        abundances_dict = {'a': 1, 'b': 2, 'c': 3}
+        classes_abundances = get_classes_abundance(all_classes, abundances_dict, show_leaves=True)
+        wanted_abundances = {'FRAMES': 6, 'cde': 3, 'cf': 3, 'cdecf': 3, 'cdeeg+': 3, 'cdeeg': 3,
+                             'c': 3, 'ab': 3, 'b': 2, 'a': 1}
+        self.assertEqual(classes_abundances, wanted_abundances)
+
+    @test_for(get_classes_abundance)
+    def test_get_classes_abundance_no_leaves(self):
+        all_classes = {'a': {'FRAMES', 'ab'}, 'b': {'FRAMES', 'ab'},
+                       'c': {'cdecf', 'cdeeg+', 'FRAMES', 'cde', 'cdeeg', 'cf'},
+                       'd': {'cdecf', 'cdeeg+', 'FRAMES', 'cde', 'cdeeg'},
+                       'e': {'cdeeg+', 'FRAMES', 'cde', 'cdecf', 'eg', 'cdeeg'},
+                       'f': {'cdecf', 'FRAMES', 'cf'},
+                       'g': {'cdeeg', 'cdeeg+', 'FRAMES', 'eg', 'gh'}, 'h': {'FRAMES', 'gh'}}
+        abundances_dict = {'a': 1, 'b': 2, 'c': 3, 'd': 4, 'e': 5, 'f': 6, 'g': 7, 'h': 8}
+        classes_abundances = get_classes_abundance(all_classes, abundances_dict, show_leaves=False)
+        wanted_abundances = {'FRAMES': 36, 'cdeeg+': 19, 'cdeeg': 19, 'cdecf': 18, 'gh': 15,
+                             'eg': 12, 'cde': 12, 'cf': 9, 'ab': 3}
+        self.assertEqual(classes_abundances, wanted_abundances)
+
+    @test_for(get_classes_abundance)
+    def test_get_classes_abundance_no_leaves_sub(self):
+        all_classes = {'a': {'FRAMES', 'ab'}, 'b': {'FRAMES', 'ab'},
+                       'c': {'cdeeg+', 'cde', 'cdeeg', 'FRAMES', 'cdecf', 'cf'}}
+        abundances_dict = {'a': 1, 'b': 2, 'c': 3}
+        classes_abundances = get_classes_abundance(all_classes, abundances_dict, show_leaves=False)
+        wanted_abundances = {'FRAMES': 6, 'cde': 3, 'cf': 3, 'cdecf': 3, 'cdeeg+': 3, 'cdeeg': 3,
+                             'ab': 3}
+        self.assertEqual(classes_abundances, wanted_abundances)

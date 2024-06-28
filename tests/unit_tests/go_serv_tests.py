@@ -79,3 +79,7 @@ class TestGOClassesExtraction(unittest.TestCase):
         self.assertEqual(output, 'No GO class found for : go:0044422')
         self.assertDictEqual(all_classes, wanted_classes)
         self.assertTrue(dicts_with_sorted_lists_equal(d_classes_ontology, wanted_ontology))
+
+    @test_for(extract_classes)
+    def test_extract_classes_go(self):
+        pass

@@ -276,8 +276,8 @@ def get_parents(child: str, parent_set: Set[str], d_classes_ontology: Dict[str, 
     parents = d_classes_ontology[child]
     for p in parents:
         parent_set.add(p)
-    if parents != [root_item]:
-        for p in parents:
+    for p in parents:
+        if p != root_item:
             parent_set = get_parents(p, parent_set, d_classes_ontology, root_item)
     return parent_set
 
