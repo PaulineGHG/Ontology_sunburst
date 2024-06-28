@@ -82,4 +82,24 @@ class TestGOClassesExtraction(unittest.TestCase):
 
     @test_for(extract_classes)
     def test_extract_classes_go(self):
-        pass
+        go_classes, d_classes_ontology = extract_classes(GO, GO_LST, ROOTS[GO], None, GO_URL)
+        wanted_ontology = {'membrane-bounded organelle': ['organelle'],
+                           'organelle': ['cellular anatomical entity'],
+                           'cellular_component': ['GO'],
+                           'cellular anatomical entity': ['cellular_component'],
+                           'go:0043227': ['membrane-bounded organelle'],
+                           'intracellular organelle': ['organelle'],
+                           'go:0043229': ['intracellular organelle'],
+                           'intracellular membrane-bounded organelle':
+                               ['membrane-bounded organelle', 'intracellular organelle'],
+                           'go:0043231': ['intracellular membrane-bounded organelle']}
+        wanted_classes = {'go:0043227': {'organelle', 'cellular anatomical entity',
+                                         'membrane-bounded organelle', 'cellular_component', 'GO'},
+                          'go:0043229': {'organelle', 'cellular anatomical entity',
+                                         'intracellular organelle', 'cellular_component', 'GO'},
+                          'go:0043231': {'organelle', 'cellular anatomical entity',
+                                         'intracellular organelle', 'membrane-bounded organelle',
+                                         'cellular_component',
+                                         'intracellular membrane-bounded organelle', 'GO'}}
+        self.assertEqual(go_classes, wanted_classes)
+        self.assertTrue(dicts_with_sorted_lists_equal(d_classes_ontology, wanted_ontology))

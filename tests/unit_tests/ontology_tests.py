@@ -42,7 +42,7 @@ EC_ONTO = {'1.4.5.-': ['1.4.-.-'], '1.4.6.-': ['1.4.-.-'], '2.1.2.-': ['2.1.-.-'
 EC_ONTO_FULL = {'1.4.5.-': ['1.4.-.-'], '1.4.6.-': ['1.4.-.-'], '2.1.2.-': ['2.1.-.-'],
                 '1.5.3.-': ['1.5.-.-'], '1.6.9.-': ['1.6.-.-'], '1.4.-.-': ['1.-.-.-'],
                 '2.1.-.-': ['2.-.-.-'], '1.5.-.-': ['1.-.-.-'], '1.6.-.-': ['1.-.-.-'],
-                '1.-.-.-': ['Enzyme'], '2.-.-.-': ['Enzyme'], '1.4.5.6': ['1.4.5.-'],
+                '1.-.-.-': [ROOTS[EC]], '2.-.-.-': [ROOTS[EC]], '1.4.5.6': ['1.4.5.-'],
                 '1.4.6.7': ['1.4.6.-'], '2.1.2.3': ['2.1.2.-'], '1.5.3': ['1.5.-.-']}
 
 
@@ -212,7 +212,6 @@ class TestClassesExtraction(unittest.TestCase):
 
 # TEST ABUNDANCES
 # --------------------------------------------------------------------------------------------------
-
 class TestAbundances(unittest.TestCase):
     @test_for(get_abundance_dict)
     def test_get_abundance_dict_abundances_not_ref(self):
@@ -302,3 +301,26 @@ class TestAbundances(unittest.TestCase):
         wanted_abundances = {'FRAMES': 6, 'cde': 3, 'cf': 3, 'cdecf': 3, 'cdeeg+': 3, 'cdeeg': 3,
                              'ab': 3}
         self.assertEqual(classes_abundances, wanted_abundances)
+
+
+# TEST UTILS
+# --------------------------------------------------------------------------------------------------
+class TestUtils(unittest.TestCase):
+    @test_for(get_children_dict)
+    def test_get_children_dict(self):
+        wanted_children_dict = {'ab': ['a', 'b'], 'cde': ['c', 'd', 'e'], 'cf': ['c', 'f'],
+                                'eg': ['e', 'g'], 'gh': ['g', 'h'],
+                                'FRAMES': ['ab', 'eg', 'gh', 'cdecf', 'cdeeg+'],
+                                'cdecf': ['cde', 'cf'], 'cdeeg': ['cde', 'eg'], 'cdeeg+': ['cdeeg']}
+        children_dict = get_children_dict(MC_ONTO)
+        self.assertEqual(wanted_children_dict, children_dict)
+
+    @test_for(reduce_d_ontology)
+    def test_reduce_d_ontology(self):
+        classes_abundance = {'FRAMES': 6, 'cde': 3, 'cf': 3, 'cdecf': 3, 'cdeeg+': 3, 'cdeeg': 3,
+                             'ab': 3}
+        d_ontology_reduced = reduce_d_ontology(MC_ONTO, classes_abundance)
+        wanted_d_ontology_reduced = {'ab': ['FRAMES'], 'cde': ['cdecf', 'cdeeg'],
+                                     'cf': ['cdecf'], 'cdecf': ['FRAMES'], 'cdeeg': ['cdeeg+'],
+                                     'cdeeg+': ['FRAMES']}
+        self.assertEqual(d_ontology_reduced, wanted_d_ontology_reduced)
