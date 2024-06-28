@@ -46,19 +46,6 @@ EC_ONTO_FULL = {'1.4.5.-': ['1.4.-.-'], '1.4.6.-': ['1.4.-.-'], '2.1.2.-': ['2.1
                 '1.-.-.-': ['Enzyme'], '2.-.-.-': ['Enzyme'], '1.4.5.6': ['1.4.5.-'],
                 '1.4.6.7': ['1.4.6.-'], '2.1.2.3': ['2.1.2.-'], '1.5.3': ['1.5.-.-']}
 
-# CHEBI
-# --------------------------------------------------------------------------------------------------
-CH_URL = 'http://localhost:3030/chebi/'
-CH_LST = ['38028', '28604', '85146']
-REF_CH = ['38028', '28604', '85146',
-          '23066', '27803', '37565',
-          '58215', '79983', '42639']
-
-# GO
-# --------------------------------------------------------------------------------------------------
-GO_LST = ['GO:0043227', 'GO:0043229', 'GO:0043231', 'GO:0044422']
-GO_URL = 'http://localhost:3030/go/'
-
 
 # ==================================================================================================
 # FUNCTIONS UTILS
@@ -222,77 +209,6 @@ class TestClassesExtraction(unittest.TestCase):
                              '1.-.-.-': {'Enzyme'}, '1.4.-.-': {'Enzyme', '1.-.-.-'}}
         self.assertEqual(ec_classes, wanted_ec_classes)
         self.assertTrue(dicts_with_sorted_lists_equal(d_classes_ontology, EC_ONTO_FULL))
-
-
-# TEST CHEBI + GO : NEED DEDICATED SPARQL SERVER RUNNING TO EXECUTE
-# --------------------------------------------------------------------------------------------------
-# ChEBI
-class TestChEBIClassesExtraction(unittest.TestCase):
-    @test_for(extract_chebi_roles)
-    @patch('sys.stdout', new_callable=lambda: DualWriter(sys.stdout))
-    def test_extract_chebi_roles(self, mock_stdout):
-        all_roles, d_roles_ontology = extract_chebi_roles(CH_LST, CH_URL)
-        output = mock_stdout.getvalue().strip()
-        wanted_ontology = {'xenobiotic': ['biological role'], 'biological role': ['role'],
-                           '38028': ['xenobiotic'], 'algal metabolite': ['eukaryotic metabolite'],
-                           'eukaryotic metabolite': ['metabolite'],
-                           'metabolite': ['biochemical role'],
-                           'biochemical role': ['biological role'],
-                           'marine metabolite': ['metabolite'],
-                           'plant metabolite': ['eukaryotic metabolite'],
-                           'animal metabolite': ['eukaryotic metabolite'],
-                           '28604': ['animal metabolite', 'plant metabolite', 'algal metabolite',
-                                     'marine metabolite'],
-                           'food emulsifier': ['food additive', 'emulsifier'],
-                           'food additive': ['food component', 'application'],
-                           'application': ['role'], 'food component': ['physiological role'],
-                           'physiological role': ['biological role'],
-                           'emulsifier': ['chemical role'], 'chemical role': ['role'],
-                           'laxative': ['drug'], 'drug': ['pharmaceutical'],
-                           'pharmaceutical': ['application'],
-                           '85146': ['food emulsifier', 'laxative']}
-        wanted_roles = {'38028': {'role', 'biological role', 'xenobiotic'},
-                        '28604': {'algal metabolite', 'biochemical role', 'biological role',
-                                  'eukaryotic metabolite', 'marine metabolite', 'plant metabolite',
-                                  'metabolite', 'animal metabolite', 'role'},
-                        '85146': {'emulsifier', 'food additive', 'pharmaceutical', 'application',
-                                  'biological role', 'food component', 'chemical role', 'role',
-                                  'physiological role', 'food emulsifier', 'drug', 'laxative'}}
-
-        self.assertEqual(output, '3/3 chebi id with roles associated.')
-        self.assertDictEqual(all_roles, wanted_roles)
-        self.assertTrue(dicts_with_sorted_lists_equal(d_roles_ontology, wanted_ontology))
-
-
-# GO
-class TestGOClassesExtraction(unittest.TestCase):
-    @test_for(extract_go_classes)
-    @patch('sys.stdout', new_callable=lambda: DualWriter(sys.stdout))
-    def test_extract_go_classes(self, mock_stdout):
-        all_classes, d_classes_ontology = extract_go_classes(GO_LST, GO_URL)
-        output = mock_stdout.getvalue().strip()
-        wanted_ontology = {'membrane-bounded organelle': ['organelle'],
-                           'organelle': ['cellular anatomical entity'],
-                           'cellular_component': ['GO'],
-                           'cellular anatomical entity': ['cellular_component'],
-                           'go:0043227': ['membrane-bounded organelle'],
-                           'intracellular organelle': ['organelle'],
-                           'go:0043229': ['intracellular organelle'],
-                           'intracellular membrane-bounded organelle':
-                               ['membrane-bounded organelle', 'intracellular organelle'],
-                           'go:0043231': ['intracellular membrane-bounded organelle']}
-        wanted_classes = {'go:0043227': {'organelle', 'cellular anatomical entity',
-                                         'membrane-bounded organelle', 'cellular_component', 'GO'},
-                          'go:0043229': {'organelle', 'cellular anatomical entity',
-                                         'intracellular organelle', 'cellular_component', 'GO'},
-                          'go:0043231': {'organelle', 'cellular anatomical entity',
-                                         'intracellular organelle', 'membrane-bounded organelle',
-                                         'cellular_component',
-                                         'intracellular membrane-bounded organelle', 'GO'}}
-
-        self.assertEqual(output, 'No GO class found for : go:0044422')
-        self.assertDictEqual(all_classes, wanted_classes)
-        self.assertTrue(dicts_with_sorted_lists_equal(d_classes_ontology, wanted_ontology))
 
 
 # TEST ABUNDANCES
