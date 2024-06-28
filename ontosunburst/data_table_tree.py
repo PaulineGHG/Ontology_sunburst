@@ -127,7 +127,24 @@ def get_fig_parameters(classes_abondance: Dict[str, int], parent_dict: Dict[str,
     return data
 
 
-def get_sub_abundance(subset_abundance, c_label, c_abundance):
+def get_sub_abundance(subset_abundance: Dict[str, float] or None, c_label: str,
+                      c_abundance: float) -> float:
+    """ Get the subset abundance of a reference concept.
+
+    Parameters
+    ----------
+    subset_abundance: Dict[str, float] or None
+        Dictionary associating to all the subset concepts, its abundance
+    c_label: str
+        Label of the reference concept
+    c_abundance: float
+        Abundance of the reference concept
+
+    Returns
+    -------
+    Abundance of the subset concept. If reference concept not in the subset, returns numpy.nan. If
+    the subset_abundance is None, returns c_abundance.
+    """
     if subset_abundance is not None:
         try:
             c_sub_abundance = subset_abundance[c_label]
@@ -138,7 +155,7 @@ def get_sub_abundance(subset_abundance, c_label, c_abundance):
     return c_sub_abundance
 
 
-def add_value_data(data: Dict[str, List], m_id: str, label: str, value: int, base_value: int,
+def add_value_data(data: Dict[str, List], m_id: str, label: str, value: float, base_value: float,
                    parent: str) -> Dict[str, List]:
     """ Fill the data dictionary for a metabolite class.
 
@@ -149,8 +166,8 @@ def add_value_data(data: Dict[str, List], m_id: str, label: str, value: int, bas
             - ids : ID (str)
             - labels : Label (str)
             - parents ids : Parent (str)
-            - abundance value : Count (int)
-            - reference abundance value : Reference_count (int)
+            - abundance value : Count (float)
+            - reference abundance value : Reference_count (float)
     m_id: str
         ID of the metabolite class to add
     label: str
@@ -172,6 +189,8 @@ def add_value_data(data: Dict[str, List], m_id: str, label: str, value: int, bas
             - abundance value : Count (int)
             - reference abundance value : Reference_count (int)
     """
+    if m_id in data[IDS]:
+        raise ValueError(f'{m_id} already in data IDs, all IDs must be unique.')
     data[IDS].append(m_id)
     data[LABEL].append(label)
     data[PARENT].append(parent)
