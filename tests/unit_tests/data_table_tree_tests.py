@@ -8,6 +8,7 @@ import pandas as pd
 from functools import wraps
 from ontosunburst.data_table_tree import *
 from ontosunburst.ontology import *
+from ontosunburst.ontosunburst import ontosunburst
 
 """
 Tests manually good file creation.
@@ -21,10 +22,10 @@ No automatic tests integrated.
 # GENERAL DICT ONTO (METACYC, KEGG)
 # --------------------------------------------------------------------------------------------------
 
-# MET_LST = ['a', 'b', 'c']
-# MET_REF = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
-# MET_LAB = [1, 2, 3]
-# MET_RAB = [1, 2, 3, 4, 5, 6, 7, 8]
+MET_LST = ['a', 'b', 'c']
+MET_REF = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
+MET_LAB = [1, 2, 3]
+MET_RAB = [1, 2, 3, 4, 5, 6, 7, 8]
 MC_ONTO = {'a': ['ab'], 'b': ['ab'], 'c': ['cde', 'cf'], 'd': ['cde'], 'e': ['cde', 'eg'],
            'f': ['cf'], 'g': ['gh', 'eg'], 'h': ['gh'],
            'ab': [ROOTS[METACYC]], 'cde': ['cdecf', 'cdeeg'], 'cf': ['cdecf'],
@@ -39,6 +40,10 @@ MET_LAB_D = {'FRAMES': 6, 'cde': 3, 'cf': 3, 'cdecf': 3, 'cdeeg+': 3, 'cdeeg': 3
              'b': 2, 'a': 1}
 MET_RAB_D = {'FRAMES': 36, 'cdeeg+': 19, 'cdeeg': 19, 'cdecf': 18, 'gh': 15, 'eg': 12, 'cde': 12,
              'cf': 9, 'h': 8, 'g': 7, 'f': 6, 'e': 5, 'd': 4, 'c': 3, 'ab': 3, 'b': 2, 'a': 1}
+
+
+# ontosunburst(MET_REF, abundances=MET_RAB, class_ontology=MC_ONTO, root=ROOTS[METACYC],
+#              output='here', show_leaves=True, full=False)
 
 
 # ==================================================================================================
@@ -128,6 +133,5 @@ class TestDataTable(unittest.TestCase):
     @test_for(get_fig_parameters)
     def test_get_fig_parameters(self):
         data = get_fig_parameters(classes_abondance=MET_RAB_D, parent_dict=MC_ONTO,
-                                  children_dict=MC_ONTO_CH, root_item=ROOTS[METACYC],
-                                  subset_abundance=MET_LAB_D, full=True, names=None)
+                                  root_item=ROOTS[METACYC], subset_abundance=MET_LAB_D, names=None)
         data_to_df(data)

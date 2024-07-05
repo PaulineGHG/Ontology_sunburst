@@ -2,7 +2,6 @@ from typing import List, Dict, Tuple
 import numpy as np
 import scipy.stats as stats
 
-
 # ==================================================================================================
 # CONSTANTS
 # ==================================================================================================
@@ -37,22 +36,16 @@ PVAL = 'Pvalue'
 # Generate Data table
 # --------------------------------------------------------------------------------------------------
 def get_fig_parameters(classes_abondance: Dict[str, int], parent_dict: Dict[str, List[str]],
-                       children_dict: Dict[str, List[str]], root_item,
-                       subset_abundance: Dict[str, int] = None, full: bool = True,
+                       root_item, subset_abundance: Dict[str, int] = None,
                        names: Dict[str, str] = None) -> Dict[str, List]:
     """ Returns a dictionary of parameters to create the sunburst figure.
 
     Parameters
     ----------
     classes_abondance: Dict[str, int]
-        Dictionary associating for each class the number of metabolites found belonging to the class.
+        Dictionary associating for each class the number of metabolites found belonging to the class
     parent_dict: Dict[str, List[str]]
         Dictionary associating for each class, its parents classes
-    children_dict: Dict[str, List[str]]
-        Dictionary associating for each class, its children classes
-    full: bool (default=True)
-        True for a full figure with class duplication if a class has +1 parents.
-        False to have a reduced vew with all label appearing only once (1 random parent chosen)
     root_item: str
         Name of the root item of the ontology
     subset_abundance: Dict[str, int] = None
@@ -76,46 +69,20 @@ def get_fig_parameters(classes_abondance: Dict[str, int], parent_dict: Dict[str,
             REF_COUNT: list()}
     for c_label, c_abundance in classes_abondance.items():
         c_sub_abundance = get_sub_abundance(subset_abundance, c_label, c_abundance)
-
         if c_label != root_item:
-            c_parents = parent_dict[c_label]
-            m_id = c_label
-            label = c_label
-
             if names is not None:
                 try:
-                    label = names[c_label]
+                    c_label = names[c_label]
                 except KeyError:
-                    label = c_label
-
-            data = add_value_data(data=data,
-                                  m_id=m_id,
-                                  label=label,
-                                  value=c_sub_abundance,
-                                  base_value=c_abundance,
-                                  parent=c_parents[0])
-
-            if len(c_parents) > 1 and full:
-                for p in c_parents[1:]:
-                    suffix = '__' + p
-                    c_id = c_label + suffix
-                    data = add_value_data(data=data,
-                                          m_id=c_id,
-                                          label=c_label,
-                                          value=c_sub_abundance,
-                                          base_value=c_abundance,
-                                          parent=p)
-
-                    if c_label in children_dict.keys():
-                        c_children = children_dict[c_label]
-                        for c in c_children:
-                            data = add_children(data=data,
-                                                origin=suffix,
-                                                child=c,
-                                                parent=c_id,
-                                                classes_abondance=classes_abondance,
-                                                subset_abundance=subset_abundance,
-                                                children_dict=children_dict)
+                    pass
+            all_c_ids = get_all_ids(c_label, c_label, parent_dict, root_item, set())
+            for c_id in all_c_ids:
+                data = add_value_data(data=data,
+                                      m_id=c_id,
+                                      label=c_label,
+                                      value=c_sub_abundance,
+                                      base_value=c_abundance,
+                                      parent=c_id[len(c_label) + 2:])  # Remove c_label__ prefix
         else:
             data = add_value_data(data=data,
                                   m_id=c_label,
@@ -123,8 +90,21 @@ def get_fig_parameters(classes_abondance: Dict[str, int], parent_dict: Dict[str,
                                   value=c_sub_abundance,
                                   base_value=c_abundance,
                                   parent='')
-
     return data
+
+
+def get_all_ids(m_id, n_id, parent_dict, root, all_ids):
+    parents = parent_dict[m_id]
+    for p in parents:
+        nn_id = n_id + '__' + p
+        if p == root:
+            all_ids.add(nn_id)
+        else:
+            all_ids = get_all_ids(p, nn_id, parent_dict, root, all_ids)
+    return all_ids
+
+
+# ==========================
 
 
 def get_sub_abundance(subset_abundance: Dict[str, float] or None, c_label: str,
@@ -221,7 +201,7 @@ def add_children(data: Dict[str, List], origin: str, child: str, parent: str,
     parent: str
         Parent metabolite class
     classes_abondance: Dict[str, int]
-        Dictionary associating for each class the number of metabolites found belonging to the class.
+        Dictionary associating for each class the number of metabolites found belonging to the class
     subset_abundance
     children_dict: Dict[str, List[str]]
         Dictionary associating for each class, its children classes

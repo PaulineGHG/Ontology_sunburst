@@ -432,28 +432,6 @@ def get_classes_abundance(all_classes: Dict[str, Set[str]], abundances_dict: Dic
 # UTILS
 # ==================================================================================================
 
-def get_children_dict(parent_dict: Dict[str, List[str]]) -> Dict[str, List[str]]:
-    """ Create the children dictionary from the parents dictionary.
-
-    Parameters
-    ----------
-    parent_dict: Dict[str, List[str]]
-        Dictionary associating for each class, its parents classes
-
-    Returns
-    -------
-    Dict[str, List[str]]
-        Dictionary associating for each class, its children classes
-    """
-    children_dict = dict()
-    for c, ps in parent_dict.items():
-        for p in ps:
-            if p not in children_dict.keys():
-                children_dict[p] = list()
-            children_dict[p].append(c)
-    return children_dict
-
-
 def reduce_d_ontology(d_classes_ontology: Dict[str, List[str]],
                       classes_abundance: Dict[str, float]) -> Dict[str, List[str]]:
     """ Extract the sub-graph of the d_classes_ontology dictionary conserving only nodes implicated

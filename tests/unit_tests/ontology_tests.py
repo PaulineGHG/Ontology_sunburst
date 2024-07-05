@@ -306,15 +306,6 @@ class TestAbundances(unittest.TestCase):
 # TEST UTILS
 # --------------------------------------------------------------------------------------------------
 class TestUtils(unittest.TestCase):
-    @test_for(get_children_dict)
-    def test_get_children_dict(self):
-        wanted_children_dict = {'ab': ['a', 'b'], 'cde': ['c', 'd', 'e'], 'cf': ['c', 'f'],
-                                'eg': ['e', 'g'], 'gh': ['g', 'h'],
-                                'FRAMES': ['ab', 'eg', 'gh', 'cdecf', 'cdeeg+'],
-                                'cdecf': ['cde', 'cf'], 'cdeeg': ['cde', 'eg'], 'cdeeg+': ['cdeeg']}
-        children_dict = get_children_dict(MC_ONTO)
-        self.assertEqual(wanted_children_dict, children_dict)
-
     @test_for(reduce_d_ontology)
     def test_reduce_d_ontology(self):
         classes_abundance = {'FRAMES': 6, 'cde': 3, 'cf': 3, 'cdecf': 3, 'cdeeg+': 3, 'cdeeg': 3,
@@ -324,3 +315,5 @@ class TestUtils(unittest.TestCase):
                                      'cf': ['cdecf'], 'cdecf': ['FRAMES'], 'cdeeg': ['cdeeg+'],
                                      'cdeeg+': ['FRAMES']}
         self.assertEqual(d_ontology_reduced, wanted_d_ontology_reduced)
+
+
