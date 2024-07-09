@@ -302,6 +302,18 @@ class TestAbundances(unittest.TestCase):
                              'ab': 3}
         self.assertEqual(classes_abundances, wanted_abundances)
 
+    @test_for(get_classes_abundance)
+    def test_get_classes_abundance_different_level_abundances(self):
+        all_classes = {'c': {'cdecf', 'cdeeg+', 'FRAMES', 'cde', 'cdeeg', 'cf'},
+                       'd': {'cdecf', 'cdeeg+', 'FRAMES', 'cde', 'cdeeg'},
+                       'e': {'cdeeg+', 'FRAMES', 'cde', 'cdecf', 'eg', 'cdeeg'},
+                       'f': {'cdecf', 'FRAMES', 'cf'}, 'cf': {'cdecf', 'FRAMES'}}
+        abundances_dict = {'c': 3, 'd': 4, 'e': 5, 'f': 2, 'cf': 2}
+        classes_abundances = get_classes_abundance(all_classes, abundances_dict, show_leaves=True)
+        wanted_abundances = {'FRAMES': 16, 'cdecf': 16, 'cde': 12, 'cdeeg+': 12, 'cdeeg': 12,
+                             'cf': 7, 'eg': 5, 'e': 5, 'd': 4, 'c': 3, 'f': 2}
+        self.assertEqual(classes_abundances, wanted_abundances)
+
 
 # TEST UTILS
 # --------------------------------------------------------------------------------------------------

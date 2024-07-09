@@ -1,4 +1,4 @@
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Set
 import numpy as np
 import scipy.stats as stats
 
@@ -93,7 +93,29 @@ def get_fig_parameters(classes_abondance: Dict[str, int], parent_dict: Dict[str,
     return data
 
 
-def get_all_ids(m_id, n_id, parent_dict, root, all_ids):
+def get_all_ids(m_id: str, n_id: str, parent_dict: Dict[str, List[str]], root: str,
+                all_ids: Set[str]) -> Set[str]:
+    """ Return recursively all unique IDs associated with a label. The IDs correspond to the path
+    in the tree from the label to the root.
+
+    Parameters
+    ----------
+    m_id: str
+        Input ID
+    n_id
+        New ID
+    parent_dict: Dict[str, List[str]]
+        Dictionary associating for each class, its parents classes
+    root: str
+        Name of the root item of the ontology
+    all_ids: Set[str]
+        Set of unique IDs associated with a concept label.
+
+    Returns
+    -------
+    Set[str]
+        Set of all unique IDs associated with a concept label.
+    """
     parents = parent_dict[m_id]
     for p in parents:
         nn_id = n_id + '__' + p
@@ -102,9 +124,6 @@ def get_all_ids(m_id, n_id, parent_dict, root, all_ids):
         else:
             all_ids = get_all_ids(p, nn_id, parent_dict, root, all_ids)
     return all_ids
-
-
-# ==========================
 
 
 def get_sub_abundance(subset_abundance: Dict[str, float] or None, c_label: str,

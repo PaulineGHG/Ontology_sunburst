@@ -419,7 +419,10 @@ def get_classes_abundance(all_classes: Dict[str, Set[str]], abundances_dict: Dic
     classes_abondance = dict()
     for met, classes in all_classes.items():
         if show_leaves:
-            classes_abondance[met] = abundances_dict[met]
+            if met not in classes_abondance.keys():
+                classes_abondance[met] = abundances_dict[met]
+            else:
+                classes_abondance[met] += abundances_dict[met]
         for c in classes:
             if c not in classes_abondance.keys():
                 classes_abondance[c] = abundances_dict[met]
