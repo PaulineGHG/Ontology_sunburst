@@ -1,14 +1,10 @@
 import unittest
-from unittest.mock import patch
 import io
-import sys
 
-import numpy as np
-import pandas as pd
+from numpy import nan
 from functools import wraps
 from ontosunburst.data_table_tree import *
 from ontosunburst.ontology import *
-from ontosunburst.ontosunburst import ontosunburst
 
 """
 Tests manually good file creation.
@@ -22,32 +18,61 @@ No automatic tests integrated.
 # GENERAL DICT ONTO (METACYC, KEGG)
 # --------------------------------------------------------------------------------------------------
 
-MET_LST = ['a', 'b', 'c']
-MET_REF = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
-MET_LAB = [1, 2, 3]
-MET_RAB = [1, 2, 3, 4, 5, 6, 7, 8]
-MET_RAB3 = [8, 7, 6, 5, 4, 3, 2, 1]
 MC_ONTO = {'a': ['ab'], 'b': ['ab'], 'c': ['cde', 'cf'], 'd': ['cde'], 'e': ['cde', 'eg'],
            'f': ['cf'], 'g': ['gh', 'eg'], 'h': ['gh'],
            'ab': [ROOTS[METACYC]], 'cde': ['cdecf', 'cdeeg'], 'cf': ['cdecf'],
            'eg': ['cdeeg', ROOTS[METACYC]], 'gh': [ROOTS[METACYC]],
            'cdecf': [ROOTS[METACYC]], 'cdeeg': ['cdeeg+'], 'cdeeg+': [ROOTS[METACYC]]}
 
-MC_ONTO_CH = {'ab': ['a', 'b'], 'cde': ['c', 'd', 'e'], 'cf': ['c', 'f'], 'eg': ['e', 'g'],
-              'gh': ['g', 'h'], 'FRAMES': ['ab', 'eg', 'gh', 'cdecf', 'cdeeg+'],
-              'cdecf': ['cde', 'cf'], 'cdeeg': ['cde', 'eg'], 'cdeeg+': ['cdeeg']}
-
 MET_LAB_D = {'FRAMES': 6, 'cde': 3, 'cf': 3, 'cdecf': 3, 'cdeeg+': 3, 'cdeeg': 3, 'c': 3, 'ab': 3,
              'b': 2, 'a': 1}
 MET_RAB_D = {'FRAMES': 36, 'cdeeg+': 19, 'cdeeg': 19, 'cdecf': 18, 'gh': 15, 'eg': 12, 'cde': 12,
              'cf': 9, 'h': 8, 'g': 7, 'f': 6, 'e': 5, 'd': 4, 'c': 3, 'ab': 3, 'b': 2, 'a': 1}
 
+DATA = {'ID': ['FRAMES', 'cdeeg+__FRAMES', 'cdeeg__cdeeg+__FRAMES', 'cdecf__FRAMES', 'gh__FRAMES',
+               'eg__cdeeg__cdeeg+__FRAMES', 'eg__FRAMES', 'cde__cdeeg__cdeeg+__FRAMES',
+               'cde__cdecf__FRAMES', 'cf__cdecf__FRAMES', 'h__gh__FRAMES',
+               'g__eg__cdeeg__cdeeg+__FRAMES', 'g__eg__FRAMES', 'g__gh__FRAMES',
+               'f__cf__cdecf__FRAMES', 'e__eg__cdeeg__cdeeg+__FRAMES',
+               'e__cde__cdeeg__cdeeg+__FRAMES', 'e__eg__FRAMES', 'e__cde__cdecf__FRAMES',
+               'd__cde__cdecf__FRAMES', 'd__cde__cdeeg__cdeeg+__FRAMES', 'c__cde__cdecf__FRAMES',
+               'c__cf__cdecf__FRAMES', 'c__cde__cdeeg__cdeeg+__FRAMES', 'ab__FRAMES',
+               'b__ab__FRAMES', 'a__ab__FRAMES'],
+        'Parent': ['', 'FRAMES', 'cdeeg+__FRAMES', 'FRAMES', 'FRAMES', 'cdeeg__cdeeg+__FRAMES',
+                   'FRAMES', 'cdeeg__cdeeg+__FRAMES', 'cdecf__FRAMES', 'cdecf__FRAMES',
+                   'gh__FRAMES', 'eg__cdeeg__cdeeg+__FRAMES', 'eg__FRAMES', 'gh__FRAMES',
+                   'cf__cdecf__FRAMES', 'eg__cdeeg__cdeeg+__FRAMES', 'cde__cdeeg__cdeeg+__FRAMES',
+                   'eg__FRAMES', 'cde__cdecf__FRAMES', 'cde__cdecf__FRAMES',
+                   'cde__cdeeg__cdeeg+__FRAMES', 'cde__cdecf__FRAMES', 'cf__cdecf__FRAMES',
+                   'cde__cdeeg__cdeeg+__FRAMES', 'FRAMES', 'ab__FRAMES', 'ab__FRAMES'],
+        'Label': ['FRAMES', 'cdeeg+', 'cdeeg', 'cdecf', 'gh', 'eg', 'eg', 'cde', 'cde', 'cf', 'h',
+                  'g', 'g', 'g', 'f', 'e', 'e', 'e', 'e', 'd', 'd', 'c', 'c', 'c', 'ab', 'b', 'a'],
+        'Count': [6, 3, 3, 3, nan, nan, nan, 3, 3, 3, nan, nan, nan, nan, nan, nan, nan, nan, nan,
+                  nan, nan, 3, 3, 3, 3, 2, 1],
+        'Reference count': [36, 19, 19, 18, 15, 12, 12, 12, 12, 9, 8, 7, 7, 7, 6, 5, 5, 5, 5, 4, 4,
+                            3, 3, 3, 3, 2, 1]}
 
-# ontosunburst(['c', 'd', 'e', 'f', 'cf'], abundances=[3, 4, 5, 2, 2], class_ontology=MC_ONTO,
-#              root=ROOTS[METACYC], output='here', show_leaves=True, full=False)
-# ontosunburst(metabolic_objects=MET_LST, abundances=MET_LAB, ref_base=True,
-#              reference_set=MET_REF, ref_abundances=MET_RAB3, class_ontology=MC_ONTO,
-#              root=ROOTS[METACYC], output='here', show_leaves=True, full=False)
+W_PROP = [1.0, 0.5, 0.5, 0.5, nan, nan, nan, 0.5, 0.5, 0.5, nan, nan, nan, nan, nan, nan, nan, nan,
+          nan, nan, nan, 0.5, 0.5, 0.5, 0.5, 0.3333333333333333, 0.16666666666666666]
+
+W_REF_PROP = [1.0, 0.5277777777777778, 0.5277777777777778, 0.5, 0.4166666666666667,
+              0.3333333333333333, 0.3333333333333333, 0.3333333333333333, 0.3333333333333333, 0.25,
+              0.2222222222222222, 0.19444444444444445, 0.19444444444444445, 0.19444444444444445,
+              0.16666666666666666, 0.1388888888888889, 0.1388888888888889, 0.1388888888888889,
+              0.1388888888888889, 0.1111111111111111, 0.1111111111111111, 0.08333333333333333,
+              0.08333333333333333, 0.08333333333333333, 0.08333333333333333, 0.05555555555555555,
+              0.027777777777777776]
+
+W_RELAT_PROP = [1000000, 283582, 283582, 268656, 223880, 141791, 179104, 141791, 153517, 115138,
+                119402, 82711, 104477, 104477, 76758, 59079, 59079, 74626, 63965, 51172, 47263,
+                38379, 38379, 35447, 44776, 29850, 14925]
+
+DATA_PROP = DATA
+DATA_PROP[PROP] = W_PROP
+DATA_PROP[REF_PROP] = W_REF_PROP
+
+DATA_R_PROP = DATA_PROP
+DATA_R_PROP[RELAT_PROP] = W_RELAT_PROP
 
 
 # ==================================================================================================
@@ -86,9 +111,8 @@ class DualWriter(io.StringIO):
 
 def data_to_lines(dico):
     lines = set()
-    df = pd.DataFrame(data=dico.values(), index=dico.keys())
-    for l in df.T.iterrows():
-        line = (l[1][IDS], l[1][PARENT], l[1][LABEL], l[1][COUNT], l[1][REF_COUNT])
+    for i in range(len(dico[IDS])):
+        line = (dico[IDS][i], dico[PARENT][i], dico[LABEL][i], dico[COUNT][i], dico[REF_COUNT][i])
         lines.add(line)
     return lines
 
@@ -100,7 +124,7 @@ def data_to_lines(dico):
 # TEST
 # --------------------------------------------------------------------------------------------------
 
-class TestDataTable(unittest.TestCase):
+class TestGenerateDataTable(unittest.TestCase):
 
     @test_for(get_sub_abundance)
     def test_get_sub_abundances_exists_diff(self):
@@ -115,7 +139,7 @@ class TestDataTable(unittest.TestCase):
     @test_for(get_sub_abundance)
     def test_get_sub_abundances_not_exists(self):
         sub_abu = get_sub_abundance(MET_LAB_D, 'eg', 12)
-        np.testing.assert_equal(sub_abu, np.nan)
+        self.assertTrue(np.isnan(sub_abu))
 
     @test_for(get_sub_abundance)
     def test_get_sub_abundances_no_sub(self):
@@ -165,29 +189,61 @@ class TestDataTable(unittest.TestCase):
         lines = data_to_lines(data)
         w_lines = {('cdecf__FRAMES', 'FRAMES', 'cdecf', 3, 18),
                    ('a__ab__FRAMES', 'ab__FRAMES', 'a', 1, 1),
-                   ('g__gh__FRAMES', 'gh__FRAMES', 'g', np.nan, 7),
-                   ('g__eg__cdeeg__cdeeg+__FRAMES', 'eg__cdeeg__cdeeg+__FRAMES', 'g', np.nan, 7),
-                   ('d__cde__cdeeg__cdeeg+__FRAMES', 'cde__cdeeg__cdeeg+__FRAMES', 'd', np.nan, 4),
+                   ('g__gh__FRAMES', 'gh__FRAMES', 'g', nan, 7),
+                   ('g__eg__cdeeg__cdeeg+__FRAMES', 'eg__cdeeg__cdeeg+__FRAMES', 'g', nan, 7),
+                   ('d__cde__cdeeg__cdeeg+__FRAMES', 'cde__cdeeg__cdeeg+__FRAMES', 'd', nan, 4),
                    ('b__ab__FRAMES', 'ab__FRAMES', 'b', 2, 2),
                    ('cdeeg+__FRAMES', 'FRAMES', 'cdeeg+', 3, 19),
-                   ('e__cde__cdeeg__cdeeg+__FRAMES', 'cde__cdeeg__cdeeg+__FRAMES', 'e', np.nan, 5),
-                   ('e__cde__cdecf__FRAMES', 'cde__cdecf__FRAMES', 'e', np.nan, 5),
+                   ('e__cde__cdeeg__cdeeg+__FRAMES', 'cde__cdeeg__cdeeg+__FRAMES', 'e', nan, 5),
+                   ('e__cde__cdecf__FRAMES', 'cde__cdecf__FRAMES', 'e', nan, 5),
                    ('cde__cdecf__FRAMES', 'cdecf__FRAMES', 'cde', 3, 12),
                    ('c__cde__cdecf__FRAMES', 'cde__cdecf__FRAMES', 'c', 3, 3),
-                   ('e__eg__cdeeg__cdeeg+__FRAMES', 'eg__cdeeg__cdeeg+__FRAMES', 'e', np.nan, 5),
+                   ('e__eg__cdeeg__cdeeg+__FRAMES', 'eg__cdeeg__cdeeg+__FRAMES', 'e', nan, 5),
                    ('cf__cdecf__FRAMES', 'cdecf__FRAMES', 'cf', 3, 9),
                    ('ab__FRAMES', 'FRAMES', 'ab', 3, 3),
-                   ('g__eg__FRAMES', 'eg__FRAMES', 'g', np.nan, 7),
+                   ('g__eg__FRAMES', 'eg__FRAMES', 'g', nan, 7),
                    ('cdeeg__cdeeg+__FRAMES', 'cdeeg+__FRAMES', 'cdeeg', 3, 19),
-                   ('h__gh__FRAMES', 'gh__FRAMES', 'h', np.nan, 8),
-                   ('gh__FRAMES', 'FRAMES', 'gh', np.nan, 15),
+                   ('h__gh__FRAMES', 'gh__FRAMES', 'h', nan, 8),
+                   ('gh__FRAMES', 'FRAMES', 'gh', nan, 15),
                    ('c__cde__cdeeg__cdeeg+__FRAMES', 'cde__cdeeg__cdeeg+__FRAMES', 'c', 3, 3),
-                   ('f__cf__cdecf__FRAMES', 'cf__cdecf__FRAMES', 'f', np.nan, 6),
-                   ('e__eg__FRAMES', 'eg__FRAMES', 'e', np.nan, 5),
-                   ('d__cde__cdecf__FRAMES', 'cde__cdecf__FRAMES', 'd', np.nan, 4),
-                   ('eg__FRAMES', 'FRAMES', 'eg', np.nan, 12),
+                   ('f__cf__cdecf__FRAMES', 'cf__cdecf__FRAMES', 'f', nan, 6),
+                   ('e__eg__FRAMES', 'eg__FRAMES', 'e', nan, 5),
+                   ('d__cde__cdecf__FRAMES', 'cde__cdecf__FRAMES', 'd', nan, 4),
+                   ('eg__FRAMES', 'FRAMES', 'eg', nan, 12),
                    ('c__cf__cdecf__FRAMES', 'cf__cdecf__FRAMES', 'c', 3, 3),
-                   ('eg__cdeeg__cdeeg+__FRAMES', 'cdeeg__cdeeg+__FRAMES', 'eg', np.nan, 12),
+                   ('eg__cdeeg__cdeeg+__FRAMES', 'cdeeg__cdeeg+__FRAMES', 'eg', nan, 12),
                    ('FRAMES', '', 'FRAMES', 6, 36),
                    ('cde__cdeeg__cdeeg+__FRAMES', 'cdeeg__cdeeg+__FRAMES', 'cde', 3, 12)}
         self.assertEqual(lines, w_lines)
+
+
+class TestAddProportionDataTable(unittest.TestCase):
+
+    @test_for(get_data_proportion)
+    def test_get_data_proportion_no_relative(self):
+        data = get_data_proportion(DATA, False)
+        for i in range(len(data[PROP])):
+            if np.isnan(data[PROP][i]):
+                self.assertTrue(np.isnan(W_PROP[i]))
+            else:
+                self.assertEqual(data[PROP][i], W_PROP[i])
+
+    @test_for(get_data_proportion)
+    def test_get_data_proportion_no_relative_ref(self):
+        data = get_data_proportion(DATA, False)
+        for i in range(len(data[REF_PROP])):
+            self.assertEqual(data[REF_PROP][i], W_REF_PROP[i])
+
+    @test_for(get_data_proportion)
+    def test_get_data_proportion_relative(self):
+        data = get_data_proportion(DATA, True)
+        for i in range(len(data[RELAT_PROP])):
+            self.assertEqual(data[RELAT_PROP][i], W_RELAT_PROP[i])
+
+    @test_for(get_relative_prop)
+    def test_get_relative_prop(self):
+        data = DATA_PROP
+        data[RELAT_PROP] = [x for x in data[PROP]]
+        data = get_relative_prop(data, '')
+        for i in range(len(data[RELAT_PROP])):
+            self.assertEqual(data[RELAT_PROP][i], W_RELAT_PROP[i])

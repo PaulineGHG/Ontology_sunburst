@@ -246,7 +246,7 @@ def get_data_proportion(data: Dict[str, List], total: bool) -> Dict[str, List]:
             parents = {data[PARENT][data[IDS].index(m)] for m in missed}
             for p in parents:
                 data = get_relative_prop(data, p)
-            missed = [data[IDS][i] for i in range(len(data[IDS])) if data[RELAT_PROP][i] < 1]
+            # missed = [data[IDS][i] for i in range(len(data[IDS])) if data[RELAT_PROP][i] < 1]
     return data
 
 
