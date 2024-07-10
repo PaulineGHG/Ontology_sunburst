@@ -198,67 +198,6 @@ def add_value_data(data: Dict[str, List], m_id: str, label: str, value: float, b
     return data
 
 
-def add_children(data: Dict[str, List], origin: str, child: str, parent: str,
-                 classes_abondance: Dict[str, int],
-                 subset_abundance, children_dict: Dict[str, List[str]]) \
-        -> Dict[str, List]:
-    """ Add recursively all children of a given class to the data dictionary.
-
-    Parameters
-    ----------
-    data: Dict[str, List]
-        Dictionary with lists of :
-            - ids : ID (str)
-            - labels : Label (str)
-            - parents ids : Parent (str)
-            - abundance value : Count (int)
-            - reference abundance value : Reference_count (int)
-    origin: str
-        Origin of propagation : parent class of parent
-    child: str
-        Child metabolite class
-    parent: str
-        Parent metabolite class
-    classes_abondance: Dict[str, int]
-        Dictionary associating for each class the number of metabolites found belonging to the class
-    subset_abundance
-    children_dict: Dict[str, List[str]]
-        Dictionary associating for each class, its children classes
-
-    Returns
-    -------
-    Dict[str, List]
-        Dictionary with lists of :
-            - ids : ID (str)
-            - labels : Label (str)
-            - parents ids : Parent (str)
-            - abundance value : Count (int)
-            - reference abundance value : Reference_count (int)
-    """
-    if child in classes_abondance.keys():
-        c_sub_value = get_sub_abundance(subset_abundance, child, classes_abondance[child])
-
-        data = add_value_data(data=data,
-                              m_id=child + origin,
-                              label=child,
-                              value=c_sub_value,
-                              base_value=classes_abondance[child],
-                              parent=parent)
-
-        if child in children_dict.keys():
-            origin_2 = origin + '__' + child
-            cs = children_dict[child]
-            for c in cs:
-                add_children(data=data,
-                             origin=origin_2,
-                             child=c,
-                             parent=child + origin,
-                             classes_abondance=classes_abondance,
-                             subset_abundance=subset_abundance,
-                             children_dict=children_dict)
-    return data
-
-
 # Add Proportion to Data table
 # --------------------------------------------------------------------------------------------------
 def get_data_proportion(data: Dict[str, List], total: bool) -> Dict[str, List]:
