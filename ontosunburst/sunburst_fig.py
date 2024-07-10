@@ -9,54 +9,12 @@ from ontosunburst.data_table_tree import *
 # CONSTANTS
 # ==================================================================================================
 
-# Root cut
-ROOT_CUT = 'cut'
-ROOT_TOTAL_CUT = 'total'
-ROOT_UNCUT = 'uncut'
+
 
 
 # ==================================================================================================
 # FUNCTIONS
 # ==================================================================================================
-
-# Root cut
-# --------------------------------------------------------------------------------------------------
-def data_cut_root(data: Dict[str, List], mode: str) -> Dict[str, List]:
-    """ Filter data to cut (or not) the root to remove not necessary 100% represented classes.
-
-    Parameters
-    ----------
-    data: Dict[str, List]
-        Dictionary of figure parameters
-    mode: str
-        Mode of root cutting
-        - uncut: doesn't cut and keep all nodes from ontology root
-        - cut: keep only the lowest level 100% shared node
-        - total: remove all 100% shared nodes (produces a pie at center)
-
-    Returns
-    -------
-    data: Dict[str, List]
-        Dictionary of figure parameters with root cut applied
-    """
-    if mode not in {ROOT_UNCUT, ROOT_CUT, ROOT_TOTAL_CUT}:
-        raise ValueError(f'Root cutting mode {mode} unknown, '
-                         f'must be in {[ROOT_UNCUT, ROOT_CUT, ROOT_TOTAL_CUT]}')
-    if mode == ROOT_UNCUT:
-        return data
-    else:
-        roots_ind = [i for i in range(len(data[IDS])) if data[RELAT_PROP][i] == MAX_RELATIVE_NB]
-        roots = [data[IDS][i] for i in roots_ind]
-        for root_id in roots:
-            root_ind = data[IDS].index(root_id)
-            for v in data.values():
-                del v[root_ind]
-
-        if mode == ROOT_TOTAL_CUT:
-            data[PARENT] = ['' if x in roots else x for x in data[PARENT]]
-
-    return data
-
 
 # Figure creation
 # --------------------------------------------------------------------------------------------------
