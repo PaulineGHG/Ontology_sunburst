@@ -72,26 +72,28 @@ def get_fig_parameters(classes_abondance: Dict[str, int], parent_dict: Dict[str,
             LABEL: list(),
             COUNT: list(),
             REF_COUNT: list()}
-    for c_label, c_abundance in classes_abondance.items():
-        c_sub_abundance = get_sub_abundance(subset_abundance, c_label, c_abundance)
-        if c_label != root_item:
+    for c_onto_id, c_abundance in classes_abondance.items():
+        c_sub_abundance = get_sub_abundance(subset_abundance, c_onto_id, c_abundance)
+        if c_onto_id != root_item:
             if names is not None:
                 try:
-                    c_label = names[c_label]
+                    c_label = names[c_onto_id]
                 except KeyError:
-                    pass
-            all_c_ids = get_all_ids(c_label, c_label, parent_dict, root_item, set())
+                    c_label = c_onto_id
+            else:
+                c_label = c_onto_id
+            all_c_ids = get_all_ids(c_onto_id, c_onto_id, parent_dict, root_item, set())
             for c_id in all_c_ids:
                 data = add_value_data(data=data,
                                       m_id=c_id,
                                       label=c_label,
                                       value=c_sub_abundance,
                                       base_value=c_abundance,
-                                      parent=c_id[len(c_label) + 2:])  # Remove c_label__ prefix
+                                      parent=c_id[len(c_onto_id) + 2:])  # Remove c_label__ prefix
         else:
             data = add_value_data(data=data,
-                                  m_id=c_label,
-                                  label=c_label,
+                                  m_id=c_onto_id,
+                                  label=c_onto_id,
                                   value=c_sub_abundance,
                                   base_value=c_abundance,
                                   parent='')

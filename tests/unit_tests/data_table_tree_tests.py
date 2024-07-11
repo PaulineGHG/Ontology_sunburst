@@ -29,6 +29,10 @@ MET_LAB_D = {'FRAMES': 6, 'cde': 3, 'cf': 3, 'cdecf': 3, 'cdeeg+': 3, 'cdeeg': 3
 MET_RAB_D = {'FRAMES': 36, 'cdeeg+': 19, 'cdeeg': 19, 'cdecf': 18, 'gh': 15, 'eg': 12, 'cde': 12,
              'cf': 9, 'h': 8, 'g': 7, 'f': 6, 'e': 5, 'd': 4, 'c': 3, 'ab': 3, 'b': 2, 'a': 1}
 
+NAMES = {'FRAMES': 'Root', 'cdeeg+': 'CDEEG+', 'cdeeg': 'CDEEG', 'cdecf': 'CDECF', 'gh': 'GH',
+         'eg': 'EG', 'cde': 'CDE', 'cf': 'CF', 'h': 'H', 'g': 'G', 'f': 'F', 'e': 'E', 'd': 'D',
+         'c': 'C', 'ab': 'AB', 'b': 'B'}
+
 DATA = {'ID': ['FRAMES', 'cdeeg+__FRAMES', 'cdeeg__cdeeg+__FRAMES', 'cdecf__FRAMES', 'gh__FRAMES',
                'eg__cdeeg__cdeeg+__FRAMES', 'eg__FRAMES', 'cde__cdeeg__cdeeg+__FRAMES',
                'cde__cdecf__FRAMES', 'cf__cdecf__FRAMES', 'h__gh__FRAMES',
@@ -216,6 +220,40 @@ class TestGenerateDataTable(unittest.TestCase):
                    ('cde__cdeeg__cdeeg+__FRAMES', 'cdeeg__cdeeg+__FRAMES', 'cde', 3, 12)}
         self.assertEqual(lines, w_lines)
 
+    @test_for(get_fig_parameters)
+    def test_get_fig_parameters_names(self):
+        data = get_fig_parameters(classes_abondance=MET_RAB_D, parent_dict=MC_ONTO,
+                                  root_item=ROOTS[METACYC], subset_abundance=MET_LAB_D, names=NAMES)
+        lines = data_to_lines(data)
+        w_lines = {('e__eg__cdeeg__cdeeg+__FRAMES', 'eg__cdeeg__cdeeg+__FRAMES', 'E', nan, 5),
+                   ('cdeeg__cdeeg+__FRAMES', 'cdeeg+__FRAMES', 'CDEEG', 3, 19),
+                   ('c__cf__cdecf__FRAMES', 'cf__cdecf__FRAMES', 'C', 3, 3),
+                   ('f__cf__cdecf__FRAMES', 'cf__cdecf__FRAMES', 'F', nan, 6),
+                   ('c__cde__cdecf__FRAMES', 'cde__cdecf__FRAMES', 'C', 3, 3),
+                   ('e__eg__FRAMES', 'eg__FRAMES', 'E', nan, 5),
+                   ('gh__FRAMES', 'FRAMES', 'GH', nan, 15),
+                   ('eg__cdeeg__cdeeg+__FRAMES', 'cdeeg__cdeeg+__FRAMES', 'EG', nan, 12),
+                   ('g__eg__FRAMES', 'eg__FRAMES', 'G', nan, 7),
+                   ('cf__cdecf__FRAMES', 'cdecf__FRAMES', 'CF', 3, 9),
+                   ('ab__FRAMES', 'FRAMES', 'AB', 3, 3),
+                   ('d__cde__cdeeg__cdeeg+__FRAMES', 'cde__cdeeg__cdeeg+__FRAMES', 'D', nan, 4),
+                   ('e__cde__cdeeg__cdeeg+__FRAMES', 'cde__cdeeg__cdeeg+__FRAMES', 'E', nan, 5),
+                   ('g__eg__cdeeg__cdeeg+__FRAMES', 'eg__cdeeg__cdeeg+__FRAMES', 'G', nan, 7),
+                   ('h__gh__FRAMES', 'gh__FRAMES', 'H', nan, 8),
+                   ('cdeeg+__FRAMES', 'FRAMES', 'CDEEG+', 3, 19),
+                   ('d__cde__cdecf__FRAMES', 'cde__cdecf__FRAMES', 'D', nan, 4),
+                   ('e__cde__cdecf__FRAMES', 'cde__cdecf__FRAMES', 'E', nan, 5),
+                   ('a__ab__FRAMES', 'ab__FRAMES', 'a', 1, 1),
+                   ('cde__cdeeg__cdeeg+__FRAMES', 'cdeeg__cdeeg+__FRAMES', 'CDE', 3, 12),
+                   ('cdecf__FRAMES', 'FRAMES', 'CDECF', 3, 18),
+                   ('eg__FRAMES', 'FRAMES', 'EG', nan, 12),
+                   ('cde__cdecf__FRAMES', 'cdecf__FRAMES', 'CDE', 3, 12),
+                   ('g__gh__FRAMES', 'gh__FRAMES', 'G', nan, 7),
+                   ('FRAMES', '', 'FRAMES', 6, 36),
+                   ('c__cde__cdeeg__cdeeg+__FRAMES', 'cde__cdeeg__cdeeg+__FRAMES', 'C', 3, 3),
+                   ('b__ab__FRAMES', 'ab__FRAMES', 'B', 2, 2)}
+        self.assertEqual(lines, w_lines)
+
 
 class TestAddProportionDataTable(unittest.TestCase):
 
@@ -247,3 +285,11 @@ class TestAddProportionDataTable(unittest.TestCase):
         data = get_relative_prop(data, '')
         for i in range(len(data[RELAT_PROP])):
             self.assertEqual(data[RELAT_PROP][i], W_RELAT_PROP[i])
+
+
+class TestEnrichmentAnalysis(unittest.TestCase):
+
+    @test_for(get_data_enrichment_analysis)
+    def test_get_data_enrichment_analysis(self):
+        data = get_data_enrichment_analysis(DATA_R_PROP, MET_RAB_D, BINOMIAL_TEST, False)
+
