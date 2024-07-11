@@ -117,6 +117,14 @@ def data_to_lines(dico):
     lines = set()
     for i in range(len(dico[IDS])):
         line = (dico[IDS][i], dico[PARENT][i], dico[LABEL][i], dico[COUNT][i], dico[REF_COUNT][i])
+        if PROP in dico:
+            line = line + (dico[PROP][i],)
+        if REF_PROP in dico:
+            line = line + (dico[REF_PROP][i],)
+        if RELAT_PROP in dico:
+            line = line + (dico[RELAT_PROP][i],)
+        if PVAL in dico:
+            line = line + (dico[PVAL][i],)
         lines.add(line)
     return lines
 
@@ -287,9 +295,38 @@ class TestAddProportionDataTable(unittest.TestCase):
             self.assertEqual(data[RELAT_PROP][i], W_RELAT_PROP[i])
 
 
+ENRICH_DATA = {IDS: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+               PARENT: ['', 0, 0, 0, 0, 1, 1, 1, 2, 2],
+               LABEL: ['r', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'],
+               COUNT: [50, 5, 25, 20, 1, 5, nan, nan, 1, 1],
+               REF_COUNT: [100, 40, 30, 20, 10, 20, 5, 1, 1, 3],
+               PROP: [1, 0.1, 0.5, 0.4, 0.02, 0.1, nan, nan, 0.02, 0.02],
+               REF_PROP: [1, 0.4, 0.3, 0.2, 0.1, 0.2, 0.05, 0.01, 0.01, 0.03],
+               RELAT_PROP: [1, 0.4, 0.3, 0.2, 0.1, 0.2, 0.05, 0.01, 0.01, 0.03]}
+ENRICH_REF_AB = {'r': 100, 'one': 40, 'two': 30, 'three': 20, 'four': 10, 'five': 20, 'six': 5,
+                 'seven': 1, 'eight': 1, 'nine': 3}
+
+
+# Expected :
+# Over : 2, 3 | Under : 1, 4, 5 | No diff : 0, 8, 9 | Nan : 6, 7
+
+
 class TestEnrichmentAnalysis(unittest.TestCase):
 
     @test_for(get_data_enrichment_analysis)
     def test_get_data_enrichment_analysis(self):
-        data = get_data_enrichment_analysis(DATA_R_PROP, MET_RAB_D, BINOMIAL_TEST, False)
-
+        # Expected :
+        # Over : 2, 3 | Under : 1, 4, 5 | No diff : 0, 8, 9 | Nan : 6, 7
+        data, significant = get_data_enrichment_analysis(ENRICH_DATA, ENRICH_REF_AB, HYPERGEO_TEST,
+                                                         False)
+        print(significant)
+        lines = data_to_lines(data)
+        for l in lines:
+            print(l)
+        M = 100
+        N = 50
+        m = 40
+        n = 5
+        pval = stats.binomtest(n, N, m / M, alternative='two-sided').pvalue
+        print(pval)
+        print(np.log10(pval))

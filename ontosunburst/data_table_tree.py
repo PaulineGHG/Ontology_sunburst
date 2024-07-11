@@ -353,19 +353,18 @@ def get_data_enrichment_analysis(data: Dict[str, List], ref_classes_abundance: D
     Dict[str, float]
         Dictionary of significant metabolic object label associated with their p-value
     """
-    M = np.max(list(ref_classes_abundance.values()))
+    M = np.max(list(ref_classes_abundance.values()))  # M = ref set total item number
     if names:
         m_list = [ref_classes_abundance[x] if x in ref_classes_abundance.keys() else 0 for x in
                   data[IDS]]
     else:
         m_list = [ref_classes_abundance[x] if x in ref_classes_abundance.keys() else 0 for x in
                   data[LABEL]]
-    N = int(np.nanmax(data[COUNT]))
+    N = int(np.nanmax(data[COUNT]))  # N = interest set total item number
     n_list = data[COUNT]
     data[PVAL] = list()
-    nb_classes = len(set([data[LABEL][i]
-                          for i in range(len(data[COUNT]))
-                          if data[COUNT][i] != np.nan]))
+    nb_classes = len(set([data[LABEL][i] for i in range(len(data[COUNT]))
+                          if not np.isnan(data[COUNT][i])]))
     significant_representation = dict()
     for i in range(len(m_list)):
         if type(n_list[i]) == int:
@@ -374,7 +373,9 @@ def get_data_enrichment_analysis(data: Dict[str, List], ref_classes_abundance: D
                 p_val = stats.binomtest(n_list[i], N, m_list[i] / M, alternative='two-sided').pvalue
             # Hypergeometric Test
             elif test == HYPERGEO_TEST:
-                p_val = stats.hypergeom.sf(n_list[i] - 1, M, m_list[i], N)
+                p_val_upper = stats.hypergeom.sf(n_list[i] - 1, M, m_list[i], N)
+                p_val_lower = stats.hypergeom.cdf(n_list[i], M, m_list[i], N)
+                p_val = 2 * min(p_val_lower, p_val_upper)
             else:
                 raise ValueError(f'test parameter must be in : {[BINOMIAL_TEST, HYPERGEO_TEST]}')
             if ((n_list[i] / N) - (m_list[i] / M)) > 0:
