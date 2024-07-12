@@ -43,7 +43,8 @@ DATA = {'ID': ['FRAMES', 'cdeeg+__FRAMES', 'cdeeg__cdeeg+__FRAMES', 'cdecf__FRAM
                'c__cf__cdecf__FRAMES', 'c__cde__cdeeg__cdeeg+__FRAMES', 'ab__FRAMES',
                'b__ab__FRAMES', 'a__ab__FRAMES'],
         'Onto ID': ['FRAMES', 'cdeeg+', 'cdeeg', 'cdecf', 'gh', 'eg', 'eg', 'cde', 'cde', 'cf', 'h',
-                    'g', 'g', 'g', 'f', 'e', 'e', 'e', 'e', 'd', 'd', 'c', 'c', 'c', 'ab', 'b', 'a'],
+                    'g', 'g', 'g', 'f', 'e', 'e', 'e', 'e', 'd', 'd', 'c', 'c', 'c', 'ab', 'b',
+                    'a'],
         'Parent': ['', 'FRAMES', 'cdeeg+__FRAMES', 'FRAMES', 'FRAMES', 'cdeeg__cdeeg+__FRAMES',
                    'FRAMES', 'cdeeg__cdeeg+__FRAMES', 'cdecf__FRAMES', 'cdecf__FRAMES',
                    'gh__FRAMES', 'eg__cdeeg__cdeeg+__FRAMES', 'eg__FRAMES', 'gh__FRAMES',
@@ -211,7 +212,9 @@ class TestGenerateDataTable(unittest.TestCase):
                    ('h__gh__FRAMES', 'h', 'gh__FRAMES', 'h', nan, 8),
                    ('f__cf__cdecf__FRAMES', 'f', 'cf__cdecf__FRAMES', 'f', nan, 6),
                    ('c__cde__cdecf__FRAMES', 'c', 'cde__cdecf__FRAMES', 'c', 3, 3),
-                   ('e__cde__cdeeg__cdeeg+__FRAMES', 'e', 'cde__cdeeg__cdeeg+__FRAMES', 'e', nan, 5),
+                   (
+                       'e__cde__cdeeg__cdeeg+__FRAMES', 'e', 'cde__cdeeg__cdeeg+__FRAMES', 'e', nan,
+                       5),
                    ('gh__FRAMES', 'gh', 'FRAMES', 'gh', nan, 15),
                    ('e__eg__cdeeg__cdeeg+__FRAMES', 'e', 'eg__cdeeg__cdeeg+__FRAMES', 'e', nan, 5),
                    ('g__gh__FRAMES', 'g', 'gh__FRAMES', 'g', nan, 7),
@@ -221,7 +224,9 @@ class TestGenerateDataTable(unittest.TestCase):
                    ('g__eg__FRAMES', 'g', 'eg__FRAMES', 'g', nan, 7),
                    ('ab__FRAMES', 'ab', 'FRAMES', 'ab', 3, 3),
                    ('e__cde__cdecf__FRAMES', 'e', 'cde__cdecf__FRAMES', 'e', nan, 5),
-                   ('d__cde__cdeeg__cdeeg+__FRAMES', 'd', 'cde__cdeeg__cdeeg+__FRAMES', 'd', nan, 4),
+                   (
+                       'd__cde__cdeeg__cdeeg+__FRAMES', 'd', 'cde__cdeeg__cdeeg+__FRAMES', 'd', nan,
+                       4),
                    ('eg__cdeeg__cdeeg+__FRAMES', 'eg', 'cdeeg__cdeeg+__FRAMES', 'eg', nan, 12),
                    ('a__ab__FRAMES', 'a', 'ab__FRAMES', 'a', 1, 1),
                    ('cde__cdeeg__cdeeg+__FRAMES', 'cde', 'cdeeg__cdeeg+__FRAMES', 'cde', 3, 12),
@@ -253,10 +258,14 @@ class TestGenerateDataTable(unittest.TestCase):
                    ('d__cde__cdecf__FRAMES', 'd', 'cde__cdecf__FRAMES', 'D', nan, 4),
                    ('eg__FRAMES', 'eg', 'FRAMES', 'EG', nan, 12),
                    ('cdecf__FRAMES', 'cdecf', 'FRAMES', 'CDECF', 3, 18),
-                   ('e__cde__cdeeg__cdeeg+__FRAMES', 'e', 'cde__cdeeg__cdeeg+__FRAMES', 'E', nan, 5),
+                   (
+                       'e__cde__cdeeg__cdeeg+__FRAMES', 'e', 'cde__cdeeg__cdeeg+__FRAMES', 'E', nan,
+                       5),
                    ('c__cf__cdecf__FRAMES', 'c', 'cf__cdecf__FRAMES', 'C', 3, 3),
                    ('cde__cdecf__FRAMES', 'cde', 'cdecf__FRAMES', 'CDE', 3, 12),
-                   ('d__cde__cdeeg__cdeeg+__FRAMES', 'd', 'cde__cdeeg__cdeeg+__FRAMES', 'D', nan, 4),
+                   (
+                       'd__cde__cdeeg__cdeeg+__FRAMES', 'd', 'cde__cdeeg__cdeeg+__FRAMES', 'D', nan,
+                       4),
                    ('c__cde__cdecf__FRAMES', 'c', 'cde__cdecf__FRAMES', 'C', 3, 3),
                    ('f__cf__cdecf__FRAMES', 'f', 'cf__cdecf__FRAMES', 'F', nan, 6),
                    ('g__eg__cdeeg__cdeeg+__FRAMES', 'g', 'eg__cdeeg__cdeeg+__FRAMES', 'G', nan, 7),
@@ -312,6 +321,7 @@ ENRICH_DATA = {IDS: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
 ENRICH_REF_AB = {'00': 100, '01': 40, '02': 30, '03': 20, '04': 10, '05': 20, '06': 5, '07': 1,
                  '08': 1, '09': 3}
 LABEL_NAMES = ['r', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']
+
 
 # Expected :
 # Over : 2, 3 | Under : 1, 4, 5 | No diff : 0, 8, 9 | Nan : 6, 7
@@ -386,3 +396,55 @@ class TestEnrichmentAnalysis(unittest.TestCase):
         exp_significant = {'01': 3.7996e-06, '03': 0.0011251149, '02': 0.0030924096}
         self.assertEqual(lines, exp_lines)
         self.assertEqual(significant, exp_significant)
+
+
+MULTI_ROOT_DATA = {IDS: ['R', 'R-1', 'R-2', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
+                   ONTO_ID: ['R', 'R-1', 'R-2', '00', '01', '02', '03', '04', '05', '06', '07',
+                             '08', '09'],
+                   PARENT: ['', 'R', 'R-1', 'R-2', '0', '0', '0', '0', '1', '1', '1', '2', '2'],
+                   LABEL: ['R', 'R-1', 'R-2', '00', '01', '02', '03', '04', '05', '06', '07', '08',
+                           '09'],
+                   COUNT: [50, 50, 50, 50, 5, 25, 20, 1, 5, nan, nan, 1, 1],
+                   REF_COUNT: [100, 100, 100, 100, 40, 30, 20, 10, 20, 5, 1, 1, 3],
+                   PROP: [1, 1, 1, 1, 0.1, 0.5, 0.4, 0.02, 0.1, nan, nan, 0.02, 0.02],
+                   REF_PROP: [1, 1, 1, 1, 0.4, 0.3, 0.2, 0.1, 0.2, 0.05, 0.01, 0.01, 0.03],
+                   RELAT_PROP: [1000000, 1000000, 1000000, 1000000, 400000.0, 300000.0, 200000.0,
+                                100000.0, 200000.0, 50000.0, 10000.0, 10000.0, 30000.0]}
+
+
+class TestTopologyManagement(unittest.TestCase):
+
+    @test_for(data_cut_root)
+    def test_data_cut_root_uncut(self):
+        data = data_cut_root(MULTI_ROOT_DATA, ROOT_UNCUT)
+        self.assertEqual(data, MULTI_ROOT_DATA)
+
+    @test_for(data_cut_root)
+    def test_data_cut_root_cut(self):
+        data = data_cut_root(MULTI_ROOT_DATA, ROOT_CUT)
+        exp_data = {'ID': ['1', '2', '3', '4', '5', '6', '7', '8', '9'],
+                    'Onto ID': ['01', '02', '03', '04', '05', '06', '07', '08', '09'],
+                    'Parent': ['0', '0', '0', '0', '1', '1', '1', '2', '2'],
+                    'Label': ['01', '02', '03', '04', '05', '06', '07', '08', '09'],
+                    'Count': [5, 25, 20, 1, 5, nan, nan, 1, 1],
+                    'Reference count': [40, 30, 20, 10, 20, 5, 1, 1, 3],
+                    'Proportion': [0.1, 0.5, 0.4, 0.02, 0.1, nan, nan, 0.02, 0.02],
+                    'Reference proportion': [0.4, 0.3, 0.2, 0.1, 0.2, 0.05, 0.01, 0.01, 0.03],
+                    'Relative proportion': [400000.0, 300000.0, 200000.0, 100000.0, 200000.0,
+                                            50000.0, 10000.0, 10000.0, 30000.0]}
+        self.assertEqual(data, exp_data)
+
+    @test_for(data_cut_root)
+    def test_data_cut_root_total_cut(self):
+        data = data_cut_root(MULTI_ROOT_DATA, ROOT_TOTAL_CUT)
+        exp_data = {'ID': ['1', '2', '3', '4', '5', '6', '7', '8', '9'],
+                    'Onto ID': ['01', '02', '03', '04', '05', '06', '07', '08', '09'],
+                    'Parent': ['', '', '', '', '1', '1', '1', '2', '2'],
+                    'Label': ['01', '02', '03', '04', '05', '06', '07', '08', '09'],
+                    'Count': [5, 25, 20, 1, 5, nan, nan, 1, 1],
+                    'Reference count': [40, 30, 20, 10, 20, 5, 1, 1, 3],
+                    'Proportion': [0.1, 0.5, 0.4, 0.02, 0.1, nan, nan, 0.02, 0.02],
+                    'Reference proportion': [0.4, 0.3, 0.2, 0.1, 0.2, 0.05, 0.01, 0.01, 0.03],
+                    'Relative proportion': [400000.0, 300000.0, 200000.0, 100000.0, 200000.0,
+                                            50000.0, 10000.0, 10000.0, 30000.0]}
+        self.assertEqual(data, exp_data)
