@@ -71,7 +71,7 @@ def get_fig_kwargs(output: str, analysis: str, **kwargs):
 
 def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: str = None,
                           analysis: str = TOPOLOGY_A, ref_classes_abundance=None,
-                          test=BINOMIAL_TEST, names: bool = False, total: bool = True,
+                          test=BINOMIAL_TEST, total: bool = True,
                           root_cut: str = ROOT_CUT, ref_base: bool = True, **kwargs) -> go.Figure:
     """ Generate a Sunburst figure and save it to output path.
 
@@ -95,8 +95,6 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
         Abundances of reference set classes
     test: str (optional, default=Binomial)
         Type of test for enrichment analysis : Binomial or Hypergeometric
-    names: bool (optional, default=False)
-        True if names associated with labels, False otherwise
     total: bool (optional, default=True)
         True to have branch values proportional of the total parent
     root_cut: str (optional, default=ROOT_CUT)
@@ -133,7 +131,7 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
         fig.update_layout(title=dict(text=title, x=0.5, xanchor='center'))
 
     elif analysis == ENRICHMENT_A:
-        data, significant = get_data_enrichment_analysis(data, ref_classes_abundance, test, names)
+        data, significant = get_data_enrichment_analysis(data, ref_classes_abundance, test)
         fig = make_subplots(rows=1, cols=2,
                             column_widths=[0.3, 0.7],
                             vertical_spacing=0.03,

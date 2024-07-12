@@ -19,6 +19,7 @@ MAX_RELATIVE_NB = 1000000
 # Keys
 # ----
 IDS = 'ID'
+ONTO_ID = 'Onto ID'
 PARENT = 'Parent'
 LABEL = 'Label'
 COUNT = 'Count'
@@ -62,12 +63,14 @@ def get_fig_parameters(classes_abondance: Dict[str, int], parent_dict: Dict[str,
     Dict[str, List]
         Dictionary with lists of :
             - ids : ID (str)
+            - onto ids : Onto ID (str)
             - labels : Label (str)
             - parents ids : Parent (str)
             - abundance value : Count (int)
             - reference abundance value : Reference_count (int)
     """
     data = {IDS: list(),
+            ONTO_ID: list(),
             PARENT: list(),
             LABEL: list(),
             COUNT: list(),
@@ -86,6 +89,7 @@ def get_fig_parameters(classes_abondance: Dict[str, int], parent_dict: Dict[str,
             for c_id in all_c_ids:
                 data = add_value_data(data=data,
                                       m_id=c_id,
+                                      onto_id=c_onto_id,
                                       label=c_label,
                                       value=c_sub_abundance,
                                       base_value=c_abundance,
@@ -93,6 +97,7 @@ def get_fig_parameters(classes_abondance: Dict[str, int], parent_dict: Dict[str,
         else:
             data = add_value_data(data=data,
                                   m_id=c_onto_id,
+                                  onto_id=c_onto_id,
                                   label=c_onto_id,
                                   value=c_sub_abundance,
                                   base_value=c_abundance,
@@ -161,8 +166,8 @@ def get_sub_abundance(subset_abundance: Dict[str, float] or None, c_label: str,
     return c_sub_abundance
 
 
-def add_value_data(data: Dict[str, List], m_id: str, label: str, value: float, base_value: float,
-                   parent: str) -> Dict[str, List]:
+def add_value_data(data: Dict[str, List], m_id: str, onto_id: str, label: str, value: float,
+                   base_value: float, parent: str) -> Dict[str, List]:
     """ Fill the data dictionary for a metabolite class.
 
     Parameters
@@ -170,12 +175,15 @@ def add_value_data(data: Dict[str, List], m_id: str, label: str, value: float, b
     data: Dict[str, List]
         Dictionary with lists of :
             - ids : ID (str)
+            - onto ids : Onto ID (str)
             - labels : Label (str)
             - parents ids : Parent (str)
             - abundance value : Count (float)
             - reference abundance value : Reference_count (float)
     m_id: str
-        ID of the metabolite class to add
+        ID unique of the metabolite class to add
+    onto_id: str
+        ID in the ontology
     label: str
         Label (name) of the metabolite class to add
     value: int
@@ -190,6 +198,7 @@ def add_value_data(data: Dict[str, List], m_id: str, label: str, value: float, b
     Dict[str, List]
         Dictionary with lists of :
             - ids : ID (str)
+            - onto ids : Onto ID (str)
             - labels : Label (str)
             - parents ids : Parent (str)
             - abundance value : Count (int)
@@ -198,6 +207,7 @@ def add_value_data(data: Dict[str, List], m_id: str, label: str, value: float, b
     if m_id in data[IDS]:
         raise ValueError(f'{m_id} already in data IDs, all IDs must be unique.')
     data[IDS].append(m_id)
+    data[ONTO_ID].append(onto_id)
     data[LABEL].append(label)
     data[PARENT].append(parent)
     data[COUNT].append(value)
@@ -216,6 +226,7 @@ def get_data_proportion(data: Dict[str, List], total: bool) -> Dict[str, List]:
     data: Dict[str, List]
         Dictionary with lists of :
             - ids : ID (str)
+            - onto ids : Onto ID (str)
             - labels : Label (str)
             - parents ids : Parent (str)
             - abundance value : Count (int)
@@ -228,6 +239,7 @@ def get_data_proportion(data: Dict[str, List], total: bool) -> Dict[str, List]:
     Dict[str, List]
         Dictionary with lists of :
             - ids : ID (str)
+            - onto ids : Onto ID (str)
             - labels : Label (str)
             - parents ids : Parent (str)
             - abundance value : Count (int)
@@ -266,6 +278,7 @@ def get_relative_prop(data: Dict[str, List], p_id: str):
     data: Dict[str, List]
         Dictionary with lists of :
             - ids : ID (str)
+            - onto ids : Onto ID (str)
             - labels : Label (str)
             - parents ids : Parent (str)
             - abundance value : Count (int)
@@ -281,6 +294,7 @@ def get_relative_prop(data: Dict[str, List], p_id: str):
     Dict[str, List]
         Dictionary with lists of :
             - ids : ID (str)
+            - onto ids : Onto ID (str)
             - labels : Label (str)
             - parents ids : Parent (str)
             - abundance value : Count (int)
@@ -314,7 +328,7 @@ def get_relative_prop(data: Dict[str, List], p_id: str):
 # Enrichment analysis
 # --------------------------------------------------------------------------------------------------
 def get_data_enrichment_analysis(data: Dict[str, List], ref_classes_abundance: Dict[str, int],
-                                 test: str, names: bool) \
+                                 test: str) \
         -> Tuple[Dict[str, List], Dict[str, float]]:
     """ Performs statistical tests for enrichment analysis.
 
@@ -323,6 +337,7 @@ def get_data_enrichment_analysis(data: Dict[str, List], ref_classes_abundance: D
     data: Dict[str, List]
         Dictionary with lists of :
             - ids : ID (str)
+            - onto ids : Onto ID (str)
             - labels : Label (str)
             - parents ids : Parent (str)
             - abundance value : Count (int)
@@ -334,14 +349,13 @@ def get_data_enrichment_analysis(data: Dict[str, List], ref_classes_abundance: D
         Abundances of reference set classes
     test: str
         Type of test Binomial or Hypergeometric
-    names: bool
-        True if names associated with labels, False otherwise
 
     Returns
     -------
     Dict[str, List]
         Dictionary with lists of :
             - ids : ID (str)
+            - onto ids : Onto ID (str)
             - labels : Label (str)
             - parents ids : Parent (str)
             - abundance value : Count (int)
@@ -354,12 +368,10 @@ def get_data_enrichment_analysis(data: Dict[str, List], ref_classes_abundance: D
         Dictionary of significant metabolic object label associated with their p-value
     """
     M = np.max(list(ref_classes_abundance.values()))  # M = ref set total item number
-    if names:
-        m_list = [ref_classes_abundance[x] if x in ref_classes_abundance.keys() else 0 for x in
-                  data[IDS]]
-    else:
-        m_list = [ref_classes_abundance[x] if x in ref_classes_abundance.keys() else 0 for x in
-                  data[LABEL]]
+
+    m_list = [ref_classes_abundance[x] if x in ref_classes_abundance.keys() else 0 for x in
+              data[ONTO_ID]]
+
     N = int(np.nanmax(data[COUNT]))  # N = interest set total item number
     n_list = data[COUNT]
     data[PVAL] = list()
@@ -367,7 +379,7 @@ def get_data_enrichment_analysis(data: Dict[str, List], ref_classes_abundance: D
                           if not np.isnan(data[COUNT][i])]))
     significant_representation = dict()
     for i in range(len(m_list)):
-        if type(n_list[i]) == int:
+        if type(n_list[i]) == int:  # If count not nan (= if concept in interest set)
             # Binomial Test
             if test == BINOMIAL_TEST:
                 p_val = stats.binomtest(n_list[i], N, m_list[i] / M, alternative='two-sided').pvalue
@@ -375,15 +387,15 @@ def get_data_enrichment_analysis(data: Dict[str, List], ref_classes_abundance: D
             elif test == HYPERGEO_TEST:
                 p_val_upper = stats.hypergeom.sf(n_list[i] - 1, M, m_list[i], N)
                 p_val_lower = stats.hypergeom.cdf(n_list[i], M, m_list[i], N)
-                p_val = 2 * min(p_val_lower, p_val_upper)
+                p_val = 2 * min(p_val_lower, p_val_upper)  # bilateral
             else:
                 raise ValueError(f'test parameter must be in : {[BINOMIAL_TEST, HYPERGEO_TEST]}')
-            if ((n_list[i] / N) - (m_list[i] / M)) > 0:
-                data[PVAL].append(-np.log10(p_val))
-            else:
-                data[PVAL].append(np.log10(p_val))
-            if p_val < 0.05 / nb_classes:
-                significant_representation[data[LABEL][i]] = p_val.round(10)
+            if ((n_list[i] / N) - (m_list[i] / M)) > 0:  # If over-represented :
+                data[PVAL].append(-np.log10(p_val))          # Positive log10(p-value)
+            else:                                        # If under-represented :
+                data[PVAL].append(np.log10(p_val))           # Negative log10(p-value)
+            if p_val < 0.05 / nb_classes:  # Capture significant p-values : Bonferroni correction
+                significant_representation[data[ONTO_ID][i]] = p_val.round(10)
         else:
             data[PVAL].append(np.nan)
     significant_representation = dict(

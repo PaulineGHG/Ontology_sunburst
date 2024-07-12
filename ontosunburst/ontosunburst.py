@@ -237,9 +237,8 @@ def _topology_analysis(ref_classes_abundance, classes_abundance, d_classes_ontol
                                       root_item=root, names=names)
 
         data = get_data_proportion(data, total)
-        names = names is not None
         return generate_sunburst_fig(data=data, output=output, analysis=TOPOLOGY_A,
-                                     ref_classes_abundance=ref_classes_abundance, names=names,
+                                     ref_classes_abundance=ref_classes_abundance,
                                      total=total, root_cut=root_cut, ref_base=ref_base, **kwargs)
 
     else:
@@ -248,8 +247,7 @@ def _topology_analysis(ref_classes_abundance, classes_abundance, d_classes_ontol
                                   parent_dict=d_classes_ontology,
                                   root_item=root, names=names)
         data = get_data_proportion(data, total)
-        names = names is not None
-        return generate_sunburst_fig(data=data, output=output, analysis=TOPOLOGY_A, names=names,
+        return generate_sunburst_fig(data=data, output=output, analysis=TOPOLOGY_A,
                                      total=total, root_cut=root_cut, ref_base=ref_base, **kwargs)
 
 
@@ -286,10 +284,9 @@ def _enrichment_analysis(ref_classes_abundance, classes_abundance, d_classes_ont
                                   root_item=root, names=names)
 
     data = get_data_proportion(data, total)
-    names = names is not None
     return generate_sunburst_fig(data=data, output=output, analysis=ENRICHMENT_A,
                                  ref_classes_abundance=ref_classes_abundance, test=test,
-                                 names=names, total=total, root_cut=root_cut, **kwargs)
+                                 total=total, root_cut=root_cut, **kwargs)
 
 
 def write_met_classes(ontology, all_classes, output):
