@@ -236,8 +236,8 @@ class TestSunburstFigure(unittest.TestCase):
         data = copy.deepcopy(ENRICH_DATA)
         fig = generate_sunburst_fig(data, 'case1', analysis=ENRICHMENT_A, write_fig=False,
                                     ref_classes_abundance=ENRICH_REF_AB, test=HYPERGEO_TEST)
-        fig = json.dumps(fig.to_dict(), sort_keys=True)
         w_fig_file = os.path.join('test_files', 'fig_case1.json')
+        fig = json.dumps(fig.to_dict(), sort_keys=True)
         with open(w_fig_file, 'r') as f:
             w_fig = json.dumps(json.load(f), sort_keys=True)
         self.assertEqual(fig, w_fig)

@@ -439,6 +439,8 @@ def data_cut_root(data: Dict[str, List[str or int or float]], mode: str) \
             root_ind = data[IDS].index(root_id)
             for v in data.values():
                 del v[root_ind]
+        if mode == ROOT_CUT:
+            data[PARENT] = [str(x).split('__')[0] if x in roots else x for x in data[PARENT]]
         if mode == ROOT_TOTAL_CUT:
             data[PARENT] = ['' if x in roots else x for x in data[PARENT]]
     return data
