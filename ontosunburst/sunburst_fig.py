@@ -69,7 +69,7 @@ def get_fig_kwargs(output: str, analysis: str, **kwargs):
         font_color, font_size, table_title, table_legend, table_color
 
 
-def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: str = None,
+def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: str,
                           analysis: str = TOPOLOGY_A, ref_classes_abundance=None,
                           test=BINOMIAL_TEST, total: bool = True,
                           root_cut: str = ROOT_CUT, ref_base: bool = True, **kwargs) -> go.Figure:
@@ -107,11 +107,9 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
     go.Figure
     """
     c_min, c_max, c_mid, max_depth, colorscale, title, colorbar_legend, background_color, \
-        font_color, font_size, table_title, table_legend, table_color = get_fig_kwargs(output,
-                                                                                       analysis,
-                                                                                       **kwargs)
+        font_color, font_size, table_title, table_legend, table_color = \
+        get_fig_kwargs(output, analysis, **kwargs)
 
-    data = data_cut_root(data, root_cut)
     if total:
         branch_values = 'total'
         values = data[RELAT_PROP]
@@ -120,6 +118,7 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
         values = data[COUNT]
 
     if analysis == TOPOLOGY_A:
+        data = data_cut_root(data, root_cut)
         fig = go.Figure(go.Sunburst(labels=data[LABEL], parents=data[PARENT], values=values,
                                     ids=data[IDS],
                                     hoverinfo='label+text', maxdepth=max_depth,
@@ -132,6 +131,7 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
 
     elif analysis == ENRICHMENT_A:
         data, significant = get_data_enrichment_analysis(data, ref_classes_abundance, test)
+        data = data_cut_root(data, root_cut)
         fig = make_subplots(rows=1, cols=2,
                             column_widths=[0.3, 0.7],
                             vertical_spacing=0.03,
@@ -172,14 +172,14 @@ def get_hover_fig_text(data, analysis, ref_base):
                 f'{REF_COUNT}: {data[REF_COUNT][i]}<br>'
                 f'{PROP}: <b>{round(data[PROP][i] * 100, 2)}%</b><br>'
                 f'{REF_PROP}: {round(data[REF_PROP][i] * 100, 2)}%<br>'
-                f'{IDS}: {data[IDS][i]}'
+                f'{IDS}: {data[ONTO_ID][i]}'
                 if data[PVAL][i] > 0 else
                 f'P value: {10 ** data[PVAL][i]}<br>'
                 f'{COUNT}: <b>{data[COUNT][i]}</b><br>'
                 f'{REF_COUNT}: {data[REF_COUNT][i]}<br>'
                 f'{PROP}: <b>{round(data[PROP][i] * 100, 2)}%</b><br>'
                 f'{REF_PROP}: {round(data[REF_PROP][i] * 100, 2)}%<br>'
-                f'{IDS}: {data[IDS][i]}'
+                f'{IDS}: {data[ONTO_ID][i]}'
                 for i in range(len(data[PVAL]))]
     elif analysis == TOPOLOGY_A:
         if ref_base:
@@ -187,10 +187,10 @@ def get_hover_fig_text(data, analysis, ref_base):
                     f'{REF_COUNT}: {data[REF_COUNT][i]}<br>'
                     f'{PROP}: <b>{round(data[PROP][i] * 100, 2)}%</b><br>'
                     f'{REF_PROP}: {round(data[REF_PROP][i] * 100, 2)}%<br>'
-                    f'{IDS}: {data[IDS][i]}'
+                    f'{IDS}: {data[ONTO_ID][i]}'
                     for i in range(len(data[PROP]))]
         else:
             return [f'{COUNT}: <b>{data[COUNT][i]}</b><br>'
                     f'{PROP}: <b>{round(data[PROP][i] * 100, 2)}%</b><br>'
-                    f'{IDS}: {data[IDS][i]}'
+                    f'{IDS}: {data[ONTO_ID][i]}'
                     for i in range(len(data[PROP]))]

@@ -1,3 +1,4 @@
+import copy
 import unittest
 import io
 
@@ -15,7 +16,6 @@ No automatic tests integrated.
 # GLOBAL
 # ==================================================================================================
 
-# GENERAL DICT ONTO (METACYC, KEGG)
 # --------------------------------------------------------------------------------------------------
 
 MC_ONTO = {'a': ['ab'], 'b': ['ab'], 'c': ['cde', 'cf'], 'd': ['cde'], 'e': ['cde', 'eg'],
@@ -309,6 +309,9 @@ class TestAddProportionDataTable(unittest.TestCase):
             self.assertEqual(data[RELAT_PROP][i], W_RELAT_PROP[i])
 
 
+# ENRICHMENT TESTS
+# ==================================================================================================
+
 ENRICH_DATA = {IDS: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
                ONTO_ID: ['00', '01', '02', '03', '04', '05', '06', '07', '08', '09'],
                PARENT: ['', 0, 0, 0, 0, 1, 1, 1, 2, 2],
@@ -379,7 +382,7 @@ class TestEnrichmentAnalysis(unittest.TestCase):
         self.assertEqual(significant, exp_significant)
 
     def test_get_data_enrichment_analysis_names(self):
-        data = ENRICH_DATA
+        data = copy.deepcopy(ENRICH_DATA)
         data[LABEL] = LABEL_NAMES
         data, significant = get_data_enrichment_analysis(data, ENRICH_REF_AB, BINOMIAL_TEST)
         lines = data_to_lines(data)
@@ -397,6 +400,9 @@ class TestEnrichmentAnalysis(unittest.TestCase):
         self.assertEqual(lines, exp_lines)
         self.assertEqual(significant, exp_significant)
 
+
+# TOPOLOGY MANAGEMENT TESTS
+# ==================================================================================================
 
 MULTI_ROOT_DATA = {IDS: ['R', 'R-1', 'R-2', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
                    ONTO_ID: ['R', 'R-1', 'R-2', '00', '01', '02', '03', '04', '05', '06', '07',
@@ -416,12 +422,14 @@ class TestTopologyManagement(unittest.TestCase):
 
     @test_for(data_cut_root)
     def test_data_cut_root_uncut(self):
-        data = data_cut_root(MULTI_ROOT_DATA, ROOT_UNCUT)
+        data_b = copy.deepcopy(MULTI_ROOT_DATA)
+        data = data_cut_root(data_b, ROOT_UNCUT)
         self.assertEqual(data, MULTI_ROOT_DATA)
 
     @test_for(data_cut_root)
     def test_data_cut_root_cut(self):
-        data = data_cut_root(MULTI_ROOT_DATA, ROOT_CUT)
+        data_b = copy.deepcopy(MULTI_ROOT_DATA)
+        data = data_cut_root(data_b, ROOT_CUT)
         exp_data = {'ID': ['1', '2', '3', '4', '5', '6', '7', '8', '9'],
                     'Onto ID': ['01', '02', '03', '04', '05', '06', '07', '08', '09'],
                     'Parent': ['0', '0', '0', '0', '1', '1', '1', '2', '2'],
@@ -436,7 +444,8 @@ class TestTopologyManagement(unittest.TestCase):
 
     @test_for(data_cut_root)
     def test_data_cut_root_total_cut(self):
-        data = data_cut_root(MULTI_ROOT_DATA, ROOT_TOTAL_CUT)
+        data_b = copy.deepcopy(MULTI_ROOT_DATA)
+        data = data_cut_root(data_b, ROOT_TOTAL_CUT)
         exp_data = {'ID': ['1', '2', '3', '4', '5', '6', '7', '8', '9'],
                     'Onto ID': ['01', '02', '03', '04', '05', '06', '07', '08', '09'],
                     'Parent': ['', '', '', '', '1', '1', '1', '2', '2'],
