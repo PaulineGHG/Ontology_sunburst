@@ -1,3 +1,6 @@
+import copy
+import json
+import os.path
 import unittest
 from unittest.mock import patch
 import io
@@ -30,10 +33,53 @@ ENRICH_DATA = {IDS: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
                REF_PROP: [1, 0.4, 0.3, 0.2, 0.1, 0.2, 0.05, 0.01, 0.01, 0.03],
                RELAT_PROP: [1000000, 400000.0, 300000.0, 200000.0, 100000.0, 200000.0, 50000.0,
                             10000.0, 10000.0, 30000.0]}
-p_val = [0.0, -5.420266413988895, 2.509702991379166, 2.948803113091024,
-         -1.2341542222355069, -1.103304935668835, nan, nan, 0.4034095751193356, 0.0]
+ENRICH_P_VAL = [0.0, -5.420266413988895, 2.509702991379166, 2.948803113091024, -1.2341542222355069,
+                -1.103304935668835, nan, nan, 0.4034095751193356, 0.0]
+
 ENRICH_REF_AB = {'00': 100, '01': 40, '02': 30, '03': 20, '04': 10, '05': 20, '06': 5, '07': 1,
                  '08': 1, '09': 3}
+
+DATA = {'ID': ['FRAMES', 'cdeeg+__FRAMES', 'cdeeg__cdeeg+__FRAMES', 'cdecf__FRAMES', 'gh__FRAMES',
+               'eg__cdeeg__cdeeg+__FRAMES', 'eg__FRAMES', 'cde__cdeeg__cdeeg+__FRAMES',
+               'cde__cdecf__FRAMES', 'cf__cdecf__FRAMES', 'h__gh__FRAMES',
+               'g__eg__cdeeg__cdeeg+__FRAMES', 'g__eg__FRAMES', 'g__gh__FRAMES',
+               'f__cf__cdecf__FRAMES', 'e__eg__cdeeg__cdeeg+__FRAMES',
+               'e__cde__cdeeg__cdeeg+__FRAMES', 'e__eg__FRAMES', 'e__cde__cdecf__FRAMES',
+               'd__cde__cdecf__FRAMES', 'd__cde__cdeeg__cdeeg+__FRAMES', 'c__cde__cdecf__FRAMES',
+               'c__cf__cdecf__FRAMES', 'c__cde__cdeeg__cdeeg+__FRAMES', 'ab__FRAMES',
+               'b__ab__FRAMES', 'a__ab__FRAMES'],
+        'Onto ID': ['FRAMES', 'cdeeg+', 'cdeeg', 'cdecf', 'gh', 'eg', 'eg', 'cde', 'cde', 'cf',
+                    'h', 'g', 'g', 'g', 'f', 'e', 'e', 'e', 'e', 'd', 'd', 'c', 'c', 'c', 'ab',
+                    'b', 'a'],
+        'Parent': ['', 'FRAMES', 'cdeeg+__FRAMES', 'FRAMES', 'FRAMES', 'cdeeg__cdeeg+__FRAMES',
+                   'FRAMES', 'cdeeg__cdeeg+__FRAMES', 'cdecf__FRAMES', 'cdecf__FRAMES',
+                   'gh__FRAMES', 'eg__cdeeg__cdeeg+__FRAMES', 'eg__FRAMES', 'gh__FRAMES',
+                   'cf__cdecf__FRAMES', 'eg__cdeeg__cdeeg+__FRAMES', 'cde__cdeeg__cdeeg+__FRAMES',
+                   'eg__FRAMES', 'cde__cdecf__FRAMES', 'cde__cdecf__FRAMES',
+                   'cde__cdeeg__cdeeg+__FRAMES', 'cde__cdecf__FRAMES', 'cf__cdecf__FRAMES',
+                   'cde__cdeeg__cdeeg+__FRAMES', 'FRAMES', 'ab__FRAMES', 'ab__FRAMES'],
+        'Label': ['FRAMES', 'cdeeg+', 'cdeeg', 'cdecf', 'gh', 'eg', 'eg', 'cde', 'cde', 'cf', 'h',
+                  'g', 'g', 'g', 'f', 'e', 'e', 'e', 'e', 'd', 'd', 'c', 'c', 'c', 'ab', 'b', 'a'],
+        'Count': [6, 3, 3, 3, nan, nan, nan, 3, 3, 3, nan, nan, nan, nan, nan, nan, nan, nan, nan,
+                  nan, nan, 3, 3, 3, 3, 2, 1],
+        'Reference count': [36, 19, 19, 18, 15, 12, 12, 12, 12, 9, 8, 7, 7, 7, 6, 5, 5, 5, 5, 4, 4,
+                            3, 3, 3, 3, 2, 1],
+        'Proportion': [1.0, 0.5, 0.5, 0.5, nan, nan, nan, 0.5, 0.5, 0.5, nan, nan, nan, nan, nan,
+                       nan, nan, nan, nan, nan, nan, 0.5, 0.5, 0.5, 0.5, 0.3333333333333333,
+                       0.16666666666666666],
+        'Reference proportion': [1.0, 0.5277777777777778, 0.5277777777777778, 0.5,
+                                 0.4166666666666667, 0.3333333333333333, 0.3333333333333333,
+                                 0.3333333333333333, 0.3333333333333333, 0.25, 0.2222222222222222,
+                                 0.19444444444444445, 0.19444444444444445, 0.19444444444444445,
+                                 0.16666666666666666, 0.1388888888888889, 0.1388888888888889,
+                                 0.1388888888888889, 0.1388888888888889, 0.1111111111111111,
+                                 0.1111111111111111, 0.08333333333333333, 0.08333333333333333,
+                                 0.08333333333333333, 0.08333333333333333, 0.05555555555555555,
+                                 0.027777777777777776],
+        'Relative proportion': [1000000, 283582, 283582, 268656, 223880, 141791, 179104,
+                                141791, 153517, 115138, 119402, 82711, 104477, 104477, 76758,
+                                59079, 59079, 74626, 63965, 51172, 47263, 38379, 38379, 35447,
+                                44776, 29850, 14925]}
 
 
 # ==================================================================================================
@@ -48,15 +94,19 @@ def dicts_with_sorted_lists_equal(dict1, dict2):
     return True
 
 
+def save_fig_json(fig, file):
+    fig = fig.to_dict()
+    with open(file, 'w') as f:
+        json.dump(fig, f)
+
+
 def test_for(func):
     def decorator(test_func):
         @wraps(test_func)
         def wrapper(*args, **kwargs):
             return test_func(*args, **kwargs)
-
         wrapper._test_for = func
         return wrapper
-
     return decorator
 
 
@@ -141,7 +191,9 @@ class TestSunburstFigure(unittest.TestCase):
 
     @test_for(get_hover_fig_text)
     def test_get_hover_fig_text_enrich_ref(self):
-        text_list = get_hover_fig_text(ENRICH_DATA, ENRICHMENT_A, True)
+        data = copy.deepcopy(ENRICH_DATA)
+        data[PVAL] = ENRICH_P_VAL
+        text_list = get_hover_fig_text(data, ENRICHMENT_A, True)
         self.assertEqual(len(text_list), 10)
         self.assertEqual(text_list[0], 'P value: 1.0<br>Count: <b>50</b>'
                                        '<br>Reference count: 100<br>Proportion: <b>100%</b>'
@@ -152,7 +204,9 @@ class TestSunburstFigure(unittest.TestCase):
 
     @test_for(get_hover_fig_text)
     def test_get_hover_fig_text_enrich_no_ref(self):
-        text_list = get_hover_fig_text(ENRICH_DATA, ENRICHMENT_A, False)
+        data = copy.deepcopy(ENRICH_DATA)
+        data[PVAL] = ENRICH_P_VAL
+        text_list = get_hover_fig_text(data, ENRICHMENT_A, False)
         self.assertEqual(len(text_list), 10)
         self.assertEqual(text_list[0], 'P value: 1.0<br>Count: <b>50</b>'
                                        '<br>Reference count: 100<br>Proportion: <b>100%</b>'
@@ -163,7 +217,8 @@ class TestSunburstFigure(unittest.TestCase):
 
     @test_for(get_hover_fig_text)
     def test_get_hover_fig_text_topology_ref(self):
-        text_list = get_hover_fig_text(ENRICH_DATA, TOPOLOGY_A, True)
+        data = copy.deepcopy(ENRICH_DATA)
+        text_list = get_hover_fig_text(data, TOPOLOGY_A, True)
         self.assertEqual(len(text_list), 10)
         self.assertEqual(text_list[0], 'Count: <b>50</b><br>Reference count: 100'
                                        '<br>Proportion: <b>100%</b>'
@@ -174,399 +229,59 @@ class TestSunburstFigure(unittest.TestCase):
 
     @test_for(get_hover_fig_text)
     def test_get_hover_fig_text_topology_no_ref(self):
-        text_list = get_hover_fig_text(ENRICH_DATA, TOPOLOGY_A, False)
+        data = copy.deepcopy(ENRICH_DATA)
+        text_list = get_hover_fig_text(data, TOPOLOGY_A, False)
         self.assertEqual(len(text_list), 10)
         self.assertEqual(text_list[0], 'Count: <b>50</b><br>Proportion: <b>100%</b><br>ID: 00')
         self.assertEqual(text_list[5], 'Count: <b>5</b><br>Proportion: <b>10.0%</b><br>ID: 05')
 
     @test_for(generate_sunburst_fig)
-    def test_generate_sunburst_fig(self):
-        fig = generate_sunburst_fig(ENRICH_DATA, 'out', analysis=ENRICHMENT_A,
+    def test_generate_sunburst_fig_case1(self):
+        data = copy.deepcopy(ENRICH_DATA)
+        fig = generate_sunburst_fig(data, 'case1', analysis=ENRICHMENT_A, write_fig=False,
                                     ref_classes_abundance=ENRICH_REF_AB, test=HYPERGEO_TEST)
-        fig = fig.to_dict()
-        w_fig = {'data': [{'branchvalues': 'total', 'hoverinfo': 'label+text',
-                           'hovertext': ['P value: 7.263166523971595e-10<br>Count: <b>5</b>'
-                                         '<br>Reference count: 40<br>Proportion: <b>10.0%</b>'
-                                         '<br>Reference proportion: 40.0%<br>ID: 01',
-                                         'P value: 2.029502412840083e-05<br>Count: <b>25</b>'
-                                         '<br>Reference count: 30<br>Proportion: <b>50.0%</b>'
-                                         '<br>Reference proportion: 30.0%<br>ID: 02',
-                                         'P value: 1.7586072571039989e-07<br>Count: <b>20</b>'
-                                         '<br>Reference count: 20<br>Proportion: <b>40.0%</b>'
-                                         '<br>Reference proportion: 20.0%<br>ID: 03',
-                                         'P value: 0.015660489896045526<br>Count: <b>1</b>'
-                                         '<br>Reference count: 10<br>Proportion: <b>2.0%</b>'
-                                         '<br>Reference proportion: 10.0%<br>ID: 04',
-                                         'P value: 0.022834981011415515<br>Count: <b>5</b>'
-                                         '<br>Reference count: 20<br>Proportion: <b>10.0%</b>'
-                                         '<br>Reference proportion: 20.0%<br>ID: 05',
-                                         'P value: nan<br>Count: <b>nan</b>'
-                                         '<br>Reference count: 5<br>Proportion: <b>nan%</b>'
-                                         '<br>Reference proportion: 5.0%<br>ID: 06',
-                                         'P value: nan<br>Count: <b>nan</b>'
-                                         '<br>Reference count: 1<br>Proportion: <b>nan%</b>'
-                                         '<br>Reference proportion: 1.0%<br>ID: 07',
-                                         'P value: 1.0<br>Count: <b>1</b>'
-                                         '<br>Reference count: 1<br>Proportion: <b>2.0%</b>'
-                                         '<br>Reference proportion: 1.0%<br>ID: 08',
-                                         'P value: 0.9999999999999997<br>Count: <b>1</b>'
-                                         '<br>Reference count: 3<br>Proportion: <b>2.0%</b>'
-                                         '<br>Reference proportion: 3.0%<br>ID: 09'],
-                           'ids': [1, 2, 3, 4, 5, 6, 7, 8, 9],
-                           'labels': ['1', '2', '3', '4', '5', '6', '7', '8', '9'],
-                           'marker': {'cmax': 10, 'cmid': 0, 'cmin': -10,
-                                      'colorbar': {'title': {'text': 'Log10(p-value)'}},
-                                      'colors': [-9.138873998573988, 4.692610428021241,
-                                                 6.754831139005899, -1.8051946563380086,
-                                                 -1.6413993451973743, nan, nan, -0.0,
-                                                 -1.4464911998299308e-16],
-                                      'colorscale': [[0.0, 'rgb(103,0,31)'],
-                                                     [0.1, 'rgb(178,24,43)'],
-                                                     [0.2, 'rgb(214,96,77)'],
-                                                     [0.30000000000000004, 'rgb(244,165,130)'],
-                                                     [0.4, 'rgb(253,219,199)'],
-                                                     [0.5, 'rgb(247,247,247)'],
-                                                     [0.6000000000000001, 'rgb(209,229,240)'],
-                                                     [0.7000000000000001, 'rgb(146,197,222)'],
-                                                     [0.8, 'rgb(67,147,195)'],
-                                                     [0.9, 'rgb(33,102,172)'],
-                                                     [1.0, 'rgb(5,48,97)']],
-                                      'showscale': True},
-                           'maxdepth': 7, 'parents': [0, 0, 0, 0, 1, 1, 1, 2, 2],
-                           'values': [400000.0, 300000.0, 200000.0, 100000.0, 200000.0, 50000.0,
-                                      10000.0, 10000.0, 30000.0], 'type': 'sunburst',
-                           'domain': {'x': [0.37, 1.0], 'y': [0.0, 1.0]}},
-                          {'cells': {'fill': {'color': '#666666'}, 'font': {'size': 16.0},
-                                     'height': 35, 'values': [['01', '03', '02'],
-                                                              [7e-10, 1.759e-07, 2.0295e-05]]},
-                           'header': {'fill': {'color': '#666666'}, 'font': {'size': 20},
-                                      'height': 40,
-                                      'values': ['IDs', 'hypergeometric test P-value']},
-                           'type': 'table', 'domain': {'x': [0.0, 0.27], 'y': [0.0, 1.0]}}],
-                 'layout': {'template': {'data': {'histogram2dcontour':
-                                                      [{'type': 'histogram2dcontour',
-                                                        'colorbar': {'outlinewidth': 0,
-                                                                     'ticks': ''},
-                                                        'colorscale': [[0.0, '#0d0887'],
-                                                                       [0.1111111111111111,
-                                                                        '#46039f'],
-                                                                       [0.2222222222222222,
-                                                                        '#7201a8'],
-                                                                       [0.3333333333333333,
-                                                                        '#9c179e'],
-                                                                       [0.4444444444444444,
-                                                                        '#bd3786'],
-                                                                       [0.5555555555555556,
-                                                                        '#d8576b'],
-                                                                       [0.6666666666666666,
-                                                                        '#ed7953'],
-                                                                       [0.7777777777777778,
-                                                                        '#fb9f3a'],
-                                                                       [0.8888888888888888,
-                                                                        '#fdca26'],
-                                                                       [1.0, '#f0f921']]}],
-                                                  'choropleth': [{'type': 'choropleth',
-                                                                  'colorbar': {'outlinewidth': 0,
-                                                                               'ticks': ''}}],
-                                                  'histogram2d': [{'type': 'histogram2d',
-                                                                   'colorbar': {'outlinewidth': 0,
-                                                                                'ticks': ''},
-                                                                   'colorscale': [[0.0, '#0d0887'],
-                                                                                  [
-                                                                                      0.1111111111111111,
-                                                                                      '#46039f'], [
-                                                                                      0.2222222222222222,
-                                                                                      '#7201a8'], [
-                                                                                      0.3333333333333333,
-                                                                                      '#9c179e'], [
-                                                                                      0.4444444444444444,
-                                                                                      '#bd3786'], [
-                                                                                      0.5555555555555556,
-                                                                                      '#d8576b'], [
-                                                                                      0.6666666666666666,
-                                                                                      '#ed7953'], [
-                                                                                      0.7777777777777778,
-                                                                                      '#fb9f3a'], [
-                                                                                      0.8888888888888888,
-                                                                                      '#fdca26'],
-                                                                                  [1.0,
-                                                                                   '#f0f921']]}],
-                                                  'heatmap': [{'type': 'heatmap',
-                                                               'colorbar': {'outlinewidth': 0,
-                                                                            'ticks': ''},
-                                                               'colorscale': [[0.0, '#0d0887'],
-                                                                              [0.1111111111111111,
-                                                                               '#46039f'],
-                                                                              [0.2222222222222222,
-                                                                               '#7201a8'],
-                                                                              [0.3333333333333333,
-                                                                               '#9c179e'],
-                                                                              [0.4444444444444444,
-                                                                               '#bd3786'],
-                                                                              [0.5555555555555556,
-                                                                               '#d8576b'],
-                                                                              [0.6666666666666666,
-                                                                               '#ed7953'],
-                                                                              [0.7777777777777778,
-                                                                               '#fb9f3a'],
-                                                                              [0.8888888888888888,
-                                                                               '#fdca26'],
-                                                                              [1.0, '#f0f921']]}],
-                                                  'heatmapgl': [{'type': 'heatmapgl',
-                                                                 'colorbar': {'outlinewidth': 0,
-                                                                              'ticks': ''},
-                                                                 'colorscale': [[0.0, '#0d0887'],
-                                                                                [0.1111111111111111,
-                                                                                 '#46039f'],
-                                                                                [0.2222222222222222,
-                                                                                 '#7201a8'],
-                                                                                [0.3333333333333333,
-                                                                                 '#9c179e'],
-                                                                                [0.4444444444444444,
-                                                                                 '#bd3786'],
-                                                                                [0.5555555555555556,
-                                                                                 '#d8576b'],
-                                                                                [0.6666666666666666,
-                                                                                 '#ed7953'],
-                                                                                [0.7777777777777778,
-                                                                                 '#fb9f3a'],
-                                                                                [0.8888888888888888,
-                                                                                 '#fdca26'],
-                                                                                [1.0, '#f0f921']]}],
-                                                  'contourcarpet': [{'type': 'contourcarpet',
-                                                                     'colorbar': {'outlinewidth': 0,
-                                                                                  'ticks': ''}}],
-                                                  'contour': [{'type': 'contour',
-                                                               'colorbar': {'outlinewidth': 0,
-                                                                            'ticks': ''},
-                                                               'colorscale': [[0.0, '#0d0887'],
-                                                                              [0.1111111111111111,
-                                                                               '#46039f'],
-                                                                              [0.2222222222222222,
-                                                                               '#7201a8'],
-                                                                              [0.3333333333333333,
-                                                                               '#9c179e'],
-                                                                              [0.4444444444444444,
-                                                                               '#bd3786'],
-                                                                              [0.5555555555555556,
-                                                                               '#d8576b'],
-                                                                              [0.6666666666666666,
-                                                                               '#ed7953'],
-                                                                              [0.7777777777777778,
-                                                                               '#fb9f3a'],
-                                                                              [0.8888888888888888,
-                                                                               '#fdca26'],
-                                                                              [1.0, '#f0f921']]}],
-                                                  'surface': [{'type': 'surface',
-                                                               'colorbar': {'outlinewidth': 0,
-                                                                            'ticks': ''},
-                                                               'colorscale': [[0.0, '#0d0887'],
-                                                                              [0.1111111111111111,
-                                                                               '#46039f'],
-                                                                              [0.2222222222222222,
-                                                                               '#7201a8'],
-                                                                              [0.3333333333333333,
-                                                                               '#9c179e'],
-                                                                              [0.4444444444444444,
-                                                                               '#bd3786'],
-                                                                              [0.5555555555555556,
-                                                                               '#d8576b'],
-                                                                              [0.6666666666666666,
-                                                                               '#ed7953'],
-                                                                              [0.7777777777777778,
-                                                                               '#fb9f3a'],
-                                                                              [0.8888888888888888,
-                                                                               '#fdca26'],
-                                                                              [1.0, '#f0f921']]}],
-                                                  'mesh3d': [{'type': 'mesh3d',
-                                                              'colorbar': {'outlinewidth': 0,
-                                                                           'ticks': ''}}],
-                                                  'scatter': [{'fillpattern': {
-                                                      'fillmode': 'overlay', 'size': 10,
-                                                      'solidity': 0.2}, 'type': 'scatter'}],
-                                                  'parcoords': [{'type': 'parcoords', 'line': {
-                                                      'colorbar': {'outlinewidth': 0,
-                                                                   'ticks': ''}}}],
-                                                  'scatterpolargl': [{'type': 'scatterpolargl',
-                                                                      'marker': {'colorbar': {
-                                                                          'outlinewidth': 0,
-                                                                          'ticks': ''}}}], 'bar': [
-                         {'error_x': {'color': '#2a3f5f'}, 'error_y': {'color': '#2a3f5f'},
-                          'marker': {'line': {'color': '#E5ECF6', 'width': 0.5},
-                                     'pattern': {'fillmode': 'overlay', 'size': 10,
-                                                 'solidity': 0.2}}, 'type': 'bar'}], 'scattergeo': [
-                         {'type': 'scattergeo',
-                          'marker': {'colorbar': {'outlinewidth': 0, 'ticks': ''}}}],
-                                                  'scatterpolar': [{'type': 'scatterpolar',
-                                                                    'marker': {'colorbar': {
-                                                                        'outlinewidth': 0,
-                                                                        'ticks': ''}}}],
-                                                  'histogram': [{'marker': {
-                                                      'pattern': {'fillmode': 'overlay', 'size': 10,
-                                                                  'solidity': 0.2}},
-                                                                 'type': 'histogram'}],
-                                                  'scattergl': [{'type': 'scattergl', 'marker': {
-                                                      'colorbar': {'outlinewidth': 0,
-                                                                   'ticks': ''}}}], 'scatter3d': [
-                         {'type': 'scatter3d',
-                          'line': {'colorbar': {'outlinewidth': 0, 'ticks': ''}},
-                          'marker': {'colorbar': {'outlinewidth': 0, 'ticks': ''}}}],
-                                                  'scattermapbox': [{'type': 'scattermapbox',
-                                                                     'marker': {'colorbar': {
-                                                                         'outlinewidth': 0,
-                                                                         'ticks': ''}}}],
-                                                  'scatterternary': [{'type': 'scatterternary',
-                                                                      'marker': {'colorbar': {
-                                                                          'outlinewidth': 0,
-                                                                          'ticks': ''}}}],
-                                                  'scattercarpet': [{'type': 'scattercarpet',
-                                                                     'marker': {'colorbar': {
-                                                                         'outlinewidth': 0,
-                                                                         'ticks': ''}}}],
-                                                  'carpet': [{'aaxis': {'endlinecolor': '#2a3f5f',
-                                                                        'gridcolor': 'white',
-                                                                        'linecolor': 'white',
-                                                                        'minorgridcolor': 'white',
-                                                                        'startlinecolor': '#2a3f5f'},
-                                                              'baxis': {'endlinecolor': '#2a3f5f',
-                                                                        'gridcolor': 'white',
-                                                                        'linecolor': 'white',
-                                                                        'minorgridcolor': 'white',
-                                                                        'startlinecolor': '#2a3f5f'},
-                                                              'type': 'carpet'}], 'table': [
-                         {'cells': {'fill': {'color': '#EBF0F8'}, 'line': {'color': 'white'}},
-                          'header': {'fill': {'color': '#C8D4E3'}, 'line': {'color': 'white'}},
-                          'type': 'table'}], 'barpolar': [{'marker': {
-                         'line': {'color': '#E5ECF6', 'width': 0.5},
-                         'pattern': {'fillmode': 'overlay', 'size': 10, 'solidity': 0.2}},
-                                                           'type': 'barpolar'}],
-                                                  'pie': [{'automargin': True, 'type': 'pie'}]},
-                                         'layout': {'autotypenumbers': 'strict',
-                                                    'colorway': ['#636efa', '#EF553B', '#00cc96',
-                                                                 '#ab63fa', '#FFA15A', '#19d3f3',
-                                                                 '#FF6692', '#B6E880', '#FF97FF',
-                                                                 '#FECB52'],
-                                                    'font': {'color': '#2a3f5f'},
-                                                    'hovermode': 'closest',
-                                                    'hoverlabel': {'align': 'left'},
-                                                    'paper_bgcolor': 'white',
-                                                    'plot_bgcolor': '#E5ECF6',
-                                                    'polar': {'bgcolor': '#E5ECF6',
-                                                              'angularaxis': {'gridcolor': 'white',
-                                                                              'linecolor': 'white',
-                                                                              'ticks': ''},
-                                                              'radialaxis': {'gridcolor': 'white',
-                                                                             'linecolor': 'white',
-                                                                             'ticks': ''}},
-                                                    'ternary': {'bgcolor': '#E5ECF6',
-                                                                'aaxis': {'gridcolor': 'white',
-                                                                          'linecolor': 'white',
-                                                                          'ticks': ''},
-                                                                'baxis': {'gridcolor': 'white',
-                                                                          'linecolor': 'white',
-                                                                          'ticks': ''},
-                                                                'caxis': {'gridcolor': 'white',
-                                                                          'linecolor': 'white',
-                                                                          'ticks': ''}},
-                                                    'coloraxis': {'colorbar': {'outlinewidth': 0,
-                                                                               'ticks': ''}},
-                                                    'colorscale': {'sequential': [[0.0, '#0d0887'],
-                                                                                  [
-                                                                                      0.1111111111111111,
-                                                                                      '#46039f'], [
-                                                                                      0.2222222222222222,
-                                                                                      '#7201a8'], [
-                                                                                      0.3333333333333333,
-                                                                                      '#9c179e'], [
-                                                                                      0.4444444444444444,
-                                                                                      '#bd3786'], [
-                                                                                      0.5555555555555556,
-                                                                                      '#d8576b'], [
-                                                                                      0.6666666666666666,
-                                                                                      '#ed7953'], [
-                                                                                      0.7777777777777778,
-                                                                                      '#fb9f3a'], [
-                                                                                      0.8888888888888888,
-                                                                                      '#fdca26'],
-                                                                                  [1.0, '#f0f921']],
-                                                                   'sequentialminus': [
-                                                                       [0.0, '#0d0887'],
-                                                                       [0.1111111111111111,
-                                                                        '#46039f'],
-                                                                       [0.2222222222222222,
-                                                                        '#7201a8'],
-                                                                       [0.3333333333333333,
-                                                                        '#9c179e'],
-                                                                       [0.4444444444444444,
-                                                                        '#bd3786'],
-                                                                       [0.5555555555555556,
-                                                                        '#d8576b'],
-                                                                       [0.6666666666666666,
-                                                                        '#ed7953'],
-                                                                       [0.7777777777777778,
-                                                                        '#fb9f3a'],
-                                                                       [0.8888888888888888,
-                                                                        '#fdca26'],
-                                                                       [1.0, '#f0f921']],
-                                                                   'diverging': [[0, '#8e0152'],
-                                                                                 [0.1, '#c51b7d'],
-                                                                                 [0.2, '#de77ae'],
-                                                                                 [0.3, '#f1b6da'],
-                                                                                 [0.4, '#fde0ef'],
-                                                                                 [0.5, '#f7f7f7'],
-                                                                                 [0.6, '#e6f5d0'],
-                                                                                 [0.7, '#b8e186'],
-                                                                                 [0.8, '#7fbc41'],
-                                                                                 [0.9, '#4d9221'],
-                                                                                 [1, '#276419']]},
-                                                    'xaxis': {'gridcolor': 'white',
-                                                              'linecolor': 'white', 'ticks': '',
-                                                              'title': {'standoff': 15},
-                                                              'zerolinecolor': 'white',
-                                                              'automargin': True,
-                                                              'zerolinewidth': 2},
-                                                    'yaxis': {'gridcolor': 'white',
-                                                              'linecolor': 'white', 'ticks': '',
-                                                              'title': {'standoff': 15},
-                                                              'zerolinecolor': 'white',
-                                                              'automargin': True,
-                                                              'zerolinewidth': 2}, 'scene': {
-                                                 'xaxis': {'backgroundcolor': '#E5ECF6',
-                                                           'gridcolor': 'white',
-                                                           'linecolor': 'white',
-                                                           'showbackground': True, 'ticks': '',
-                                                           'zerolinecolor': 'white',
-                                                           'gridwidth': 2},
-                                                 'yaxis': {'backgroundcolor': '#E5ECF6',
-                                                           'gridcolor': 'white',
-                                                           'linecolor': 'white',
-                                                           'showbackground': True, 'ticks': '',
-                                                           'zerolinecolor': 'white',
-                                                           'gridwidth': 2},
-                                                 'zaxis': {'backgroundcolor': '#E5ECF6',
-                                                           'gridcolor': 'white',
-                                                           'linecolor': 'white',
-                                                           'showbackground': True, 'ticks': '',
-                                                           'zerolinecolor': 'white',
-                                                           'gridwidth': 2}},
-                                                    'shapedefaults': {'line': {'color': '#2a3f5f'}},
-                                                    'annotationdefaults': {'arrowcolor': '#2a3f5f',
-                                                                           'arrowhead': 0,
-                                                                           'arrowwidth': 1},
-                                                    'geo': {'bgcolor': 'white',
-                                                            'landcolor': '#E5ECF6',
-                                                            'subunitcolor': 'white',
-                                                            'showland': True, 'showlakes': True,
-                                                            'lakecolor': 'white'},
-                                                    'title': {'x': 0.05},
-                                                    'mapbox': {'style': 'light'}}}, 'annotations': [
-                     {'font': {'size': 30.0}, 'showarrow': False, 'text': 'Significant p-values',
-                      'x': 0.135, 'xanchor': 'center', 'xref': 'paper', 'y': 1.0,
-                      'yanchor': 'bottom', 'yref': 'paper'},
-                     {'font': {'size': 30.0}, 'showarrow': False,
-                      'text': 'out : Classes enrichment representation', 'x': 0.685,
-                      'xanchor': 'center', 'xref': 'paper', 'y': 1.0, 'yanchor': 'bottom',
-                      'yref': 'paper'}], 'font': {'color': '#111111', 'size': 20},
-                            'paper_bgcolor': 'rgba(255, 255, 255, 0)'}}
-
+        fig = json.dumps(fig.to_dict(), sort_keys=True)
+        w_fig_file = os.path.join('test_files', 'fig_case1.json')
+        with open(w_fig_file, 'r') as f:
+            w_fig = json.dumps(json.load(f), sort_keys=True)
         self.assertEqual(fig, w_fig)
+
+    @test_for(generate_sunburst_fig)
+    def test_generate_sunburst_fig_case2(self):
+        data = copy.deepcopy(ENRICH_DATA)
+        fig = generate_sunburst_fig(data, 'case2', analysis=ENRICHMENT_A, write_fig=False,
+                                    ref_classes_abundance=ENRICH_REF_AB, test=BINOMIAL_TEST)
+        w_fig_file = os.path.join('test_files', 'fig_case2.json')
+        fig = json.dumps(fig.to_dict(), sort_keys=True)
+        with open(w_fig_file, 'r') as f:
+            w_fig = json.dumps(json.load(f), sort_keys=True)
+        self.assertEqual(fig, w_fig)
+
+    @test_for(generate_sunburst_fig)
+    def test_generate_sunburst_fig_case3(self):
+        data = copy.deepcopy(ENRICH_DATA)
+        fig = generate_sunburst_fig(data, 'case3', analysis=ENRICHMENT_A,
+                                    ref_classes_abundance=ENRICH_REF_AB, test=HYPERGEO_TEST,
+                                    root_cut=ROOT_UNCUT, write_fig=False,
+                                    title='Another title', colorscale='PuOr_r',
+                                    bg_color='#222222', font_color='#eeeeee', font_size=25,
+                                    table_legend='Number')
+        w_fig_file = os.path.join('test_files', 'fig_case3.json')
+        fig = json.dumps(fig.to_dict(), sort_keys=True)
+        with open(w_fig_file, 'r') as f:
+            w_fig = json.dumps(json.load(f), sort_keys=True)
+        self.assertEqual(fig, w_fig)
+
+    @test_for(generate_sunburst_fig)
+    def test_generate_sunburst_fig_case4(self):
+        data = copy.deepcopy(DATA)
+        fig = generate_sunburst_fig(data, 'case4', analysis=TOPOLOGY_A, bg_color='black',
+                                    font_color='white', write_fig=False)
+        w_fig_file = os.path.join('test_files', 'fig_case4.json')
+        fig = json.dumps(fig.to_dict(), sort_keys=True)
+        with open(w_fig_file, 'r') as f:
+            w_fig = json.dumps(json.load(f), sort_keys=True)
+        self.assertEqual(fig, w_fig)
+
+
+

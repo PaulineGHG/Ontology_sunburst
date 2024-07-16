@@ -72,7 +72,8 @@ def get_fig_kwargs(output: str, analysis: str, **kwargs):
 def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: str,
                           analysis: str = TOPOLOGY_A, ref_classes_abundance=None,
                           test=BINOMIAL_TEST, total: bool = True,
-                          root_cut: str = ROOT_CUT, ref_base: bool = True, **kwargs) -> go.Figure:
+                          root_cut: str = ROOT_CUT, ref_base: bool = True,
+                          write_fig: bool = True, **kwargs) -> go.Figure:
     """ Generate a Sunburst figure and save it to output path.
 
     Parameters
@@ -100,6 +101,8 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
     root_cut: str (optional, default=ROOT_CUT)
         mode for root cutting (uncut, cut, total)
     ref_base: bool (optional, default=True)
+    write_fig: bool (optional, default=True)
+        True to write the html figure, False to only return figure
     **kwargs
 
     Returns
@@ -160,7 +163,7 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
         raise ValueError('Wrong type input')
     fig.update_layout(paper_bgcolor=background_color, font_color=font_color, font_size=font_size)
     fig.update_annotations(font_size=font_size*1.5)
-    if output is not None:
+    if write_fig:
         fig.write_html(f'{output}.html')
     return fig
 
