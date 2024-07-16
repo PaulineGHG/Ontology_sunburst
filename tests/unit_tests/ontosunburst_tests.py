@@ -197,11 +197,53 @@ class TestOntosunburstMetaCyc(unittest.TestCase):
     def test_ontosunburst_mc1(self):
         fig = ontosunburst(metabolic_objects=MET_LST, ontology=METACYC,
                            abundances=MET_LAB, reference_set=MET_REF, ref_abundances=MET_RAB,
-                           analysis=TOPOLOGY_A, output='test5', write_output=True,
+                           analysis=TOPOLOGY_A, output='mc1', write_output=False,
                            class_ontology=None, labels=DEFAULT, endpoint_url=None,
                            test=HYPERGEO_TEST, total=True, root_cut=ROOT_CUT,
                            ref_base=True, show_leaves=True)
         w_fig_file = os.path.join('test_files', 'test_mc1.json')
+        fig = json.dumps(fig.to_dict(), sort_keys=True)
+        with open(w_fig_file, 'r') as f:
+            w_fig = json.dumps(json.load(f), sort_keys=True)
+        self.assertEqual(fig, w_fig)
+
+    @test_for(ontosunburst)
+    def test_ontosunburst_mc2(self):
+        fig = ontosunburst(metabolic_objects=MET_LST, ontology=METACYC,
+                           abundances=MET_LAB, reference_set=MET_REF, ref_abundances=MET_RAB,
+                           analysis=TOPOLOGY_A, output='mc2', write_output=False,
+                           class_ontology=None, labels={'Acids': 'ACIDS !!'}, endpoint_url=None,
+                           test=HYPERGEO_TEST, total=True, root_cut=ROOT_CUT,
+                           ref_base=False, show_leaves=False)
+        w_fig_file = os.path.join('test_files', 'test_mc2.json')
+        fig = json.dumps(fig.to_dict(), sort_keys=True)
+        with open(w_fig_file, 'r') as f:
+            w_fig = json.dumps(json.load(f), sort_keys=True)
+        self.assertEqual(fig, w_fig)
+
+    @test_for(ontosunburst)
+    def test_ontosunburst_mc3(self):
+        fig = ontosunburst(metabolic_objects=MET_REF, ontology=METACYC,
+                           abundances=None, reference_set=None, ref_abundances=None,
+                           analysis=TOPOLOGY_A, output='mc3', write_output=False,
+                           class_ontology=None, labels=DEFAULT, endpoint_url=None,
+                           test=HYPERGEO_TEST, total=True, root_cut=ROOT_CUT,
+                           ref_base=False, show_leaves=True)
+        w_fig_file = os.path.join('test_files', 'test_mc3.json')
+        fig = json.dumps(fig.to_dict(), sort_keys=True)
+        with open(w_fig_file, 'r') as f:
+            w_fig = json.dumps(json.load(f), sort_keys=True)
+        self.assertEqual(fig, w_fig)
+
+    @test_for(ontosunburst)
+    def test_ontosunburst_mc4(self):
+        fig = ontosunburst(metabolic_objects=MET_LST, ontology=METACYC,
+                           abundances=MET_LAB, reference_set=MET_REF, ref_abundances=MET_RAB,
+                           analysis=ENRICHMENT_A, output='mc4', write_output=True,
+                           class_ontology=None, labels=DEFAULT, endpoint_url=None,
+                           test=HYPERGEO_TEST, total=True, root_cut=ROOT_CUT,
+                           ref_base=False, show_leaves=False)
+        w_fig_file = os.path.join('test_files', 'test_mc4.json')
         save_fig_json(fig, w_fig_file)
         fig = json.dumps(fig.to_dict(), sort_keys=True)
         with open(w_fig_file, 'r') as f:
