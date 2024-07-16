@@ -81,6 +81,7 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
     data: Dict[str, List[str or int or float]]
         Dictionary with lists of :
             - ids : ID (str)
+            - onto ids : Onto ID (str)
             - labels : Label (str)
             - parents ids : Parent (str)
             - abundance value : Count (int)
@@ -88,7 +89,8 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
             - proportion : Proportion (0 < float <= 1)
             - reference proportion : Reference_proportion (0 < float <= 1)
             - branch proportion : Relative_prop
-    output: str (optional, default=None)
+            - p-value : P-values of enrichment analysis
+    output: str
         Path to output to save the figure without extension
     analysis: str (optional, default=topology)
         Analysis mode : topology or enrichment
@@ -168,7 +170,20 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
     return fig
 
 
-def get_hover_fig_text(data, analysis, ref_base):
+def get_hover_fig_text(data: Dict[str, List[str or int or float]], analysis: str, ref_base: bool) \
+        -> List[str]:
+    """
+
+    Parameters
+    ----------
+    data
+    analysis
+    ref_base
+
+    Returns
+    -------
+
+    """
     if analysis == ENRICHMENT_A:
         return [f'P value: {10 ** (-data[PVAL][i])}<br>'
                 f'{COUNT}: <b>{data[COUNT][i]}</b><br>'

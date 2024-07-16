@@ -2,15 +2,11 @@ import copy
 import json
 import os.path
 import unittest
-from unittest.mock import patch
 import io
-import sys
 from functools import wraps
 
-import plotly.graph_objs
 from numpy import nan
 from ontosunburst.sunburst_fig import *
-from ontosunburst.ontology import *
 
 """
 Tests manually good file creation.

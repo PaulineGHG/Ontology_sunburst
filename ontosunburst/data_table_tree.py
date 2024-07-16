@@ -43,7 +43,7 @@ ROOT_UNCUT = 'uncut'
 # --------------------------------------------------------------------------------------------------
 def get_fig_parameters(classes_abondance: Dict[str, int], parent_dict: Dict[str, List[str]],
                        root_item, subset_abundance: Dict[str, int] = None,
-                       names: Dict[str, str] = None) -> Dict[str, List]:
+                       names: Dict[str, str] = None) -> Dict[str, List[str or int or float]]:
     """ Returns a dictionary of parameters to create the sunburst figure.
 
     Parameters
@@ -60,7 +60,7 @@ def get_fig_parameters(classes_abondance: Dict[str, int], parent_dict: Dict[str,
 
     Returns
     -------
-    Dict[str, List]
+    Dict[str, List[str or int or float]]
         Dictionary with lists of :
             - ids : ID (str)
             - onto ids : Onto ID (str)
@@ -166,13 +166,14 @@ def get_sub_abundance(subset_abundance: Dict[str, float] or None, c_label: str,
     return c_sub_abundance
 
 
-def add_value_data(data: Dict[str, List], m_id: str, onto_id: str, label: str, value: float,
-                   base_value: float, parent: str) -> Dict[str, List]:
+def add_value_data(data: Dict[str, List[str or int or float]], m_id: str, onto_id: str, label: str,
+                   value: float, base_value: float, parent: str) \
+        -> Dict[str, List[str or int or float]]:
     """ Fill the data dictionary for a metabolite class.
 
     Parameters
     ----------
-    data: Dict[str, List]
+    data: Dict[str, List[str or int or float]]
         Dictionary with lists of :
             - ids : ID (str)
             - onto ids : Onto ID (str)
@@ -195,7 +196,7 @@ def add_value_data(data: Dict[str, List], m_id: str, onto_id: str, label: str, v
 
     Returns
     -------
-    Dict[str, List]
+    Dict[str, List[str or int or float]]
         Dictionary with lists of :
             - ids : ID (str)
             - onto ids : Onto ID (str)
@@ -217,13 +218,14 @@ def add_value_data(data: Dict[str, List], m_id: str, onto_id: str, label: str, v
 
 # Add Proportion to Data table
 # --------------------------------------------------------------------------------------------------
-def get_data_proportion(data: Dict[str, List], total: bool) -> Dict[str, List]:
+def get_data_proportion(data: Dict[str, List[str or int or float]], total: bool) \
+        -> Dict[str, List[str or int or float]]:
     """ Add a proportion value for color. If total add relative proportion to +1 parent for branch
     value.
 
     Parameters
     ----------
-    data: Dict[str, List]
+    data: Dict[str, List[str or int or float]]
         Dictionary with lists of :
             - ids : ID (str)
             - onto ids : Onto ID (str)
@@ -236,7 +238,7 @@ def get_data_proportion(data: Dict[str, List], total: bool) -> Dict[str, List]:
 
     Returns
     -------
-    Dict[str, List]
+    Dict[str, List[str or int or float]]
         Dictionary with lists of :
             - ids : ID (str)
             - onto ids : Onto ID (str)
@@ -269,13 +271,14 @@ def get_data_proportion(data: Dict[str, List], total: bool) -> Dict[str, List]:
     return data
 
 
-def get_relative_prop(data: Dict[str, List], p_id: str):
+def get_relative_prop(data: Dict[str, List[str or int or float]], p_id: str) \
+        -> Dict[str, List[str or int or float]]:
     """ Get recursively relative proportion of a parent children to itself. Add id to data
     Relative_proportion.
 
     Parameters
     ----------
-    data: Dict[str, List]
+    data: Dict[str, List[str or int or float]]
         Dictionary with lists of :
             - ids : ID (str)
             - onto ids : Onto ID (str)
@@ -291,7 +294,7 @@ def get_relative_prop(data: Dict[str, List], p_id: str):
 
     Returns
     -------
-    Dict[str, List]
+    Dict[str, List[str or int or float]]
         Dictionary with lists of :
             - ids : ID (str)
             - onto ids : Onto ID (str)
@@ -327,14 +330,14 @@ def get_relative_prop(data: Dict[str, List], p_id: str):
 
 # Enrichment analysis
 # --------------------------------------------------------------------------------------------------
-def get_data_enrichment_analysis(data: Dict[str, List], ref_classes_abundance: Dict[str, int],
-                                 test: str) \
-        -> Tuple[Dict[str, List], Dict[str, float]]:
+def get_data_enrichment_analysis(data: Dict[str, List[str or int or float]],
+                                 ref_classes_abundance: Dict[str, int], test: str) \
+        -> Tuple[Dict[str, List[str or int or float]], Dict[str, float]]:
     """ Performs statistical tests for enrichment analysis.
 
     Parameters
     ----------
-    data: Dict[str, List]
+    data: Dict[str, List[str or int or float]]
         Dictionary with lists of :
             - ids : ID (str)
             - onto ids : Onto ID (str)
@@ -352,7 +355,7 @@ def get_data_enrichment_analysis(data: Dict[str, List], ref_classes_abundance: D
 
     Returns
     -------
-    Dict[str, List]
+    Dict[str, List[str or int or float]]
         Dictionary with lists of :
             - ids : ID (str)
             - onto ids : Onto ID (str)
@@ -405,12 +408,13 @@ def get_data_enrichment_analysis(data: Dict[str, List], ref_classes_abundance: D
 
 # Topology management
 # --------------------------------------------------------------------------------------------------
-def data_cut_root(data: Dict[str, List], mode: str) -> Dict[str, List]:
+def data_cut_root(data: Dict[str, List[str or int or float]], mode: str) \
+        -> Dict[str, List[str or int or float]]:
     """ Filter data to cut (or not) the root to remove not necessary 100% represented classes.
 
     Parameters
     ----------
-    data: Dict[str, List]
+    data: Dict[str, List[str or int or float]]
         Dictionary of figure parameters
     mode: str
         Mode of root cutting
@@ -420,7 +424,7 @@ def data_cut_root(data: Dict[str, List], mode: str) -> Dict[str, List]:
 
     Returns
     -------
-    data: Dict[str, List]
+    Dict[str, List[str or int or float]]
         Dictionary of figure parameters with root cut applied
     """
     if mode not in {ROOT_UNCUT, ROOT_CUT, ROOT_TOTAL_CUT}:

@@ -43,8 +43,9 @@ def ontosunburst(metabolic_objects: List[str],
                  ref_abundances: List[float] = None,
                  analysis: str = TOPOLOGY_A,
                  output: str = 'sunburst',
+                 write_output: bool = True,
                  class_ontology: str or Dict[str, str] = None,
-                 names_file: str = DEFAULT,
+                 labels: str or Dict[str, str] = DEFAULT,
                  endpoint_url: str = None,
                  test: str = BINOMIAL_TEST,
                  total: bool = True,
@@ -72,10 +73,12 @@ def ontosunburst(metabolic_objects: List[str],
         Analysis mode, must be in : [topology, enrichment]
     output: str (optional, default=None)
         Path of the output to save figure
+    write_output: bool (optional, default=True)
+        True to write the html figure and tsv class files, False to only return figure
     class_ontology: str or Dict[str, str] (optional, default=None)
         Class ontology dictionary or json file.
-    names_file: str (optional, default=default)
-        Path to ID-LABELS association json file
+    labels: str or Dict[str, str] (optional, default=default)
+        Path to ID-LABELS association json file or ID-LABELS association dictionary
     endpoint_url: str (optional, default=None)
         URL of ChEBI or GO ontology for SPARQL requests
     test: str (optional, default=binomial)
@@ -96,14 +99,17 @@ def ontosunburst(metabolic_objects: List[str],
     """
     start_time = time()
     # LOAD NAMES -----------------------------------------------------------------------------------
-    if names_file == DEFAULT:
+    if labels == DEFAULT:
         if ontology is not None:
-            names_file = DEFAULT_NAMES[ontology]
+            labels = DEFAULT_NAMES[ontology]
         else:
-            names_file = None
-    if names_file is not None:
-        with open(names_file, 'r') as f:
-            names = json.load(f)
+            labels = None
+    if labels is not None:
+        if type(labels) == str:
+            with open(labels, 'r') as f:
+                names = json.load(f)
+        else:
+            names = labels
     else:
         names = None
     # DICTIONARY / JSON INPUT ----------------------------------------------------------------------
@@ -123,7 +129,6 @@ def ontosunburst(metabolic_objects: List[str],
     elif ontology == CHEBI or ontology == GO:
         if endpoint_url is None:
             endpoint_url = DEFAULT_URL[ontology]
-        d_classes_ontology = None
     # ELSE -----------------------------------------------------------------------------------------
     else:
         raise ValueError(f'ontology parameter must be in {[METACYC, EC, KEGG, GO, CHEBI, None]}')
@@ -135,8 +140,9 @@ def ontosunburst(metabolic_objects: List[str],
                            metabolic_objects=metabolic_objects, abundances=abundances,
                            reference_set=reference_set, ref_abundances=ref_abundances,
                            d_classes_ontology=class_ontology, endpoint_url=endpoint_url,
-                           output=output, names=names, total=total, test=test, root=root,
-                           root_cut=root_cut, ref_base=ref_base, show_leaves=show_leaves, **kwargs)
+                           output=output, write_output=write_output, names=names, total=total,
+                           test=test, root=root, root_cut=root_cut, ref_base=ref_base,
+                           show_leaves=show_leaves, **kwargs)
     end_time = time()
     print(f'Execution time : {end_time-start_time} seconds')
     return fig
@@ -146,8 +152,35 @@ def ontosunburst(metabolic_objects: List[str],
 #                                             FUNCTIONS
 # ==================================================================================================
 def _global_analysis(ontology, analysis, metabolic_objects, abundances, reference_set,
-                     ref_abundances, d_classes_ontology, endpoint_url, output, names, total,
-                     test, root, root_cut, ref_base, show_leaves, **kwargs):
+                     ref_abundances, d_classes_ontology, endpoint_url, output, write_output, names,
+                     total, test, root, root_cut, ref_base, show_leaves, **kwargs):
+    """
+
+    Parameters
+    ----------
+    ontology
+    analysis
+    metabolic_objects
+    abundances
+    reference_set
+    ref_abundances
+    d_classes_ontology
+    endpoint_url
+    output
+    write_output
+    names
+    total
+    test
+    root
+    root_cut
+    ref_base
+    show_leaves
+    kwargs
+
+    Returns
+    -------
+
+    """
     abundances_dict = get_abundance_dict(abundances=abundances,
                                          metabolic_objects=metabolic_objects,
                                          ref=False)
@@ -161,7 +194,7 @@ def _global_analysis(ontology, analysis, metabolic_objects, abundances, referenc
         print('No metabolic object classified, passing.')
         return None
 
-    if output is not None:
+    if write_output:
         write_met_classes(ontology, obj_all_classes, output)
 
     if reference_set is not None:
@@ -183,9 +216,9 @@ def _global_analysis(ontology, analysis, metabolic_objects, abundances, referenc
             return _enrichment_analysis(ref_classes_abundance=ref_classes_abundance,
                                         classes_abundance=classes_abundance,
                                         d_classes_ontology=d_classes_ontology,
-                                        output=output, names=names, total=total,
-                                        test=test, root=root, root_cut=root_cut, ref_base=ref_base,
-                                        **kwargs)
+                                        output=output, write_output=write_output, names=names,
+                                        total=total, test=test, root=root, root_cut=root_cut,
+                                        ref_base=ref_base, **kwargs)
         else:
             raise AttributeError('Missing reference set parameter')
 
@@ -194,16 +227,17 @@ def _global_analysis(ontology, analysis, metabolic_objects, abundances, referenc
         return _topology_analysis(ref_classes_abundance=ref_classes_abundance,
                                   classes_abundance=classes_abundance,
                                   d_classes_ontology=d_classes_ontology,
-                                  output=output, names=names, total=total,
-                                  root=root, root_cut=root_cut, ref_base=ref_base, **kwargs)
+                                  output=output, write_output=write_output, names=names,
+                                  total=total, root=root, root_cut=root_cut, ref_base=ref_base,
+                                  **kwargs)
 
     else:
         raise ValueError(f'Value of analysis parameter must be in : {[TOPOLOGY_A, ENRICHMENT_A]}')
 
 
 def _topology_analysis(ref_classes_abundance, classes_abundance, d_classes_ontology, output,
-                       names, total, root, root_cut, ref_base, **kwargs) -> go.Figure:
-    """ Performs the proportion analysis
+                       write_output, names, total, root, root_cut, ref_base, **kwargs) -> go.Figure:
+    """ Performs the topology analysis showing the abundance of each classes.
 
     Parameters
     ----------
@@ -211,6 +245,7 @@ def _topology_analysis(ref_classes_abundance, classes_abundance, d_classes_ontol
     classes_abundance
     d_classes_ontology
     output
+    write_output
     names
     total
     root
@@ -239,7 +274,8 @@ def _topology_analysis(ref_classes_abundance, classes_abundance, d_classes_ontol
         data = get_data_proportion(data, total)
         return generate_sunburst_fig(data=data, output=output, analysis=TOPOLOGY_A,
                                      ref_classes_abundance=ref_classes_abundance,
-                                     total=total, root_cut=root_cut, ref_base=ref_base, **kwargs)
+                                     total=total, root_cut=root_cut, ref_base=ref_base,
+                                     write_fig=write_output, **kwargs)
 
     else:
         d_classes_ontology = reduce_d_ontology(d_classes_ontology, classes_abundance)
@@ -248,12 +284,15 @@ def _topology_analysis(ref_classes_abundance, classes_abundance, d_classes_ontol
                                   root_item=root, names=names)
         data = get_data_proportion(data, total)
         return generate_sunburst_fig(data=data, output=output, analysis=TOPOLOGY_A,
-                                     total=total, root_cut=root_cut, ref_base=ref_base, **kwargs)
+                                     total=total, root_cut=root_cut, ref_base=ref_base,
+                                     write_fig=write_output, **kwargs)
 
 
 def _enrichment_analysis(ref_classes_abundance, classes_abundance, d_classes_ontology, output,
-                         names, total, test, root, root_cut, ref_base, **kwargs) -> go.Figure:
-    """ Performs the comparison analysis
+                         write_output, names, total, test, root, root_cut, ref_base, **kwargs) \
+        -> go.Figure:
+    """ Performs the enrichment analysis showing enrichment of the interest set in comparison to
+    the reference set.
 
     Parameters
     ----------
@@ -261,6 +300,7 @@ def _enrichment_analysis(ref_classes_abundance, classes_abundance, d_classes_ont
     classes_abundance
     d_classes_ontology
     output
+    write_output
     names
     total
     test
@@ -286,10 +326,18 @@ def _enrichment_analysis(ref_classes_abundance, classes_abundance, d_classes_ont
     data = get_data_proportion(data, total)
     return generate_sunburst_fig(data=data, output=output, analysis=ENRICHMENT_A,
                                  ref_classes_abundance=ref_classes_abundance, test=test,
-                                 total=total, root_cut=root_cut, **kwargs)
+                                 total=total, root_cut=root_cut, write_fig=write_output, **kwargs)
 
 
-def write_met_classes(ontology, all_classes, output):
+def write_met_classes(ontology: str, all_classes: Dict[str, List[str]], output: str):
+    """ Writes, for each input class, all its ancestors in a .tsv file.
+
+    Parameters
+    ----------
+    ontology
+    all_classes
+    output
+    """
     if ontology is None:
         ontology = 'Nan'
     links_dict = {METACYC: 'https://metacyc.org/compound?orgid=META&id=',
@@ -297,7 +345,7 @@ def write_met_classes(ontology, all_classes, output):
                   EC: 'https://enzyme.expasy.org/EC/',
                   KEGG: 'https://www.genome.jp/entry/',
                   GO: 'https://amigo.geneontology.org/amigo/term/',
-                  'Nan': 'Nan'}
+                  'Nan': ''}
     with open(f'{output}.tsv', 'w') as f:
         f.write('\t'.join(['ID', 'Classes', 'Link']) + '\n')
         for met, classes, in all_classes.items():
