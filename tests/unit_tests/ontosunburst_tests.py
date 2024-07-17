@@ -50,35 +50,6 @@ def save_fig_json(fig, file):
         json.dump(fig, f)
 
 
-def test_for(func):
-    def decorator(test_func):
-        @wraps(test_func)
-        def wrapper(*args, **kwargs):
-            return test_func(*args, **kwargs)
-
-        wrapper._test_for = func
-        return wrapper
-
-    return decorator
-
-
-class DualWriter(io.StringIO):
-    def __init__(self, original_stdout):
-        super().__init__()
-        self.original_stdout = original_stdout
-
-    def write(self, s):
-        super().write(s)
-        self.original_stdout.write(s)
-
-
-# ==================================================================================================
-# UNIT TESTS
-# ==================================================================================================
-
-# CUSTOM ONTO
-# --------------------------------------------------------------------------------------------------
-
 def sort_fig_dict_lst(fig):
     """
     {data: [{hovertext: [str],
@@ -115,6 +86,35 @@ def are_fig_dict_equals(fig1, fig2_file):
         fig2 = json.dumps(sort_fig_dict_lst(fig2), sort_keys=True)
     return (fig1 == fig2) and (fig1_l == fig2_l)
 
+
+def test_for(func):
+    def decorator(test_func):
+        @wraps(test_func)
+        def wrapper(*args, **kwargs):
+            return test_func(*args, **kwargs)
+
+        wrapper._test_for = func
+        return wrapper
+
+    return decorator
+
+
+class DualWriter(io.StringIO):
+    def __init__(self, original_stdout):
+        super().__init__()
+        self.original_stdout = original_stdout
+
+    def write(self, s):
+        super().write(s)
+        self.original_stdout.write(s)
+
+
+# ==================================================================================================
+# UNIT TESTS
+# ==================================================================================================
+
+# CUSTOM ONTO
+# --------------------------------------------------------------------------------------------------
 
 class TestOntosunburstCustomOnto(unittest.TestCase):
 

@@ -244,7 +244,6 @@ def extract_go_classes(go_ids: List[str], endpoint_url: str) \
     d_classes_ontology = dict()
     all_classes = dict()
     for go in go_ids:
-        go = go.lower()
         go_classes = set()
         sparql = SPARQLWrapper(endpoint_url)
         sparql.setQuery(f"""
@@ -416,6 +415,8 @@ def get_classes_abundance(all_classes: Dict[str, Set[str]], abundances_dict: Dic
     Dict[str, float]
         Dictionary associating for each class the weight of concepts found belonging to the class.
     """
+    print(all_classes)
+    print(abundances_dict)
     classes_abondance = dict()
     for met, classes in all_classes.items():
         if show_leaves:
