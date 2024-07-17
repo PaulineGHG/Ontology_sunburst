@@ -11,7 +11,6 @@ Python 3.10 recommended
 Requirements from `requirements.txt`
 
 - numpy>=1.22.0
-- padmet>=5.0.1
 - plotly>=5.17.0
 - scipy>=1.8.1
 - SPARQLWrapper>=2.0.0
@@ -72,6 +71,12 @@ With local files :
 With SPARQL server :
 - ChEBI (chebi roles)
 - Gene Ontology (works well only with small set)
+
+Personal ontology possible :
+- Define all the ontology classes relationship in 
+a dictionary `{class: [parent classes]}`
+- Define the root : unique class with no parents
+- Define the classes set(s) to analyse
 
 #### 2 **Analysis :**
 
