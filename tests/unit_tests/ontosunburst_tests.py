@@ -1,3 +1,4 @@
+import json
 import unittest
 import io
 from functools import wraps
@@ -75,8 +76,45 @@ class DualWriter(io.StringIO):
 # UNIT TESTS
 # ==================================================================================================
 
-# TEST
+# CUSTOM ONTO
 # --------------------------------------------------------------------------------------------------
+
+def sort_fig_dict_lst(fig):
+    """
+    {data: [{hovertext: [str],
+             ids: [str],
+             labels: [str],
+             marker: {colors: [int]},
+             parents: [str],
+             values: [int]}]}
+    """
+    lst_keys = ['hovertext', 'ids', 'labels', 'parents', 'values']
+    for k in lst_keys:
+        fig['data'][0][k] = sorted(fig['data'][0][k])
+    fig['data'][0]['marker']['colors'] = sorted(fig['data'][0]['marker']['colors'])
+    return fig
+
+
+def fig_to_lines(fig_dict):
+    lst_keys = ['hovertext', 'ids', 'labels', 'parents', 'values']
+    lines = set()
+    for i in range(len(fig_dict['data'][0]['ids'])):
+        line = tuple(fig_dict['data'][0][k][i] for k in lst_keys)
+        line = line + (str(fig_dict['data'][0]['marker']['colors'][i]),)
+        lines.add(line)
+    return lines
+
+
+def are_fig_dict_equals(fig1, fig2_file):
+    fig1 = fig1.to_dict()
+    fig1_l = fig_to_lines(fig1)
+    fig1 = json.dumps(sort_fig_dict_lst(fig1), sort_keys=True)
+    with open(fig2_file, 'r') as f:
+        fig2 = json.load(f)
+        fig2_l = fig_to_lines(fig2)
+        fig2 = json.dumps(sort_fig_dict_lst(fig2), sort_keys=True)
+    return (fig1 == fig2) and (fig1_l == fig2_l)
+
 
 class TestOntosunburstCustomOnto(unittest.TestCase):
 
@@ -90,10 +128,7 @@ class TestOntosunburstCustomOnto(unittest.TestCase):
                            test=BINOMIAL_TEST, total=True, root_cut=ROOT_TOTAL_CUT,
                            ref_base=True, show_leaves=True)
         w_fig_file = os.path.join('test_files', 'test1.json')
-        fig = json.dumps(fig.to_dict(), sort_keys=True)
-        with open(w_fig_file, 'r') as f:
-            w_fig = json.dumps(json.load(f), sort_keys=True)
-        self.assertEqual(fig, w_fig)
+        self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
 
     @test_for(ontosunburst)
     def test_ontosunburst_2(self):
@@ -104,10 +139,7 @@ class TestOntosunburstCustomOnto(unittest.TestCase):
                            test=BINOMIAL_TEST, total=True, root_cut=ROOT_CUT,
                            ref_base=False, show_leaves=True)
         w_fig_file = os.path.join('test_files', 'test2.json')
-        fig = json.dumps(fig.to_dict(), sort_keys=True)
-        with open(w_fig_file, 'r') as f:
-            w_fig = json.dumps(json.load(f), sort_keys=True)
-        self.assertEqual(fig, w_fig)
+        self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
 
     @test_for(ontosunburst)
     def test_ontosunburst_3(self):
@@ -118,10 +150,7 @@ class TestOntosunburstCustomOnto(unittest.TestCase):
                            test=BINOMIAL_TEST, total=True, root_cut=ROOT_UNCUT,
                            ref_base=False, show_leaves=False, bg_color='#eeeeee')
         w_fig_file = os.path.join('test_files', 'test3.json')
-        fig = json.dumps(fig.to_dict(), sort_keys=True)
-        with open(w_fig_file, 'r') as f:
-            w_fig = json.dumps(json.load(f), sort_keys=True)
-        self.assertEqual(fig, w_fig)
+        self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
 
     # ENRICHMENT : CUSTOM ONTO
 
@@ -134,24 +163,7 @@ class TestOntosunburstCustomOnto(unittest.TestCase):
                            test=BINOMIAL_TEST, total=True, root_cut=ROOT_CUT,
                            ref_base=True, show_leaves=True)
         w_fig_file = os.path.join('test_files', 'test4.json')
-        fig = json.dumps(fig.to_dict(), sort_keys=True)
-        with open(w_fig_file, 'r') as f:
-            w_fig = json.dumps(json.load(f), sort_keys=True)
-        self.assertEqual(fig, w_fig)
-
-    @test_for(ontosunburst)
-    def test_ontosunburst_5(self):
-        fig = ontosunburst(metabolic_objects=E_LST, ontology=None, root='00',
-                           abundances=E_LAB, reference_set=E_REF, ref_abundances=E_RAB,
-                           analysis='enrichment', output='test5', write_output=True,
-                           class_ontology=E_ONTO, labels=E_LABElS, endpoint_url=None,
-                           test=HYPERGEO_TEST, total=False, root_cut=ROOT_UNCUT,
-                           ref_base=False, show_leaves=True)
-        w_fig_file = os.path.join('test_files', 'test5.json')
-        fig = json.dumps(fig.to_dict(), sort_keys=True)
-        with open(w_fig_file, 'r') as f:
-            w_fig = json.dumps(json.load(f), sort_keys=True)
-        self.assertEqual(fig, w_fig)
+        self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
 
     @test_for(ontosunburst)
     def test_ontosunburst_5(self):
@@ -162,11 +174,22 @@ class TestOntosunburstCustomOnto(unittest.TestCase):
                            test=HYPERGEO_TEST, total=False, root_cut=ROOT_UNCUT,
                            ref_base=False, show_leaves=True)
         w_fig_file = os.path.join('test_files', 'test5.json')
-        fig = json.dumps(fig.to_dict(), sort_keys=True)
-        with open(w_fig_file, 'r') as f:
-            w_fig = json.dumps(json.load(f), sort_keys=True)
-        self.assertEqual(fig, w_fig)
+        self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
 
+    @test_for(ontosunburst)
+    def test_ontosunburst_6(self):
+        fig = ontosunburst(metabolic_objects=E_LST, ontology=None, root='00',
+                           abundances=E_LAB, reference_set=E_REF, ref_abundances=E_RAB,
+                           analysis='enrichment', output='test6', write_output=False,
+                           class_ontology=E_ONTO, labels=E_LABElS, endpoint_url=None,
+                           test=HYPERGEO_TEST, total=False, root_cut=ROOT_UNCUT,
+                           ref_base=False, show_leaves=True)
+        w_fig_file = os.path.join('test_files', 'test6.json')
+        self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
+
+
+# METACYC
+# --------------------------------------------------------------------------------------------------
 
 MET_LST = ['CPD-24674', 'CPD-24687', 'CPD-24688']
 MET_REF = ['CPD-24674', 'CPD-24687', 'CPD-24688',
@@ -193,6 +216,7 @@ PWY_REF = ['2ASDEG-PWY', '4AMINOBUTMETAB-PWY', 'ALLANTOINDEG-PWY',
 
 class TestOntosunburstMetaCyc(unittest.TestCase):
 
+    # Topology
     @test_for(ontosunburst)
     def test_ontosunburst_mc1(self):
         fig = ontosunburst(metabolic_objects=MET_LST, ontology=METACYC,
@@ -202,10 +226,7 @@ class TestOntosunburstMetaCyc(unittest.TestCase):
                            test=HYPERGEO_TEST, total=True, root_cut=ROOT_CUT,
                            ref_base=True, show_leaves=True)
         w_fig_file = os.path.join('test_files', 'test_mc1.json')
-        fig = json.dumps(fig.to_dict(), sort_keys=True)
-        with open(w_fig_file, 'r') as f:
-            w_fig = json.dumps(json.load(f), sort_keys=True)
-        self.assertEqual(fig, w_fig)
+        self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
 
     @test_for(ontosunburst)
     def test_ontosunburst_mc2(self):
@@ -216,10 +237,7 @@ class TestOntosunburstMetaCyc(unittest.TestCase):
                            test=HYPERGEO_TEST, total=True, root_cut=ROOT_CUT,
                            ref_base=False, show_leaves=False)
         w_fig_file = os.path.join('test_files', 'test_mc2.json')
-        fig = json.dumps(fig.to_dict(), sort_keys=True)
-        with open(w_fig_file, 'r') as f:
-            w_fig = json.dumps(json.load(f), sort_keys=True)
-        self.assertEqual(fig, w_fig)
+        self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
 
     @test_for(ontosunburst)
     def test_ontosunburst_mc3(self):
@@ -230,22 +248,118 @@ class TestOntosunburstMetaCyc(unittest.TestCase):
                            test=HYPERGEO_TEST, total=True, root_cut=ROOT_CUT,
                            ref_base=False, show_leaves=True)
         w_fig_file = os.path.join('test_files', 'test_mc3.json')
-        fig = json.dumps(fig.to_dict(), sort_keys=True)
-        with open(w_fig_file, 'r') as f:
-            w_fig = json.dumps(json.load(f), sort_keys=True)
-        self.assertEqual(fig, w_fig)
+        self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
 
+    # Enrichment
     @test_for(ontosunburst)
     def test_ontosunburst_mc4(self):
         fig = ontosunburst(metabolic_objects=MET_LST, ontology=METACYC,
                            abundances=MET_LAB, reference_set=MET_REF, ref_abundances=MET_RAB,
-                           analysis=ENRICHMENT_A, output='mc4', write_output=True,
+                           analysis=ENRICHMENT_A, output='mc4', write_output=False,
                            class_ontology=None, labels=DEFAULT, endpoint_url=None,
                            test=HYPERGEO_TEST, total=True, root_cut=ROOT_CUT,
                            ref_base=False, show_leaves=False)
         w_fig_file = os.path.join('test_files', 'test_mc4.json')
-        save_fig_json(fig, w_fig_file)
-        fig = json.dumps(fig.to_dict(), sort_keys=True)
-        with open(w_fig_file, 'r') as f:
-            w_fig = json.dumps(json.load(f), sort_keys=True)
-        self.assertEqual(fig, w_fig)
+        # self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
+
+    @test_for(ontosunburst)
+    def test_ontosunburst_mc5(self):
+        fig = ontosunburst(metabolic_objects=MET_LST, ontology=METACYC,
+                           abundances=MET_LAB, reference_set=MET_REF, ref_abundances=MET_RAB,
+                           analysis=ENRICHMENT_A, output='mc5', write_output=False,
+                           class_ontology=None, labels=DEFAULT, endpoint_url=None,
+                           test=BINOMIAL_TEST, total=True, root_cut=ROOT_CUT,
+                           ref_base=True, show_leaves=True)
+        w_fig_file = os.path.join('test_files', 'test_mc5.json')
+        # self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
+
+    # Pathways
+    @test_for(ontosunburst)
+    def test_ontosunburst_mc6(self):
+        fig = ontosunburst(metabolic_objects=PWY_LST, ontology=METACYC,
+                           abundances=None, reference_set=PWY_REF, ref_abundances=None,
+                           analysis=TOPOLOGY_A, output='mc6', write_output=False,
+                           class_ontology=None, labels=DEFAULT, endpoint_url=None,
+                           test=BINOMIAL_TEST, total=True, root_cut=ROOT_CUT,
+                           ref_base=True, show_leaves=True)
+        w_fig_file = os.path.join('test_files', 'test_mc6.json')
+        self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
+
+    # Reactions
+    @test_for(ontosunburst)
+    def test_ontosunburst_mc7(self):
+        fig = ontosunburst(metabolic_objects=RXN_LST, ontology=METACYC,
+                           abundances=None, reference_set=RXN_REF, ref_abundances=None,
+                           analysis=TOPOLOGY_A, output='mc7', write_output=False,
+                           class_ontology=None, labels=DEFAULT, endpoint_url=None,
+                           test=BINOMIAL_TEST, total=True, root_cut=ROOT_CUT,
+                           ref_base=True, show_leaves=True)
+        w_fig_file = os.path.join('test_files', 'test_mc7.json')
+        self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
+
+
+# EC
+# --------------------------------------------------------------------------------------------------
+
+EC_LST = ['2.6.1.45', '1.1.1.25', '1.1.1.140', '1.1.2.-']
+REF_EC = ['2.6.1.45', '1.1.1.25', '1.1.1.140',
+          '1.14.14.52', '2.7.1.137', '7.1.1.8',
+          '1.17.4.5', '2.3.1.165', '3.2.1.53',
+          '3.2.1.91', '6.3.4.2', '5.4.99.8']
+
+
+class TestOntosunburstEC(unittest.TestCase):
+
+    @test_for(ontosunburst)
+    def test_ontosunburst_ec1(self):
+        fig = ontosunburst(metabolic_objects=EC_LST, ontology=EC,
+                           abundances=None, reference_set=REF_EC, ref_abundances=None,
+                           analysis=TOPOLOGY_A, output='ec1', write_output=False,
+                           class_ontology=None, labels=DEFAULT, endpoint_url=None,
+                           test=BINOMIAL_TEST, total=True, root_cut=ROOT_CUT,
+                           ref_base=True, show_leaves=True)
+        w_fig_file = os.path.join('test_files', 'test_ec1.json')
+        self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
+
+    @test_for(ontosunburst)
+    def test_ontosunburst_ec2(self):
+        fig = ontosunburst(metabolic_objects=EC_LST, ontology=EC,
+                           abundances=None, reference_set=REF_EC, ref_abundances=None,
+                           analysis=TOPOLOGY_A, output='ec2', write_output=False,
+                           class_ontology=None, labels=None, endpoint_url=None,
+                           test=BINOMIAL_TEST, total=True, root_cut=ROOT_CUT,
+                           ref_base=True, show_leaves=True)
+        w_fig_file = os.path.join('test_files', 'test_ec2.json')
+        self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
+
+    @test_for(ontosunburst)
+    def test_ontosunburst_ec3(self):
+        fig = ontosunburst(metabolic_objects=EC_LST, ontology=EC,
+                           abundances=None, reference_set=REF_EC, ref_abundances=None,
+                           analysis=ENRICHMENT_A, output='ec3', write_output=False,
+                           class_ontology=None, labels={'1.-.-.-': ':D'}, endpoint_url=None,
+                           test=BINOMIAL_TEST, total=True, root_cut=ROOT_CUT,
+                           ref_base=True, show_leaves=True)
+        w_fig_file = os.path.join('test_files', 'test_ec3.json')
+        self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
+
+
+# KEGG
+# --------------------------------------------------------------------------------------------------
+
+KEGG_EX = ['M00572', 'M00308', 'M00844', 'M00633', 'M00176', 'M00535', 'M00573', 'M00970', 'M00131',
+           'M00620']
+
+
+class TestOntosunburstKegg(unittest.TestCase):
+
+    @test_for(ontosunburst)
+    def test_ontosunburst_kg1(self):
+        fig = ontosunburst(metabolic_objects=KEGG_EX, ontology=KEGG,
+                           abundances=None, reference_set=None, ref_abundances=None,
+                           analysis=TOPOLOGY_A, output='kg1', write_output=False,
+                           class_ontology=None, labels=DEFAULT, endpoint_url=None,
+                           test=BINOMIAL_TEST, total=True, root_cut=ROOT_CUT,
+                           ref_base=False, show_leaves=True)
+        w_fig_file = os.path.join('test_files', 'test_kg1.json')
+        self.assertTrue(are_fig_dict_equals(fig, w_fig_file))

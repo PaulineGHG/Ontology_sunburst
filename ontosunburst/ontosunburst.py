@@ -326,7 +326,8 @@ def _enrichment_analysis(ref_classes_abundance, classes_abundance, d_classes_ont
     data = get_data_proportion(data, total)
     return generate_sunburst_fig(data=data, output=output, analysis=ENRICHMENT_A,
                                  ref_classes_abundance=ref_classes_abundance, test=test,
-                                 total=total, root_cut=root_cut, write_fig=write_output, **kwargs)
+                                 total=total, root_cut=root_cut, ref_base=ref_base,
+                                 write_fig=write_output, **kwargs)
 
 
 def write_met_classes(ontology: str, all_classes: Dict[str, List[str]], output: str):

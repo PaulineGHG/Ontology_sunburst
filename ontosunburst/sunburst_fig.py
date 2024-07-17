@@ -185,20 +185,32 @@ def get_hover_fig_text(data: Dict[str, List[str or int or float]], analysis: str
 
     """
     if analysis == ENRICHMENT_A:
-        return [f'P value: {10 ** (-data[PVAL][i])}<br>'
-                f'{COUNT}: <b>{data[COUNT][i]}</b><br>'
-                f'{REF_COUNT}: {data[REF_COUNT][i]}<br>'
-                f'{PROP}: <b>{round(data[PROP][i] * 100, 2)}%</b><br>'
-                f'{REF_PROP}: {round(data[REF_PROP][i] * 100, 2)}%<br>'
-                f'{IDS}: {data[ONTO_ID][i]}'
-                if data[PVAL][i] > 0 else
-                f'P value: {10 ** data[PVAL][i]}<br>'
-                f'{COUNT}: <b>{data[COUNT][i]}</b><br>'
-                f'{REF_COUNT}: {data[REF_COUNT][i]}<br>'
-                f'{PROP}: <b>{round(data[PROP][i] * 100, 2)}%</b><br>'
-                f'{REF_PROP}: {round(data[REF_PROP][i] * 100, 2)}%<br>'
-                f'{IDS}: {data[ONTO_ID][i]}'
-                for i in range(len(data[PVAL]))]
+        if ref_base:
+            return [f'P value: {10 ** (-data[PVAL][i])}<br>'
+                    f'{COUNT}: <b>{data[COUNT][i]}</b><br>'
+                    f'{REF_COUNT}: {data[REF_COUNT][i]}<br>'
+                    f'{PROP}: <b>{round(data[PROP][i] * 100, 2)}%</b><br>'
+                    f'{REF_PROP}: {round(data[REF_PROP][i] * 100, 2)}%<br>'
+                    f'{IDS}: {data[ONTO_ID][i]}'
+                    if data[PVAL][i] > 0 else
+                    f'P value: {10 ** data[PVAL][i]}<br>'
+                    f'{COUNT}: <b>{data[COUNT][i]}</b><br>'
+                    f'{REF_COUNT}: {data[REF_COUNT][i]}<br>'
+                    f'{PROP}: <b>{round(data[PROP][i] * 100, 2)}%</b><br>'
+                    f'{REF_PROP}: {round(data[REF_PROP][i] * 100, 2)}%<br>'
+                    f'{IDS}: {data[ONTO_ID][i]}'
+                    for i in range(len(data[PVAL]))]
+        else:
+            return [f'P value: {10 ** (-data[PVAL][i])}<br>'
+                    f'{COUNT}: <b>{data[COUNT][i]}</b><br>'
+                    f'{PROP}: <b>{round(data[PROP][i] * 100, 2)}%</b><br>'
+                    f'{IDS}: {data[ONTO_ID][i]}'
+                    if data[PVAL][i] > 0 else
+                    f'P value: {10 ** data[PVAL][i]}<br>'
+                    f'{COUNT}: <b>{data[COUNT][i]}</b><br>'
+                    f'{PROP}: <b>{round(data[PROP][i] * 100, 2)}%</b><br>'
+                    f'{IDS}: {data[ONTO_ID][i]}'
+                    for i in range(len(data[PVAL]))]
     elif analysis == TOPOLOGY_A:
         if ref_base:
             return [f'{COUNT}: <b>{data[COUNT][i]}</b><br>'
