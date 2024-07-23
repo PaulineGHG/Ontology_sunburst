@@ -36,6 +36,184 @@ ROOT_UNCUT = 'uncut'
 
 
 # ==================================================================================================
+# CLASS
+# ==================================================================================================
+class DataTable:
+    def __init__(self):
+        self.ids = list()
+        self.onto_ids = list()
+        self.labels = list()
+        self.parents = list()
+        self.count = list()
+        self.ref_count = list()
+        self.prop = list()
+        self.ref_prop = list()
+        self.relative_prop = list()
+        self.p_val = list()
+        self.len = 0
+
+    def __str__(self):
+        string = ''
+        data = self.get_data_dict()
+        for k, v in data.items():
+            string += f'{k}\n{"-"*len(k)}\n{v}\n'
+        return string
+
+    def get_data_dict(self):
+        return {IDS: self.ids, ONTO_ID: self.onto_ids, LABEL: self.labels, PARENT: self.parents,
+                COUNT: self.count, REF_COUNT: self.ref_count, PROP: self.prop,
+                REF_PROP: self.ref_prop, RELAT_PROP: self.relative_prop, PVAL: self.p_val}
+
+    def fill_parameters(self, classes_abondance: Dict[str, int], parent_dict: Dict[str, List[str]],
+                        root_item, subset_abundance: Dict[str, int] = None,
+                        names: Dict[str, str] = None):
+
+        for c_onto_id, c_abundance in classes_abondance.items():
+            c_sub_abundance = get_sub_abundance(subset_abundance, c_onto_id, c_abundance)
+            if c_onto_id != root_item:
+                if names is not None:
+                    try:
+                        c_label = names[c_onto_id]
+                    except KeyError:
+                        c_label = c_onto_id
+                else:
+                    c_label = c_onto_id
+                all_c_ids = get_all_ids(c_onto_id, c_onto_id, parent_dict, root_item, set())
+                for c_id in all_c_ids:
+                    self.add_value(m_id=c_id, onto_id=c_onto_id, label=c_label,
+                                   count=c_sub_abundance, ref_count=c_abundance,
+                                   parent=c_id[len(c_onto_id) + 2:])  # Remove c_label__ prefix
+            else:
+                self.add_value(m_id=c_onto_id, onto_id=c_onto_id, label=c_onto_id,
+                               count=c_sub_abundance, ref_count=c_abundance, parent='')
+
+    def add_value(self, m_id: str, onto_id: str, label: str, count: float, ref_count: float,
+                  parent: str):
+        if m_id in self.ids:
+            raise ValueError(f'{m_id} already in data IDs, all IDs must be unique.')
+        self.ids.append(m_id)
+        self.onto_ids.append(onto_id)
+        self.labels.append(label)
+        self.parents.append(parent)
+        self.count.append(count)
+        self.ref_count.append(ref_count)
+        self.prop.append(np.nan)
+        self.ref_prop.append(np.nan)
+        self.relative_prop.append(np.nan)
+        self.p_val.append(np.nan)
+        self.len += 1
+
+    def calculate_proportions(self, total: bool):
+        # Get total proportion
+        max_abondance = int(np.nanmax(self.count))
+        self.prop = [x / max_abondance for x in self.count]
+        # Get reference proportion
+        max_ref_abondance = np.max(self.ref_count)
+        self.ref_prop = [x / max_ref_abondance for x in self.ref_count]
+        # Get proportion relative to +1 parent proportion for total branch value
+        if total:
+            self.relative_prop = [x for x in self.prop]
+            p = ''
+            self.__get_relative_prop(p)
+            # IDK WHY IT WORKS ???
+            missed = [self.ids[i] for i in range(self.len) if self.relative_prop[i] < 1]
+            if missed:
+                parents = {self.parents[self.ids.index(m)] for m in missed}
+                for p in parents:
+                    self.__get_relative_prop(p)
+
+    def __get_relative_prop(self, p_id: str):
+        if p_id == '':
+            prop_p = MAX_RELATIVE_NB
+            count_p = max(self.ref_count)
+        else:
+            prop_p = self.relative_prop[self.ids.index(p_id)]
+            count_p = self.ref_count[self.ids.index(p_id)]
+        index_p = [i for i, v in enumerate(self.parents) if v == p_id]
+        p_children = [self.ids[i] for i in index_p]
+        count_p_children = [self.ref_count[i] for i in index_p]
+        if sum(count_p_children) > count_p:
+            total = sum(count_p_children)
+        else:
+            total = count_p
+        for i, c in enumerate(p_children):
+            prop_c = int((count_p_children[i] / total) * prop_p)
+            self.relative_prop[self.ids.index(c)] = prop_c
+        for c in p_children:
+            if c in self.parents:
+                self.__get_relative_prop(c)
+
+    def make_enrichment_analysis(self, ref_classes_abundance: Dict[str, int], test: str):
+        M = np.max(list(ref_classes_abundance.values()))  # M = ref set total item number
+        m_list = [ref_classes_abundance[x] if x in ref_classes_abundance.keys() else 0 for x in
+                  self.onto_ids]
+
+        N = int(np.nanmax(self.count))  # N = interest set total item number
+        nb_classes = len(set([self.labels[i] for i in range(self.len)
+                              if not np.isnan(self.count[i])]))
+        significant_representation = dict()
+        for i in range(len(m_list)):
+            if type(self.count) == int:  # If count not nan (= if concept in interest set)
+                # Binomial Test
+                if test == BINOMIAL_TEST:
+                    p_val = stats.binomtest(self.count[i], N, m_list[i] / M,
+                                            alternative='two-sided').pvalue
+                # Hypergeometric Test
+                elif test == HYPERGEO_TEST:
+                    p_val_upper = stats.hypergeom.sf(self.count[i] - 1, M, m_list[i], N)
+                    p_val_lower = stats.hypergeom.cdf(self.count[i], M, m_list[i], N)
+                    p_val = 2 * min(p_val_lower, p_val_upper)  # bilateral
+                else:
+                    raise ValueError(
+                        f'test parameter must be in : {[BINOMIAL_TEST, HYPERGEO_TEST]}')
+                if ((self.count[i] / N) - (m_list[i] / M)) > 0:  # If over-represented :
+                    self.p_val.append(-np.log10(p_val))  # Positive log10(p-value)
+                else:  # If under-represented :
+                    self.p_val.append(np.log10(p_val))  # Negative log10(p-value)
+                if p_val < 0.05 / nb_classes:  # Keep significant p-values : Bonferroni correction
+                    significant_representation[self.onto_ids[i]] = p_val.round(10)
+            else:
+                self.p_val.append(np.nan)
+        significant_representation = dict(
+            sorted(significant_representation.items(), key=lambda item: item[1]))
+        return significant_representation
+
+    def cut_root(self, mode: str):
+        if mode not in {ROOT_UNCUT, ROOT_CUT, ROOT_TOTAL_CUT}:
+            raise ValueError(f'Root cutting mode {mode} unknown, '
+                             f'must be in {[ROOT_UNCUT, ROOT_CUT, ROOT_TOTAL_CUT]}')
+        if mode == ROOT_CUT or mode == ROOT_TOTAL_CUT:
+            roots_ind = [i for i in range(self.len) if self.relative_prop[i] == MAX_RELATIVE_NB]
+            roots = [self.ids[i] for i in roots_ind]
+            self.delete_value(roots_ind)
+            if mode == ROOT_CUT:
+                self.parents = [str(x).split('__')[0] if x in roots else x for x in self.parents]
+            if mode == ROOT_TOTAL_CUT:
+                self.parents = ['' if x in roots else x for x in self.parents]
+
+    def delete_value(self, v_index: int or List[int]):
+        data = self.get_data_dict().values()
+        if type(v_index) == int:
+            v_index = [v_index]
+            for i in v_index:
+                for v in data:
+                    del v[i]
+                self.len -= 1
+
+    def get_col(self, index: int or List[int] = None) -> List or List[List]:
+        if index is None:
+            index = list(range(self.len))
+        if type(index) == int:
+            index = [index]
+        cols = list()
+        for i in index:
+            cols.append((self.ids[i], self.onto_ids[i], self.labels[i], self.parents[i],
+                         self.count[i], self.ref_count[i], self.prop[i], self.ref_prop[i],
+                         self.relative_prop[i], self.p_val[i]))
+        return cols
+
+
+# ==================================================================================================
 # FUNCTIONS
 # ==================================================================================================
 
@@ -394,9 +572,9 @@ def get_data_enrichment_analysis(data: Dict[str, List[str or int or float]],
             else:
                 raise ValueError(f'test parameter must be in : {[BINOMIAL_TEST, HYPERGEO_TEST]}')
             if ((n_list[i] / N) - (m_list[i] / M)) > 0:  # If over-represented :
-                data[PVAL].append(-np.log10(p_val))          # Positive log10(p-value)
-            else:                                        # If under-represented :
-                data[PVAL].append(np.log10(p_val))           # Negative log10(p-value)
+                data[PVAL].append(-np.log10(p_val))  # Positive log10(p-value)
+            else:  # If under-represented :
+                data[PVAL].append(np.log10(p_val))  # Negative log10(p-value)
             if p_val < 0.05 / nb_classes:  # Capture significant p-values : Bonferroni correction
                 significant_representation[data[ONTO_ID][i]] = p_val.round(10)
         else:

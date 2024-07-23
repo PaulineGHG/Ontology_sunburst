@@ -73,6 +73,18 @@ W_REF_PROP = [1.0, 0.5277777777777778, 0.5277777777777778, 0.5, 0.41666666666666
 W_RELAT_PROP = [1000000, 283582, 283582, 268656, 223880, 141791, 179104, 141791, 153517, 115138,
                 119402, 82711, 104477, 104477, 76758, 59079, 59079, 74626, 63965, 51172, 47263,
                 38379, 38379, 35447, 44776, 29850, 14925]
+W_REL_PROP = {'FRAMES': 1000000, 'cdeeg+__FRAMES': 283582, 'cdeeg__cdeeg+__FRAMES': 283582,
+              'cdecf__FRAMES': 268656, 'gh__FRAMES': 223880, 'eg__cdeeg__cdeeg+__FRAMES': 141791,
+              'eg__FRAMES': 179104, 'cde__cdeeg__cdeeg+__FRAMES': 141791,
+              'cde__cdecf__FRAMES': 153517, 'cf__cdecf__FRAMES': 115138, 'h__gh__FRAMES': 119402,
+              'g__eg__cdeeg__cdeeg+__FRAMES': 82711, 'g__eg__FRAMES': 104477,
+              'g__gh__FRAMES': 104477, 'f__cf__cdecf__FRAMES': 76758,
+              'e__eg__cdeeg__cdeeg+__FRAMES': 59079, 'e__cde__cdeeg__cdeeg+__FRAMES': 59079,
+              'e__eg__FRAMES': 74626, 'e__cde__cdecf__FRAMES': 63965,
+              'd__cde__cdecf__FRAMES': 51172, 'd__cde__cdeeg__cdeeg+__FRAMES': 47263,
+              'c__cde__cdecf__FRAMES': 38379, 'c__cf__cdecf__FRAMES': 38379,
+              'c__cde__cdeeg__cdeeg+__FRAMES': 35447, 'ab__FRAMES': 44776, 'b__ab__FRAMES': 29850,
+              'a__ab__FRAMES': 14925}
 
 DATA_PROP = DATA
 DATA_PROP[PROP] = W_PROP
@@ -164,21 +176,20 @@ class TestGenerateDataTable(unittest.TestCase):
 
     @test_for(add_value_data)
     def test_add_value_data(self):
-        base_data = {IDS: ['bjr'],
-                     ONTO_ID: ['Bjr_0'],
-                     PARENT: ['salutations'],
-                     LABEL: ['bonjour'],
-                     COUNT: [2],
-                     REF_COUNT: [8]}
-        data = add_value_data(data=base_data, m_id='slt', onto_id='sl_1', label='salut', value=0.5,
-                              base_value=2.3, parent='salutations')
+        data = DataTable()
+        data.add_value(m_id='bjr', onto_id='Bjr_0', label='bonjour', count=2, ref_count=8,
+                       parent='salutations')
+        data.add_value(m_id='slt', onto_id='sl_1', label='salut', count=0.5, ref_count=2.3,
+                       parent='salutations')
         wanted_data = {IDS: ['bjr', 'slt'],
                        ONTO_ID: ['Bjr_0', 'sl_1'],
                        PARENT: ['salutations', 'salutations'],
                        LABEL: ['bonjour', 'salut'],
                        COUNT: [2, 0.5],
-                       REF_COUNT: [8, 2.3]}
-        self.assertEqual(data, wanted_data)
+                       REF_COUNT: [8, 2.3],
+                       PROP: [nan, nan], REF_PROP: [nan, nan], RELAT_PROP: [nan, nan],
+                       PVAL: [nan, nan]}
+        self.assertEqual(data.get_data_dict(), wanted_data)
 
     @test_for(get_all_ids)
     def test_get_all_c_ids(self):
@@ -202,78 +213,20 @@ class TestGenerateDataTable(unittest.TestCase):
 
     @test_for(get_fig_parameters)
     def test_get_fig_parameters(self):
-        data = get_fig_parameters(classes_abondance=MET_RAB_D, parent_dict=MC_ONTO,
-                                  root_item=ROOTS[METACYC], subset_abundance=MET_LAB_D, names=None)
-        lines = data_to_lines(data)
-        w_lines = {('c__cf__cdecf__FRAMES', 'c', 'cf__cdecf__FRAMES', 'c', 3, 3),
-                   ('b__ab__FRAMES', 'b', 'ab__FRAMES', 'b', 2, 2),
-                   ('eg__FRAMES', 'eg', 'FRAMES', 'eg', nan, 12),
-                   ('g__eg__cdeeg__cdeeg+__FRAMES', 'g', 'eg__cdeeg__cdeeg+__FRAMES', 'g', nan, 7),
-                   ('h__gh__FRAMES', 'h', 'gh__FRAMES', 'h', nan, 8),
-                   ('f__cf__cdecf__FRAMES', 'f', 'cf__cdecf__FRAMES', 'f', nan, 6),
-                   ('c__cde__cdecf__FRAMES', 'c', 'cde__cdecf__FRAMES', 'c', 3, 3),
-                   (
-                       'e__cde__cdeeg__cdeeg+__FRAMES', 'e', 'cde__cdeeg__cdeeg+__FRAMES', 'e', nan,
-                       5),
-                   ('gh__FRAMES', 'gh', 'FRAMES', 'gh', nan, 15),
-                   ('e__eg__cdeeg__cdeeg+__FRAMES', 'e', 'eg__cdeeg__cdeeg+__FRAMES', 'e', nan, 5),
-                   ('g__gh__FRAMES', 'g', 'gh__FRAMES', 'g', nan, 7),
-                   ('d__cde__cdecf__FRAMES', 'd', 'cde__cdecf__FRAMES', 'd', nan, 4),
-                   ('cdecf__FRAMES', 'cdecf', 'FRAMES', 'cdecf', 3, 18),
-                   ('cf__cdecf__FRAMES', 'cf', 'cdecf__FRAMES', 'cf', 3, 9),
-                   ('g__eg__FRAMES', 'g', 'eg__FRAMES', 'g', nan, 7),
-                   ('ab__FRAMES', 'ab', 'FRAMES', 'ab', 3, 3),
-                   ('e__cde__cdecf__FRAMES', 'e', 'cde__cdecf__FRAMES', 'e', nan, 5),
-                   (
-                       'd__cde__cdeeg__cdeeg+__FRAMES', 'd', 'cde__cdeeg__cdeeg+__FRAMES', 'd', nan,
-                       4),
-                   ('eg__cdeeg__cdeeg+__FRAMES', 'eg', 'cdeeg__cdeeg+__FRAMES', 'eg', nan, 12),
-                   ('a__ab__FRAMES', 'a', 'ab__FRAMES', 'a', 1, 1),
-                   ('cde__cdeeg__cdeeg+__FRAMES', 'cde', 'cdeeg__cdeeg+__FRAMES', 'cde', 3, 12),
-                   ('cdeeg+__FRAMES', 'cdeeg+', 'FRAMES', 'cdeeg+', 3, 19),
-                   ('cde__cdecf__FRAMES', 'cde', 'cdecf__FRAMES', 'cde', 3, 12),
-                   ('cdeeg__cdeeg+__FRAMES', 'cdeeg', 'cdeeg+__FRAMES', 'cdeeg', 3, 19),
-                   ('c__cde__cdeeg__cdeeg+__FRAMES', 'c', 'cde__cdeeg__cdeeg+__FRAMES', 'c', 3, 3),
-                   ('e__eg__FRAMES', 'e', 'eg__FRAMES', 'e', nan, 5),
-                   ('FRAMES', 'FRAMES', '', 'FRAMES', 6, 36)}
+        data = DataTable()
+        data.fill_parameters(classes_abondance=MET_RAB_D, parent_dict=MC_ONTO,
+                             root_item=ROOTS[METACYC], subset_abundance=MET_LAB_D, names=None)
+        lines = set(data.get_col())
+        w_lines = {('cde__cdeeg__cdeeg+__FRAMES', 'cde', 'cde', 'cdeeg__cdeeg+__FRAMES', 3, 12, nan, nan, nan, nan), ('d__cde__cdeeg__cdeeg+__FRAMES', 'd', 'd', 'cde__cdeeg__cdeeg+__FRAMES', nan, 4, nan, nan, nan, nan), ('b__ab__FRAMES', 'b', 'b', 'ab__FRAMES', 2, 2, nan, nan, nan, nan), ('g__eg__FRAMES', 'g', 'g', 'eg__FRAMES', nan, 7, nan, nan, nan, nan), ('eg__FRAMES', 'eg', 'eg', 'FRAMES', nan, 12, nan, nan, nan, nan), ('c__cde__cdecf__FRAMES', 'c', 'c', 'cde__cdecf__FRAMES', 3, 3, nan, nan, nan, nan), ('g__eg__cdeeg__cdeeg+__FRAMES', 'g', 'g', 'eg__cdeeg__cdeeg+__FRAMES', nan, 7, nan, nan, nan, nan), ('e__eg__cdeeg__cdeeg+__FRAMES', 'e', 'e', 'eg__cdeeg__cdeeg+__FRAMES', nan, 5, nan, nan, nan, nan), ('cdeeg__cdeeg+__FRAMES', 'cdeeg', 'cdeeg', 'cdeeg+__FRAMES', 3, 19, nan, nan, nan, nan), ('cdecf__FRAMES', 'cdecf', 'cdecf', 'FRAMES', 3, 18, nan, nan, nan, nan), ('ab__FRAMES', 'ab', 'ab', 'FRAMES', 3, 3, nan, nan, nan, nan), ('e__cde__cdeeg__cdeeg+__FRAMES', 'e', 'e', 'cde__cdeeg__cdeeg+__FRAMES', nan, 5, nan, nan, nan, nan), ('c__cde__cdeeg__cdeeg+__FRAMES', 'c', 'c', 'cde__cdeeg__cdeeg+__FRAMES', 3, 3, nan, nan, nan, nan), ('c__cf__cdecf__FRAMES', 'c', 'c', 'cf__cdecf__FRAMES', 3, 3, nan, nan, nan, nan), ('cde__cdecf__FRAMES', 'cde', 'cde', 'cdecf__FRAMES', 3, 12, nan, nan, nan, nan), ('FRAMES', 'FRAMES', 'FRAMES', '', 6, 36, nan, nan, nan, nan), ('f__cf__cdecf__FRAMES', 'f', 'f', 'cf__cdecf__FRAMES', nan, 6, nan, nan, nan, nan), ('eg__cdeeg__cdeeg+__FRAMES', 'eg', 'eg', 'cdeeg__cdeeg+__FRAMES', nan, 12, nan, nan, nan, nan), ('e__eg__FRAMES', 'e', 'e', 'eg__FRAMES', nan, 5, nan, nan, nan, nan), ('g__gh__FRAMES', 'g', 'g', 'gh__FRAMES', nan, 7, nan, nan, nan, nan), ('h__gh__FRAMES', 'h', 'h', 'gh__FRAMES', nan, 8, nan, nan, nan, nan), ('cdeeg+__FRAMES', 'cdeeg+', 'cdeeg+', 'FRAMES', 3, 19, nan, nan, nan, nan), ('gh__FRAMES', 'gh', 'gh', 'FRAMES', nan, 15, nan, nan, nan, nan), ('e__cde__cdecf__FRAMES', 'e', 'e', 'cde__cdecf__FRAMES', nan, 5, nan, nan, nan, nan), ('cf__cdecf__FRAMES', 'cf', 'cf', 'cdecf__FRAMES', 3, 9, nan, nan, nan, nan), ('a__ab__FRAMES', 'a', 'a', 'ab__FRAMES', 1, 1, nan, nan, nan, nan), ('d__cde__cdecf__FRAMES', 'd', 'd', 'cde__cdecf__FRAMES', nan, 4, nan, nan, nan, nan)}
         self.assertEqual(lines, w_lines)
 
     @test_for(get_fig_parameters)
     def test_get_fig_parameters_names(self):
-        data = get_fig_parameters(classes_abondance=MET_RAB_D, parent_dict=MC_ONTO,
-                                  root_item=ROOTS[METACYC], subset_abundance=MET_LAB_D, names=NAMES)
-        lines = data_to_lines(data)
-        w_lines = {('cf__cdecf__FRAMES', 'cf', 'cdecf__FRAMES', 'CF', 3, 9),
-                   ('e__eg__FRAMES', 'e', 'eg__FRAMES', 'E', nan, 5),
-                   ('cde__cdeeg__cdeeg+__FRAMES', 'cde', 'cdeeg__cdeeg+__FRAMES', 'CDE', 3, 12),
-                   ('gh__FRAMES', 'gh', 'FRAMES', 'GH', nan, 15),
-                   ('a__ab__FRAMES', 'a', 'ab__FRAMES', 'a', 1, 1),
-                   ('g__gh__FRAMES', 'g', 'gh__FRAMES', 'G', nan, 7),
-                   ('eg__cdeeg__cdeeg+__FRAMES', 'eg', 'cdeeg__cdeeg+__FRAMES', 'EG', nan, 12),
-                   ('e__eg__cdeeg__cdeeg+__FRAMES', 'e', 'eg__cdeeg__cdeeg+__FRAMES', 'E', nan, 5),
-                   ('g__eg__FRAMES', 'g', 'eg__FRAMES', 'G', nan, 7),
-                   ('FRAMES', 'FRAMES', '', 'FRAMES', 6, 36),
-                   ('cdeeg+__FRAMES', 'cdeeg+', 'FRAMES', 'CDEEG+', 3, 19),
-                   ('cdeeg__cdeeg+__FRAMES', 'cdeeg', 'cdeeg+__FRAMES', 'CDEEG', 3, 19),
-                   ('d__cde__cdecf__FRAMES', 'd', 'cde__cdecf__FRAMES', 'D', nan, 4),
-                   ('eg__FRAMES', 'eg', 'FRAMES', 'EG', nan, 12),
-                   ('cdecf__FRAMES', 'cdecf', 'FRAMES', 'CDECF', 3, 18),
-                   (
-                       'e__cde__cdeeg__cdeeg+__FRAMES', 'e', 'cde__cdeeg__cdeeg+__FRAMES', 'E', nan,
-                       5),
-                   ('c__cf__cdecf__FRAMES', 'c', 'cf__cdecf__FRAMES', 'C', 3, 3),
-                   ('cde__cdecf__FRAMES', 'cde', 'cdecf__FRAMES', 'CDE', 3, 12),
-                   (
-                       'd__cde__cdeeg__cdeeg+__FRAMES', 'd', 'cde__cdeeg__cdeeg+__FRAMES', 'D', nan,
-                       4),
-                   ('c__cde__cdecf__FRAMES', 'c', 'cde__cdecf__FRAMES', 'C', 3, 3),
-                   ('f__cf__cdecf__FRAMES', 'f', 'cf__cdecf__FRAMES', 'F', nan, 6),
-                   ('g__eg__cdeeg__cdeeg+__FRAMES', 'g', 'eg__cdeeg__cdeeg+__FRAMES', 'G', nan, 7),
-                   ('ab__FRAMES', 'ab', 'FRAMES', 'AB', 3, 3),
-                   ('c__cde__cdeeg__cdeeg+__FRAMES', 'c', 'cde__cdeeg__cdeeg+__FRAMES', 'C', 3, 3),
-                   ('b__ab__FRAMES', 'b', 'ab__FRAMES', 'B', 2, 2),
-                   ('h__gh__FRAMES', 'h', 'gh__FRAMES', 'H', nan, 8),
-                   ('e__cde__cdecf__FRAMES', 'e', 'cde__cdecf__FRAMES', 'E', nan, 5)}
+        data = DataTable()
+        data.fill_parameters(classes_abondance=MET_RAB_D, parent_dict=MC_ONTO,
+                             root_item=ROOTS[METACYC], subset_abundance=MET_LAB_D, names=NAMES)
+        lines = set(data.get_col())
+        w_lines = {('ab__FRAMES', 'ab', 'AB', 'FRAMES', 3, 3, nan, nan, nan, nan), ('d__cde__cdecf__FRAMES', 'd', 'D', 'cde__cdecf__FRAMES', nan, 4, nan, nan, nan, nan), ('b__ab__FRAMES', 'b', 'B', 'ab__FRAMES', 2, 2, nan, nan, nan, nan), ('h__gh__FRAMES', 'h', 'H', 'gh__FRAMES', nan, 8, nan, nan, nan, nan), ('g__eg__cdeeg__cdeeg+__FRAMES', 'g', 'G', 'eg__cdeeg__cdeeg+__FRAMES', nan, 7, nan, nan, nan, nan), ('cdeeg+__FRAMES', 'cdeeg+', 'CDEEG+', 'FRAMES', 3, 19, nan, nan, nan, nan), ('FRAMES', 'FRAMES', 'FRAMES', '', 6, 36, nan, nan, nan, nan), ('g__eg__FRAMES', 'g', 'G', 'eg__FRAMES', nan, 7, nan, nan, nan, nan), ('cde__cdeeg__cdeeg+__FRAMES', 'cde', 'CDE', 'cdeeg__cdeeg+__FRAMES', 3, 12, nan, nan, nan, nan), ('eg__cdeeg__cdeeg+__FRAMES', 'eg', 'EG', 'cdeeg__cdeeg+__FRAMES', nan, 12, nan, nan, nan, nan), ('c__cde__cdeeg__cdeeg+__FRAMES', 'c', 'C', 'cde__cdeeg__cdeeg+__FRAMES', 3, 3, nan, nan, nan, nan), ('g__gh__FRAMES', 'g', 'G', 'gh__FRAMES', nan, 7, nan, nan, nan, nan), ('e__eg__FRAMES', 'e', 'E', 'eg__FRAMES', nan, 5, nan, nan, nan, nan), ('eg__FRAMES', 'eg', 'EG', 'FRAMES', nan, 12, nan, nan, nan, nan), ('e__eg__cdeeg__cdeeg+__FRAMES', 'e', 'E', 'eg__cdeeg__cdeeg+__FRAMES', nan, 5, nan, nan, nan, nan), ('c__cf__cdecf__FRAMES', 'c', 'C', 'cf__cdecf__FRAMES', 3, 3, nan, nan, nan, nan), ('gh__FRAMES', 'gh', 'GH', 'FRAMES', nan, 15, nan, nan, nan, nan), ('cdeeg__cdeeg+__FRAMES', 'cdeeg', 'CDEEG', 'cdeeg+__FRAMES', 3, 19, nan, nan, nan, nan), ('e__cde__cdeeg__cdeeg+__FRAMES', 'e', 'E', 'cde__cdeeg__cdeeg+__FRAMES', nan, 5, nan, nan, nan, nan), ('d__cde__cdeeg__cdeeg+__FRAMES', 'd', 'D', 'cde__cdeeg__cdeeg+__FRAMES', nan, 4, nan, nan, nan, nan), ('c__cde__cdecf__FRAMES', 'c', 'C', 'cde__cdecf__FRAMES', 3, 3, nan, nan, nan, nan), ('a__ab__FRAMES', 'a', 'a', 'ab__FRAMES', 1, 1, nan, nan, nan, nan), ('e__cde__cdecf__FRAMES', 'e', 'E', 'cde__cdecf__FRAMES', nan, 5, nan, nan, nan, nan), ('cdecf__FRAMES', 'cdecf', 'CDECF', 'FRAMES', 3, 18, nan, nan, nan, nan), ('cde__cdecf__FRAMES', 'cde', 'CDE', 'cdecf__FRAMES', 3, 12, nan, nan, nan, nan), ('cf__cdecf__FRAMES', 'cf', 'CF', 'cdecf__FRAMES', 3, 9, nan, nan, nan, nan), ('f__cf__cdecf__FRAMES', 'f', 'F', 'cf__cdecf__FRAMES', nan, 6, nan, nan, nan, nan)}
         self.assertEqual(lines, w_lines)
 
 
@@ -281,32 +234,33 @@ class TestAddProportionDataTable(unittest.TestCase):
 
     @test_for(get_data_proportion)
     def test_get_data_proportion_no_relative(self):
-        data = get_data_proportion(DATA, False)
-        for i in range(len(data[PROP])):
-            if np.isnan(data[PROP][i]):
+        data = DataTable()
+        data.fill_parameters(classes_abondance=MET_RAB_D, parent_dict=MC_ONTO,
+                             root_item=ROOTS[METACYC], subset_abundance=MET_LAB_D, names=NAMES)
+        data.calculate_proportions(False)
+        for i in range(data.len):
+            if np.isnan(data.prop[i]):
                 self.assertTrue(np.isnan(W_PROP[i]))
             else:
-                self.assertEqual(data[PROP][i], W_PROP[i])
+                self.assertEqual(data.prop[i], W_PROP[i])
 
     @test_for(get_data_proportion)
     def test_get_data_proportion_no_relative_ref(self):
-        data = get_data_proportion(DATA, False)
-        for i in range(len(data[REF_PROP])):
-            self.assertEqual(data[REF_PROP][i], W_REF_PROP[i])
+        data = DataTable()
+        data.fill_parameters(classes_abondance=MET_RAB_D, parent_dict=MC_ONTO,
+                             root_item=ROOTS[METACYC], subset_abundance=MET_LAB_D, names=NAMES)
+        data.calculate_proportions(False)
+        for i in range(data.len):
+            self.assertEqual(data.ref_prop[i], W_REF_PROP[i])
 
     @test_for(get_data_proportion)
     def test_get_data_proportion_relative(self):
-        data = get_data_proportion(DATA, True)
-        for i in range(len(data[RELAT_PROP])):
-            self.assertEqual(data[RELAT_PROP][i], W_RELAT_PROP[i])
-
-    @test_for(get_relative_prop)
-    def test_get_relative_prop(self):
-        data = DATA_PROP
-        data[RELAT_PROP] = [x for x in data[PROP]]
-        data = get_relative_prop(data, '')
-        for i in range(len(data[RELAT_PROP])):
-            self.assertEqual(data[RELAT_PROP][i], W_RELAT_PROP[i])
+        data = DataTable()
+        data.fill_parameters(classes_abondance=MET_RAB_D, parent_dict=MC_ONTO,
+                             root_item=ROOTS[METACYC], subset_abundance=MET_LAB_D, names=NAMES)
+        data.calculate_proportions(True)
+        for k, v in W_REL_PROP.items():
+            self.assertEqual(data.relative_prop[data.ids.index(k)], v)
 
 
 # ENRICHMENT TESTS
