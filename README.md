@@ -11,7 +11,6 @@ Python 3.10 recommended
 Requirements from `requirements.txt`
 
 - numpy>=1.22.0
-- padmet>=5.0.1
 - plotly>=5.17.0
 - scipy>=1.8.1
 - SPARQLWrapper>=2.0.0
@@ -73,6 +72,12 @@ With SPARQL server :
 - ChEBI (chebi roles)
 - Gene Ontology (works well only with small set)
 
+Personal ontology possible :
+- Define all the ontology classes relationship in 
+a dictionary `{class: [parent classes]}`
+- Define the root : unique class with no parents
+- Define the classes set(s) to analyse
+
 #### 2 **Analysis :**
 
 - Topology (**1 set** + 1 optional reference set) : displays proportion 
@@ -85,26 +90,31 @@ objects
 
 #### Objects sets
 
-A python collection (list, set, ...) of metabolic objects IDs 
+- A python list of metabolic objects IDs + list of abundances (optional)
+- A python list of reference metabolic 
+objects IDs (optional) + list of abundances (optional)
 
-Metabolic objects from some tools outputs can be extracted easily with 
-functions from `obj_extraction`
 
 #### Ontology
 
-#### 1. Files (MetaCyc, EC, KEGG)
+#### 1. Defined ontologies
 
-Intern tool files (in `Inputs` folder) by default
+For MetaCyc, EC and Kegg:
+- Intern tool files (in `Inputs` folder) by default
 
-Specified user local files
-- MetaCyc (Classes ontology json file)
-- EC (Classes ontology json file + Names json file)
-- KEGG (Classes ontology json file)
+Possibility to give your own files for these ontologies
+- Classes ontology json file
+- Labels json file
 
 #### 2. SPARQL server url (ChEBI, GO)
 
 See **Set up Jena SPARQL server (optional : for ChEBI and GO)** for 
 install guide.
+
+#### 3. Custom ontology
+- Class ontology json file
+- Ontology Root
+- Labels json file (optional)
 
 
 
@@ -112,51 +122,40 @@ install guide.
 
 ### Parameters
 
----------- REQUIRED ----------
-
-`ontology` : `str`
-- Ontology to use, must be in : [metacyc, ec, kegg, chebi, go]
-
-`metabolic_objects` : `Collection[str]`
-- Set of metabolic objects to classify
-
----------- OPTIONAL ----------
-
-`reference_set` : `Collection[str]`  `(optional, default=None)`
-- Set of reference metabolic objects
-
-`analysis` : `str` `(optional, default=topology)`
-- Analysis mode, must be in : `[topology, enrichment]
-
-`output` : `str` `(optional, default=None)`
-- Path to output to save figure
-
-`class_file` : `str` `(optional, default=None)`
-- Path to class ontology file
-
-`names_file` : `str` `(optional, default=None)`
-- Path to EC_ID - EC_NAME association json file
-
-`endpoint_url` : `str` `(optional, default=None)`
-- URL of ChEBI ontology for SPARQL requests
-
-`test` : `str` `(optional, default=binomial)`
-- Type of test if analysis=enrichment, must be in : [binomial, hypergeometric]
-    
-`full` : `bool` `(optional, default=True)`
-- True to duplicate labels if +1 parents (False to take exactly 1 random parent)
-    
-`total` : `bool` `(optional, default=True)`
-- True to have branch values proportional of the total parent (may not work in some cases)
-    
-`root_cut` : `str` `(optional, default=ROOT_CUT)`
-- mode for root cutting (uncut, cut, total)
-    
-`ref_base` : `bool` `(optional, default=False)`
-- True to have the base classes representation of the reference set in the figure.
-    
-`show_leaves` : `bool` `(optional, default=False)`
-- True to show input metabolic objets at sunburst leaves
+    metabolic_objects: List[str]
+        Set of metabolic objects to classify
+    ontology: str (optional, default=None)
+        Ontology to use, must be in : [metacyc, ec, chebi, kegg, go]
+    root: str (optional, default=None)
+        Root item of the ontology.
+    abundances: List[str] (optional, default=None)
+        Abundance values associated to metabolic_objects list parameter
+    reference_set: List[str] (optional, default=None)
+        Set of reference metabolic objects
+    ref_abundances: List[str] (optional, default=None)
+        Abundance values associated to reference_set list parameter
+    analysis: str (optional, default=topology)
+        Analysis mode, must be in : [topology, enrichment]
+    output: str (optional, default=None)
+        Path of the output to save figure
+    write_output: bool (optional, default=True)
+        True to write the html figure and tsv class files, False to only return figure
+    class_ontology: str or Dict[str, str] (optional, default=None)
+        Class ontology dictionary or json file.
+    labels: str or Dict[str, str] (optional, default=default)
+        Path to ID-LABELS association json file or ID-LABELS association dictionary
+    endpoint_url: str (optional, default=None)
+        URL of ChEBI or GO ontology for SPARQL requests
+    test: str (optional, default=binomial)
+        Type of test if analysis=enrichment, must be in : [binomial, hypergeometric]
+    total: bool (optional, default=True)
+        True to have branch values proportional of the total parent (may not work in some cases)
+    root_cut: str (optional, default=cut)
+        mode for root cutting (uncut, cut, total)
+    ref_base: bool (optional, default=False)
+        True to have the base classes representation of the reference set in the figure.
+    show_leaves: bool (optional, default=False)
+        True to show input metabolic objets at sunburst leaves
 
 
 ### MetaCyc
@@ -190,11 +189,6 @@ fig = ontosunburst(ontology='metacyc',
                    ref_base=True)
 ```
 
-![MetaCyc Proportion figure](https://github.com/PaulineGHG/Ontology_sunburst/blob/main/tests/expected_figures/png/test_mc_cpd_prop.png)
-
-![MetaCyc Comparison figure](https://github.com/PaulineGHG/Ontology_sunburst/blob/main/tests/expected_figures/png/test_mc_cpd_comp.png)
-
-
 ### EC
 
 #### Example
@@ -226,10 +220,6 @@ fig = ontosunburst(ontology='ec',
 
 ```
 
-![EC Proportion figure](https://github.com/PaulineGHG/Ontology_sunburst/blob/main/tests/expected_figures/png/test_ec_prop.png)
-
-![EC Comparison figure](https://github.com/PaulineGHG/Ontology_sunburst/blob/main/tests/expected_figures/png/test_ec_comp.png)
-
 ### ChEBI
 
 #### Example
@@ -260,7 +250,3 @@ fig = ontosunburst(ontology='chebi',
                    analysis='enrichment', 
                    ref_base=True)
 ```
-
-![ChEBI Proportion figure](https://github.com/PaulineGHG/Ontology_sunburst/blob/main/tests/expected_figures/png/test_chebi_prop.png)
-
-![ChEBI Comparison figure](https://github.com/PaulineGHG/Ontology_sunburst/blob/main/tests/expected_figures/png/test_chebi_comp.png)

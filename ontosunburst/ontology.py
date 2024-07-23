@@ -1,5 +1,4 @@
-import padmet.classes
-from typing import List, Set, Dict, Tuple, Collection
+from typing import List, Set, Dict, Tuple
 from SPARQLWrapper import SPARQLWrapper, JSON
 
 
@@ -21,44 +20,70 @@ ROOTS = {METACYC: 'FRAMES',
 GO_ROOTS = ['cellular_component', 'biological_process', 'molecular_function']
 
 
-# For MetaCyc Ontology
+# ==================================================================================================
+# CLASSES EXTRACTION
+# ==================================================================================================
+
+# Main class extraction function
 # --------------------------------------------------------------------------------------------------
-def get_dict_ontology(padmet_ref: padmet.classes.PadmetRef):
-    # TODO: fix, understand why it doesn't work
-    dict_ontology = dict()
-    for e, node in padmet_ref.dicOfNode.items():
-        if node.type == 'class' or node.type == 'compound' and e != 'FRAMES':
-            try:
-                rel = padmet_ref.dicOfRelationIn[e]
-                dict_ontology[e] = list()
-                for r in rel:
-                    if r.type == 'is_a_class':
-                        dict_ontology[e].append(r.id_out)
-            except KeyError:
-                pass
-    return dict_ontology
-
-
-def extract_metacyc_classes(metabolic_objects: Collection[str],
-                            d_classes_ontology: Dict[str, List[str]]) -> Dict[str, List[str]]:
-    """ Extract +1 parent classes for each metabolite.
+def extract_classes(ontology: str, concepts: List[str], root: str,
+                    d_classes_ontology: Dict[str, List[str]] = None, endpoint_url: str = None)\
+        -> Tuple[Dict[str, Set[str]], Dict[str, List[str]]]:
+    """ Extract all parent classes (until root) from a list of concepts.
 
     Parameters
     ----------
-    metabolic_objects: Collection[str]
-        Collection of metabolic objects.
-    d_classes_ontology: Dict[str, List[str]]
-        MetaCyc classes dictionary
+    ontology: str
+        Name of the ontology considered
+    concepts: List[str]
+        List of concepts to classify
+    root: str
+        Root item of the ontology
+    d_classes_ontology: Dict[str, List[str]], optional (default=None)
+        Dictionary of the classes ontology associating for each concept its +1 parent classes.
+    endpoint_url: str, optional (default=None)
+        URL for the SPARQL server (for GO and ChEBI ontologies)
 
     Returns
     -------
-    Dict[str, List[str]] (Dict[metabolite, List[class]])
-        Dictionary associating for each metabolic object, the list of +1 parent classes it belongs
-        to.
+    Dict[str, Set[str]]
+        Dictionary associating to each concept all its parent classes (until the root)
+    Dict[str, List[str]]
+        Dictionary of the classes ontology associating for each concept its +1 parent classes.
+    """
+    if ontology == METACYC or ontology == KEGG or ontology is None:
+        leaf_classes = extract_met_classes(concepts, d_classes_ontology)
+        return get_all_classes(leaf_classes, d_classes_ontology, root), d_classes_ontology
+    if ontology == EC:
+        leaf_classes, d_classes_ontology = extract_ec_classes(concepts, d_classes_ontology)
+        return get_all_classes(leaf_classes, d_classes_ontology, root), d_classes_ontology
+    if ontology == CHEBI:
+        return extract_chebi_roles(concepts, endpoint_url)
+    if ontology == GO:
+        return extract_go_classes(concepts, endpoint_url)
+
+
+# For MetaCyc and Kegg Ontology
+# --------------------------------------------------------------------------------------------------
+def extract_met_classes(concepts: List[str], d_classes_ontology: Dict[str, List[str]]) \
+        -> Dict[str, List[str]]:
+    """ Extract +1 parent classes for each concept considered.
+
+    Parameters
+    ----------
+    concepts: List[str]
+        List of concepts considered
+    d_classes_ontology: Dict[str, List[str]]
+        Dictionary of the classes ontology associating for each concept its +1 parent classes.
+
+    Returns
+    -------
+    Dict[str, List[str]]
+        Dictionary associating for each concept, the list of +1 parent classes it belongs to.
     """
     d_obj_classes = dict()
-    print(f'{len(metabolic_objects)} metabolic objects to classify')
-    for obj in metabolic_objects:
+    print(f'{len(concepts)} metabolic objects to classify')
+    for obj in concepts:
         try:
             d_obj_classes[obj] = d_classes_ontology[obj]
             classified = True
@@ -66,33 +91,64 @@ def extract_metacyc_classes(metabolic_objects: Collection[str],
             classified = False
         if not classified:
             print(f'{obj} not classified.')
-    print(f'{len(d_obj_classes)}/{len(metabolic_objects)} metabolic objects classified')
+    print(f'{len(d_obj_classes)}/{len(concepts)} metabolic objects classified')
     return d_obj_classes
 
 
 # For EC
 # --------------------------------------------------------------------------------------------------
-def extract_ec_classes(ec_set: Collection[str], d_classes_ontology):
+def extract_ec_classes(ec_list: List[str], d_classes_ontology: Dict[str, List[str]]) \
+        -> Tuple[Dict[str, List[str]], Dict[str, List[str]]]:
+    """ Extract +1 parent classes for each EC number.
+
+    Parameters
+    ----------
+    ec_list: List[str]
+        List of EC numbers
+    d_classes_ontology: Dict[str, List[str]]
+        EC Ontology classes dictionary : Dict[object, List[parents]]
+
+    Returns
+    -------
+    Dict[str, List[str]]
+        Dictionary associating for each metabolic object, the list of +1 parent classes it belongs
+        to.
+    Dict[str, List[str]]
+        EC Ontology classes dictionary : Dict[object, List[parents]]
+    """
+    print(f'{len(ec_list)} EC numbers to classify')
     ec_classes = dict()
-    for ec in ec_set:
-        parent = ec.split('.')
-        parent[-1] = '-'
-        parent = '.'.join(parent)
-        d_classes_ontology[ec] = [parent]
-        ec_classes[ec] = [parent]
+    for ec in ec_list:
+        dec_ec = ec.split('.')
+        while len(dec_ec) < 4:
+            dec_ec.append('-')
+        if dec_ec.count('-') == 3 and ec in d_classes_ontology:
+            parent = ROOTS[EC]
+        else:
+            for i in range(3):
+                if dec_ec.count('-') == i:
+                    dec_ec[3-i] = '-'
+                    break
+            parent = '.'.join(dec_ec)
+        if parent in d_classes_ontology or parent == ROOTS[EC]:
+            d_classes_ontology[ec] = [parent]
+            ec_classes[ec] = [parent]
+        else:
+            print(f'{ec} not classified')
+    print(f'{len(ec_classes)}/{len(ec_list)} EC numbers classified')
     return ec_classes, d_classes_ontology
 
 
 # For ChEBI Ontology
 # --------------------------------------------------------------------------------------------------
-def extract_chebi_roles(chebi_ids: Collection[str], endpoint_url: str) \
+def extract_chebi_roles(chebi_ids: List[str], endpoint_url: str) \
         -> Tuple[Dict[str, Set[str]], Dict[str, List[str]]]:
-    """
+    """ Extract all parent classes for each chebi ID + Generate ontology dictionary.
 
     Parameters
     ----------
-    chebi_ids: Collection[str]
-        Collection of ChEBI IDs to extract roles associated
+    chebi_ids: List[str]
+        List of ChEBI IDs to extract roles associated
     endpoint_url: str
         URL endpoint string
 
@@ -104,6 +160,8 @@ def extract_chebi_roles(chebi_ids: Collection[str], endpoint_url: str) \
     """
     d_roles_ontology = dict()
     all_roles = dict()
+    chebi_ok = 0
+    total_nb = len(chebi_ids)
     for chebi_id in chebi_ids:
         roles = set()
         sparql = SPARQLWrapper(endpoint_url)
@@ -150,6 +208,7 @@ def extract_chebi_roles(chebi_ids: Collection[str], endpoint_url: str) \
                 d_roles_ontology[role] = set()
             d_roles_ontology[role].add(parent_role)
         if roles:
+            chebi_ok += 1
             d_roles_ontology[chebi_id] = list(roles.difference(parent_roles))
             roles.add(ROOTS[CHEBI])
             all_roles[chebi_id] = roles
@@ -159,17 +218,20 @@ def extract_chebi_roles(chebi_ids: Collection[str], endpoint_url: str) \
     for c, p in d_roles_ontology.items():
         d_roles_ontology[c] = list(p)
 
+    print(f'{chebi_ok}/{total_nb} chebi id with roles associated.')
     return all_roles, d_roles_ontology
 
 
-def extract_go_classes(go_ids: Collection[str], endpoint_url: str) \
+# For GO Ontology
+# --------------------------------------------------------------------------------------------------
+def extract_go_classes(go_ids: List[str], endpoint_url: str) \
         -> Tuple[Dict[str, Set[str]], Dict[str, List[str]]]:
-    """
+    """ Extract all parent classes for each GO ID + Generate ontology dictionary.
 
     Parameters
     ----------
-    go_ids: Collection[str]
-        Collection of GO IDs
+    go_ids: List[str]
+        List of GO IDs
     endpoint_url: str
         URL endpoint string
 
@@ -182,7 +244,6 @@ def extract_go_classes(go_ids: Collection[str], endpoint_url: str) \
     d_classes_ontology = dict()
     all_classes = dict()
     for go in go_ids:
-        go = go.lower()
         go_classes = set()
         sparql = SPARQLWrapper(endpoint_url)
         sparql.setQuery(f"""
@@ -235,24 +296,36 @@ def extract_go_classes(go_ids: Collection[str], endpoint_url: str) \
     return all_classes, d_classes_ontology
 
 
-def extract_classes(ontology, metabolic_objects, root, d_classes_ontology=None, endpoint_url=None):
-    if ontology == METACYC:
-        leaf_classes = extract_metacyc_classes(metabolic_objects, d_classes_ontology)
-        return get_all_classes(leaf_classes, d_classes_ontology, root), d_classes_ontology
-    if ontology == EC:
-        leaf_classes, d_classes_ontology = extract_ec_classes(metabolic_objects, d_classes_ontology)
-        return get_all_classes(leaf_classes, d_classes_ontology, root), d_classes_ontology
-    if ontology == CHEBI:
-        return extract_chebi_roles(metabolic_objects, endpoint_url)
-    if ontology == GO:
-        return extract_go_classes(metabolic_objects, endpoint_url)
-    if ontology == KEGG:
-        leaf_classes = extract_metacyc_classes(metabolic_objects, d_classes_ontology)
-        return get_all_classes(leaf_classes, d_classes_ontology, root), d_classes_ontology
-
-
-# For all Ontology - Utils
+# Recursive class extraction function
 # --------------------------------------------------------------------------------------------------
+def get_all_classes(obj_classes: Dict[str, List[str]], d_classes_ontology: Dict[str, List[str]],
+                    root_item: str) -> Dict[str, Set[str]]:
+    """ Extract all parent classes for each metabolite.
+
+    Parameters
+    ----------
+    obj_classes: Dict[str, List[str]] (Dict[metabolite, List[class]])
+        Dictionary associating for each object the list of +1 parent classes it belongs to.
+    d_classes_ontology: Dict[str, List[str]]
+        Dictionary of the classes ontology associating for each class its +1 parent classes.
+    root_item: str
+        Name of the root item of the ontology.
+
+    Returns
+    -------
+    Dict[str, Set[str]] (Dict[metabolite, Set[class]])
+        Dictionary associating for each metabolite the list of all parent classes it belongs to.
+    """
+    all_classes_met = dict()
+    for met, classes in obj_classes.items():
+        all_classes = set(classes)
+        for c in classes:
+            if c != root_item:
+                m_classes = get_parents(c, set(d_classes_ontology[c]), d_classes_ontology, root_item)
+                all_classes = all_classes.union(m_classes)
+        all_classes_met[met] = all_classes
+    return all_classes_met
+
 
 def get_parents(child: str, parent_set: Set[str], d_classes_ontology: Dict[str, List[str]],
                 root_item) -> Set[str]:
@@ -277,94 +350,110 @@ def get_parents(child: str, parent_set: Set[str], d_classes_ontology: Dict[str, 
     parents = d_classes_ontology[child]
     for p in parents:
         parent_set.add(p)
-
-    if parents != [root_item]:
-        for p in parents:
+    for p in parents:
+        if p != root_item:
             parent_set = get_parents(p, parent_set, d_classes_ontology, root_item)
-
     return parent_set
 
 
-def get_all_classes(met_classes: Dict[str, List[str]], d_classes_ontology: Dict[str, List[str]],
-                    root_item: str) -> Dict[str, Set[str]]:
-    """ Extract all parent classes for each metabolite.
+# ==================================================================================================
+# ABUNDANCES CALCULATION
+# ==================================================================================================
+
+def get_abundance_dict(abundances: List[float] or None, metabolic_objects: List[str], ref: bool)\
+        -> Dict[str, float]:
+    """ Generate abundances dictionary.
 
     Parameters
     ----------
-    met_classes: Dict[str, List[str]] (Dict[metabolite, List[class]])
-        Dictionary associating for each metabolite the list of +1 parent classes it belongs to.
-    d_classes_ontology: Dict[str, List[str]]
-        Dictionary of the classes ontology associating for each class its parent classes.
-    root_item: str
-        Name of the root item of the ontology.
+    abundances: List[float] (size N) or None
+        List of metabolic objects abundances (or None if no abundances associated --> will associate
+        an abundance of 1 for each object)
+    metabolic_objects: List[str] (size N)
+        List of metabolic objects ID.
+    ref: bool
+        True if metabolic objects are the reference list, False otherwise (subset / study case).
 
     Returns
     -------
-    Dict[str, Set[str]] (Dict[metabolite, Set[class]])
-        Dictionary associating for each metabolite the list of all parent classes it belongs to.
+    Dict[str, float]
+        Dictionary associating to each object its abundance.
     """
-    all_classes_met = dict()
-    for met, classes in met_classes.items():
+    if abundances is None:
+        abundances = len(metabolic_objects) * [1]
+    if len(metabolic_objects) == len(abundances):
+        abundances_dict = {}
+        for i in range(len(metabolic_objects)):
+            abundances_dict[metabolic_objects[i]] = abundances[i]
+    else:
+        if ref:
+            raise AttributeError(f'Length of "reference_set" parameter must be equal to '
+                                 f'"ref_abundances" parameter length : {len(metabolic_objects)} '
+                                 f'!= {len(abundances)}')
+        else:
+            raise AttributeError(f'Length of "metabolic_objects" parameter must be equal to '
+                                 f'"abundances" parameter length : {len(metabolic_objects)} '
+                                 f'!= {len(abundances)}')
+    return abundances_dict
 
-        all_classes = set(classes)
-        for c in classes:
-            m_classes = get_parents(c, set(d_classes_ontology[c]), d_classes_ontology, root_item)
-            all_classes = all_classes.union(m_classes)
 
-        all_classes_met[met] = all_classes
-    return all_classes_met
-
-
-def get_classes_abondance(all_classes: Dict[str, Set[str]], show_leaves: bool) -> Dict[str, int]:
-    """ Indicate for each class the number of metabolites found belonging to the class
+def get_classes_abundance(all_classes: Dict[str, Set[str]], abundances_dict: Dict[str, float],
+                          show_leaves: bool) -> Dict[str, float]:
+    """ Indicate for each class the number of base object found belonging to the class
 
     Parameters
     ----------
     all_classes: Dict[str, Set[str]] (Dict[metabolite, Set[class]])
-        Dictionary associating for each metabolite the list of all parent classes it belongs to.
+        Dictionary associating for each concept the list of all parent classes it belongs to.
+    abundances_dict: Dict[str, float]
+        Dictionary associating for each concept, its abundance value
     show_leaves: bool
         True to show input metabolic objets at sunburst leaves
 
     Returns
     -------
-    Dict[str, int]
-        Dictionary associating for each class the number of metabolites found belonging to the class.
+    Dict[str, float]
+        Dictionary associating for each class the weight of concepts found belonging to the class.
     """
+    print(all_classes)
+    print(abundances_dict)
     classes_abondance = dict()
     for met, classes in all_classes.items():
         if show_leaves:
-            classes_abondance[met] = 1
+            if met not in classes_abondance.keys():
+                classes_abondance[met] = abundances_dict[met]
+            else:
+                classes_abondance[met] += abundances_dict[met]
         for c in classes:
             if c not in classes_abondance.keys():
-                classes_abondance[c] = 1
+                classes_abondance[c] = abundances_dict[met]
             else:
-                classes_abondance[c] += 1
+                classes_abondance[c] += abundances_dict[met]
     return dict(reversed(sorted(classes_abondance.items(), key=lambda item: item[1])))
 
 
-def get_children_dict(parent_dict: Dict[str, List[str]]) -> Dict[str, List[str]]:
-    """ Create the children dictionary from the parents dictionary.
+# ==================================================================================================
+# UTILS
+# ==================================================================================================
+
+def reduce_d_ontology(d_classes_ontology: Dict[str, List[str]],
+                      classes_abundance: Dict[str, float]) -> Dict[str, List[str]]:
+    """ Extract the sub-graph of the d_classes_ontology dictionary conserving only nodes implicated
+    with the concepts studied.
 
     Parameters
     ----------
-    parent_dict: Dict[str, List[str]]
-        Dictionary associating for each class, its parents classes
+    d_classes_ontology: Dict[str, List[str]]
+        Dictionary of the ontology complete graph
+    classes_abundance: Dict[str, float]
+        Dictionary of abundances (keys are all nodes implicated to be conserved)
 
     Returns
     -------
     Dict[str, List[str]]
-        Dictionary associating for each class, its children classes
+        Dictionary of the ontology sub-graph conserving only nodes implicated with the concepts
+        studied.
     """
-    children_dict = dict()
-    for c, ps in parent_dict.items():
-        for p in ps:
-            if p not in children_dict.keys():
-                children_dict[p] = list()
-            children_dict[p].append(c)
-    return children_dict
-
-
-def reduce_d_ontology(d_classes_ontology, classes_abundance):
     reduced_d_ontology = dict()
     for k, v in d_classes_ontology.items():
         if k in classes_abundance:
