@@ -177,7 +177,7 @@ class TestGenerateDataTable(unittest.TestCase):
     @test_for(DataTable.fill_parameters)
     def test_get_fig_parameters(self):
         data = DataTable()
-        data.fill_parameters(classes_abondance=MET_RAB_D, parent_dict=MC_ONTO,
+        data.fill_parameters(ref_abundance=MET_RAB_D, parent_dict=MC_ONTO,
                              root_item=ROOTS[METACYC], subset_abundance=MET_LAB_D, names=None)
         lines = set(data.get_col())
         w_lines = {('cde__cdeeg__cdeeg+__FRAMES', 'cde', 'cde', 'cdeeg__cdeeg+__FRAMES', 3, 12, nan,
@@ -233,7 +233,7 @@ class TestGenerateDataTable(unittest.TestCase):
     @test_for(DataTable.fill_parameters)
     def test_get_fig_parameters_names(self):
         data = DataTable()
-        data.fill_parameters(classes_abondance=MET_RAB_D, parent_dict=MC_ONTO,
+        data.fill_parameters(ref_abundance=MET_RAB_D, parent_dict=MC_ONTO,
                              root_item=ROOTS[METACYC], subset_abundance=MET_LAB_D, names=NAMES)
         lines = set(data.get_col())
         w_lines = {('ab__FRAMES', 'ab', 'AB', 'FRAMES', 3, 3, nan, nan, nan, nan), (
@@ -290,9 +290,9 @@ class TestAddProportionDataTable(unittest.TestCase):
     @test_for(DataTable.calculate_proportions)
     def test_get_data_proportion_no_relative(self):
         data = DataTable()
-        data.fill_parameters(classes_abondance=MET_RAB_D, parent_dict=MC_ONTO,
+        data.fill_parameters(ref_abundance=MET_RAB_D, parent_dict=MC_ONTO,
                              root_item=ROOTS[METACYC], subset_abundance=MET_LAB_D, names=NAMES)
-        data.calculate_proportions(False)
+        data.calculate_proportions(False, True)
         for i in range(data.len):
             if np.isnan(data.prop[i]):
                 self.assertTrue(np.isnan(W_PROP[i]))
@@ -302,18 +302,18 @@ class TestAddProportionDataTable(unittest.TestCase):
     @test_for(DataTable.calculate_proportions)
     def test_get_data_proportion_no_relative_ref(self):
         data = DataTable()
-        data.fill_parameters(classes_abondance=MET_RAB_D, parent_dict=MC_ONTO,
+        data.fill_parameters(ref_abundance=MET_RAB_D, parent_dict=MC_ONTO,
                              root_item=ROOTS[METACYC], subset_abundance=MET_LAB_D, names=NAMES)
-        data.calculate_proportions(False)
+        data.calculate_proportions(False, True)
         for i in range(data.len):
             self.assertEqual(data.ref_prop[i], W_REF_PROP[i])
 
     @test_for(DataTable.calculate_proportions)
     def test_get_data_proportion_relative(self):
         data = DataTable()
-        data.fill_parameters(classes_abondance=MET_RAB_D, parent_dict=MC_ONTO,
+        data.fill_parameters(ref_abundance=MET_RAB_D, parent_dict=MC_ONTO,
                              root_item=ROOTS[METACYC], subset_abundance=MET_LAB_D, names=NAMES)
-        data.calculate_proportions(True)
+        data.calculate_proportions(True, True)
         for k, v in W_REL_PROP.items():
             self.assertEqual(data.relative_prop[data.ids.index(k)], v)
 
@@ -341,7 +341,7 @@ class TestEnrichmentAnalysis(unittest.TestCase):
     def test_get_data_enrichment_analysis_single_value(self):
         data = DataTable()
         data.fill_parameters(ENRICH_REF_AB, E_ONTO, '00', ENRICH_AB, E_LABElS)
-        data.calculate_proportions(True)
+        data.calculate_proportions(True, True)
         data.make_enrichment_analysis(BINOMIAL_TEST)
         p_value_1 = [data.p_val[i] for i in range(data.len) if data.onto_ids[i] == '01'][0]
         M = 100
@@ -356,7 +356,7 @@ class TestEnrichmentAnalysis(unittest.TestCase):
     def test_get_data_enrichment_analysis_binomial(self):
         data = DataTable()
         data.fill_parameters(ENRICH_REF_AB, E_ONTO, '00', ENRICH_AB, E_LABElS)
-        data.calculate_proportions(True)
+        data.calculate_proportions(True, True)
         significant = data.make_enrichment_analysis(BINOMIAL_TEST)
         lines = set(data.get_col())
         exp_significant = {'01': 3.7996e-06, '03': 0.0011251149, '02': 0.0030924096}
@@ -382,7 +382,7 @@ class TestEnrichmentAnalysis(unittest.TestCase):
     def test_get_data_enrichment_analysis_hypergeometric(self):
         data = DataTable()
         data.fill_parameters(ENRICH_REF_AB, E_ONTO, '00', ENRICH_AB, E_LABElS)
-        data.calculate_proportions(True)
+        data.calculate_proportions(True, True)
         significant = data.make_enrichment_analysis(HYPERGEO_TEST)
         lines = set(data.get_col())
         print(lines)
@@ -425,7 +425,7 @@ class TestTopologyManagement(unittest.TestCase):
     def test_data_cut_root_uncut(self):
         data = DataTable()
         data.fill_parameters(ROOT_REF_AB, ROOT_ONTO, 'R', ROOT_AB, ROOT_LABElS)
-        data.calculate_proportions(True)
+        data.calculate_proportions(True, True)
         exp_d = data.get_data_dict()
         data.cut_root(ROOT_UNCUT)
         self.assertEqual(data.get_data_dict(), exp_d)
@@ -434,7 +434,7 @@ class TestTopologyManagement(unittest.TestCase):
     def test_data_cut_root_cut(self):
         data = DataTable()
         data.fill_parameters(ROOT_REF_AB, ROOT_ONTO, 'R', ROOT_AB, ROOT_LABElS)
-        data.calculate_proportions(True)
+        data.calculate_proportions(True, True)
         data.cut_root(ROOT_CUT)
         lines = set(data.get_col())
         exp_lines = {('01__00__R-2__R-1__R', '01', '1', '00', 5, 40, 0.1, 0.4, 400000, nan),
@@ -463,7 +463,7 @@ class TestTopologyManagement(unittest.TestCase):
     def test_data_cut_root_total_cut(self):
         data = DataTable()
         data.fill_parameters(ROOT_REF_AB, ROOT_ONTO, 'R', ROOT_AB, ROOT_LABElS)
-        data.calculate_proportions(True)
+        data.calculate_proportions(True, True)
         data.cut_root(ROOT_TOTAL_CUT)
         lines = set(data.get_col())
         exp_lines = {('01__00__R-2__R-1__R', '01', '1', '', 5, 40, 0.1, 0.4, 400000, nan),

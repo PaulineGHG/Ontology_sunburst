@@ -65,7 +65,7 @@ class DataTable:
                 COUNT: self.count, REF_COUNT: self.ref_count, PROP: self.prop,
                 REF_PROP: self.ref_prop, RELAT_PROP: self.relative_prop, PVAL: self.p_val}
 
-    def fill_parameters(self, classes_abondance: Dict[str, int], parent_dict: Dict[str, List[str]],
+    def fill_parameters(self, ref_abundance: Dict[str, int], parent_dict: Dict[str, List[str]],
                         root_item, subset_abundance: Dict[str, int] = None,
                         names: Dict[str, str] = None):
         """ Fill DataTable list attributes (self.ids, self.onto_ids, self.labels, self.parents,
@@ -73,7 +73,7 @@ class DataTable:
 
         Parameters
         ----------
-        classes_abondance: Dict[str, int]
+        ref_abundance: Dict[str, int]
             Dictionary associating for each class the number of objects found belonging to the class
         parent_dict: Dict[str, List[str]]
             Dictionary associating for each class, its parents classes
@@ -83,7 +83,7 @@ class DataTable:
         names: Dict[str, str]
             Dictionary associating metabolic object ID to its Name
         """
-        for c_onto_id, c_abundance in classes_abondance.items():
+        for c_onto_id, c_abundance in ref_abundance.items():
             c_sub_abundance = get_sub_abundance(subset_abundance, c_onto_id, c_abundance)
             if c_onto_id != root_item:
                 if names is not None:
@@ -135,7 +135,7 @@ class DataTable:
         self.p_val.append(nan)
         self.len += 1
 
-    def calculate_proportions(self, total: bool):
+    def calculate_proportions(self, total: bool, ref_base: bool):
         """ Calculate DataTable proportion list attributes (self.prop, self.ref_prop,
         self.relative_prop). If total add relative proportion to +1 parent for branch value.
 
@@ -143,6 +143,8 @@ class DataTable:
         ----------
         total: bool
             True to have branch values proportional of the total parent
+        ref_base: bool
+            True if reference base representation
         """
         # Get total proportion
         max_abondance = int(np.nanmax(self.count))
@@ -154,15 +156,18 @@ class DataTable:
         if total:
             self.relative_prop = [x for x in self.prop]
             p = ''
-            self.__get_relative_prop(p)
+            self.__get_relative_prop(p, ref_base)
             # IDK WHY IT WORKS ???
             missed = [self.ids[i] for i in range(self.len) if self.relative_prop[i] < 1]
             if missed:
                 parents = {self.parents[self.ids.index(m)] for m in missed}
                 for p in parents:
-                    self.__get_relative_prop(p)
+                    self.__get_relative_prop(p, ref_base)
+            # to_del = [i for i in range(self.len) if self.relative_prop[i] == 0]
+            # self.delete_value(to_del)
+            # print(self)
 
-    def __get_relative_prop(self, p_id: str):
+    def __get_relative_prop(self, p_id: str, ref_base: bool):
         """ Get recursively relative proportion of a parent children to itself. Set it to class
         self.relative_prop attribute.
 
@@ -171,25 +176,32 @@ class DataTable:
         p_id: str
             ID of the parent
         """
+        if ref_base:
+            base_count = self.ref_count
+        else:
+            base_count = self.count
         if p_id == '':
             prop_p = MAX_RELATIVE_NB
-            count_p = max(self.ref_count)
+            count_p = max(base_count)
         else:
             prop_p = self.relative_prop[self.ids.index(p_id)]
-            count_p = self.ref_count[self.ids.index(p_id)]
+            count_p = base_count[self.ids.index(p_id)]
         index_p = [i for i, v in enumerate(self.parents) if v == p_id]
         p_children = [self.ids[i] for i in index_p]
-        count_p_children = [self.ref_count[i] for i in index_p]
-        if sum(count_p_children) > count_p:
-            total = sum(count_p_children)
+        count_p_children = [base_count[i] for i in index_p]
+        if np.nansum(count_p_children) > count_p:
+            total = np.nansum(count_p_children)
         else:
             total = count_p
         for i, c in enumerate(p_children):
-            prop_c = int((count_p_children[i] / total) * prop_p)
+            if not ref_base and np.isnan(self.prop[self.ids.index(c)]):
+                prop_c = 0
+            else:
+                prop_c = int((count_p_children[i] / total) * prop_p)
             self.relative_prop[self.ids.index(c)] = prop_c
         for c in p_children:
             if c in self.parents:
-                self.__get_relative_prop(c)
+                self.__get_relative_prop(c, ref_base)
 
     def make_enrichment_analysis(self, test: str) -> Dict[str, float]:
         """ Performs statistical tests for enrichment analysis.

@@ -33,6 +33,9 @@ MC_REF_AB = {'FRAMES': 36, 'cdeeg+': 19, 'cdeeg': 19, 'cdecf': 18, 'gh': 15, 'eg
 MC_LABELS = {'FRAMES': 'Root', 'cdeeg+': 'CDEEG+', 'cdeeg': 'CDEEG', 'cdecf': 'CDECF', 'gh': 'GH',
              'eg': 'EG', 'cde': 'CDE', 'cf': 'CF', 'h': 'H', 'g': 'G', 'f': 'F', 'e': 'E', 'd': 'D',
              'c': 'C', 'ab': 'AB', 'b': 'B'}
+MC_DATA = DataTable()
+MC_DATA.fill_parameters(MC_REF_AB, MC_ONTO, ROOTS[METACYC], MC_AB, MC_LABELS)
+MC_DATA.calculate_proportions(True, True)
 
 # Enrichment
 E_AB = {'00': 50, '01': 5, '02': 25, '03': 20, '04': 1, '05': 5, '06': nan, '07': nan,
@@ -46,7 +49,7 @@ E_ONTO = {'01': ['00'], '02': ['00'], '03': ['00'], '04': ['00'], '05': ['01'],
 
 E_DATA = DataTable()
 E_DATA.fill_parameters(E_REF_AB, E_ONTO, '00', E_AB, E_LABElS)
-E_DATA.calculate_proportions(True)
+E_DATA.calculate_proportions(True, True)
 E_DATA.make_enrichment_analysis(BINOMIAL_TEST)
 
 
@@ -66,6 +69,43 @@ def save_fig_json(fig, file):
     fig = fig.to_dict()
     with open(file, 'w') as f:
         json.dump(fig, f)
+
+
+def sort_fig_dict_lst(fig):
+    """
+    {data: [{hovertext: [str],
+             ids: [str],
+             labels: [str],
+             marker: {colors: [int]},
+             parents: [str],
+             values: [int]}]}
+    """
+    lst_keys = ['hovertext', 'ids', 'labels', 'parents', 'values']
+    for k in lst_keys:
+        fig['data'][0][k] = sorted(fig['data'][0][k])
+    fig['data'][0]['marker']['colors'] = sorted(fig['data'][0]['marker']['colors'])
+    return fig
+
+
+def fig_to_lines(fig_dict):
+    lst_keys = ['hovertext', 'ids', 'labels', 'parents', 'values']
+    lines = set()
+    for i in range(len(fig_dict['data'][0]['ids'])):
+        line = tuple(fig_dict['data'][0][k][i] for k in lst_keys)
+        line = line + (str(fig_dict['data'][0]['marker']['colors'][i]),)
+        lines.add(line)
+    return lines
+
+
+def are_fig_dict_equals(fig1, fig2_file):
+    fig1 = fig1.to_dict()
+    fig1_l = fig_to_lines(fig1)
+    fig1 = json.dumps(sort_fig_dict_lst(fig1), sort_keys=True)
+    with open(fig2_file, 'r') as f:
+        fig2 = json.load(f)
+        fig2_l = fig_to_lines(fig2)
+        fig2 = json.dumps(sort_fig_dict_lst(fig2), sort_keys=True)
+    return (fig1 == fig2) and (fig1_l == fig2_l)
 
 
 def test_for(func):
@@ -164,7 +204,6 @@ class TestSunburstFigure(unittest.TestCase):
         data = copy.deepcopy(E_DATA)
         text_list = get_hover_fig_text(data, ENRICHMENT_A, True)
         self.assertEqual(len(text_list), 10)
-        print(text_list)
         self.assertEqual(text_list[0], 'P value: 1.0<br>Count: <b>50</b>'
                                        '<br>Reference count: 100<br>Proportion: <b>100.0%</b>'
                                        '<br>Reference proportion: 100.0%<br>ID: 00')
@@ -177,12 +216,12 @@ class TestSunburstFigure(unittest.TestCase):
         data = copy.deepcopy(E_DATA)
         text_list = get_hover_fig_text(data, ENRICHMENT_A, False)
         self.assertEqual(len(text_list), 10)
-        self.assertEqual(text_list[0], 'P value: 1.0<br>Count: <b>50</b>'
-                                       '<br>Proportion: <b>100.0%</b>'
-                                       '<br>ID: 00')
-        self.assertEqual(text_list[5], 'P value: 0.07883064215278136<br>Count: <b>5</b>'
-                                       '<br>Proportion: <b>10.0%</b>'
-                                       '<br>ID: 05')
+        self.assertEqual(text_list[0], 'P value: 1.0<br>Count: <b>50</b><br>'
+                                       'Reference count: 100<br>Proportion: <b>100.0%</b><br>'
+                                       'Reference proportion: 100.0%<br>ID: 00')
+        self.assertEqual(text_list[5], 'P value: 0.07883064215278136<br>Count: <b>5</b><br>'
+                                       'Reference count: 20<br>Proportion: <b>10.0%</b><br>'
+                                       'Reference proportion: 20.0%<br>ID: 05')
 
     @test_for(get_hover_fig_text)
     def test_get_hover_fig_text_topology_ref(self):
@@ -207,47 +246,35 @@ class TestSunburstFigure(unittest.TestCase):
     @test_for(generate_sunburst_fig)
     def test_generate_sunburst_fig_case1(self):
         data = copy.deepcopy(E_DATA)
-        fig = generate_sunburst_fig(data, 'case1', analysis=ENRICHMENT_A, write_fig=True,
+        fig = generate_sunburst_fig(data, 'case1', analysis=ENRICHMENT_A, write_fig=False,
                                     test=HYPERGEO_TEST)
         w_fig_file = os.path.join('test_files', 'fig_case1.json')
-        # fig = json.dumps(fig.to_dict(), sort_keys=True)
-        # with open(w_fig_file, 'r') as f:
-        #     w_fig = json.dumps(json.load(f), sort_keys=True)
-        # self.assertEqual(fig, w_fig)
+        self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
 
     @test_for(generate_sunburst_fig)
     def test_generate_sunburst_fig_case2(self):
-        data = copy.deepcopy(ENRICH_DATA)
+        data = copy.deepcopy(E_DATA)
         fig = generate_sunburst_fig(data, 'case2', analysis=ENRICHMENT_A, write_fig=False,
-                                    ref_classes_abundance=ENRICH_REF_AB, test=BINOMIAL_TEST)
+                                    test=BINOMIAL_TEST)
         w_fig_file = os.path.join('test_files', 'fig_case2.json')
-        fig = json.dumps(fig.to_dict(), sort_keys=True)
-        with open(w_fig_file, 'r') as f:
-            w_fig = json.dumps(json.load(f), sort_keys=True)
-        self.assertEqual(fig, w_fig)
+        self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
 
     @test_for(generate_sunburst_fig)
     def test_generate_sunburst_fig_case3(self):
-        data = copy.deepcopy(ENRICH_DATA)
+        data = copy.deepcopy(E_DATA)
         fig = generate_sunburst_fig(data, 'case3', analysis=ENRICHMENT_A,
-                                    ref_classes_abundance=ENRICH_REF_AB, test=HYPERGEO_TEST,
+                                    test=HYPERGEO_TEST,
                                     root_cut=ROOT_UNCUT, write_fig=False,
                                     title='Another title', colorscale='PuOr_r',
                                     bg_color='#222222', font_color='#eeeeee', font_size=25,
                                     table_legend='Number')
         w_fig_file = os.path.join('test_files', 'fig_case3.json')
-        fig = json.dumps(fig.to_dict(), sort_keys=True)
-        with open(w_fig_file, 'r') as f:
-            w_fig = json.dumps(json.load(f), sort_keys=True)
-        self.assertEqual(fig, w_fig)
+        self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
 
     @test_for(generate_sunburst_fig)
     def test_generate_sunburst_fig_case4(self):
-        data = copy.deepcopy(DATA)
+        data = copy.deepcopy(MC_DATA)
         fig = generate_sunburst_fig(data, 'case4', analysis=TOPOLOGY_A, bg_color='black',
                                     font_color='white', write_fig=False)
         w_fig_file = os.path.join('test_files', 'fig_case4.json')
-        fig = json.dumps(fig.to_dict(), sort_keys=True)
-        with open(w_fig_file, 'r') as f:
-            w_fig = json.dumps(json.load(f), sort_keys=True)
-        self.assertEqual(fig, w_fig)
+        self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
