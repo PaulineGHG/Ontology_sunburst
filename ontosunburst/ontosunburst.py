@@ -7,8 +7,8 @@ import plotly.graph_objects as go
 from ontosunburst.ontology import get_abundance_dict, get_classes_abundance, extract_classes, \
     reduce_d_ontology, METACYC, CHEBI, EC, GO, KEGG, ROOTS
 
-from ontosunburst.sunburst_fig import get_fig_parameters, get_data_proportion, \
-    generate_sunburst_fig, BINOMIAL_TEST, TOPOLOGY_A, ENRICHMENT_A, ROOT_CUT
+from ontosunburst.data_table_tree import DataTable, BINOMIAL_TEST, ROOT_CUT
+from ontosunburst.sunburst_fig import generate_sunburst_fig, TOPOLOGY_A, ENRICHMENT_A
 
 # ==================================================================================================
 #                                           CONSTANTS
@@ -144,7 +144,7 @@ def ontosunburst(metabolic_objects: List[str],
                            test=test, root=root, root_cut=root_cut, ref_base=ref_base,
                            show_leaves=show_leaves, **kwargs)
     end_time = time()
-    print(f'Execution time : {end_time-start_time} seconds')
+    print(f'Execution time : {end_time - start_time} seconds')
     return fig
 
 
@@ -262,27 +262,29 @@ def _topology_analysis(ref_classes_abundance, classes_abundance, d_classes_ontol
                                                {**ref_classes_abundance, **classes_abundance})
 
         if ref_base:
-            data = get_fig_parameters(classes_abondance=ref_classes_abundance,
-                                      parent_dict=d_classes_ontology,
-                                      root_item=root, subset_abundance=classes_abundance,
-                                      names=names)
+            data = DataTable()
+            data.fill_parameters(classes_abondance=ref_classes_abundance,
+                                 parent_dict=d_classes_ontology,
+                                 root_item=root, subset_abundance=classes_abundance,
+                                 names=names)
         else:
-            data = get_fig_parameters(classes_abondance=classes_abundance,
-                                      parent_dict=d_classes_ontology,
-                                      root_item=root, names=names)
+            data = DataTable()
+            data.fill_parameters(classes_abondance=classes_abundance,
+                                 parent_dict=d_classes_ontology,
+                                 root_item=root, names=names)
 
-        data = get_data_proportion(data, total)
+        data.calculate_proportions(total)
         return generate_sunburst_fig(data=data, output=output, analysis=TOPOLOGY_A,
-                                     ref_classes_abundance=ref_classes_abundance,
                                      total=total, root_cut=root_cut, ref_base=ref_base,
                                      write_fig=write_output, **kwargs)
 
     else:
         d_classes_ontology = reduce_d_ontology(d_classes_ontology, classes_abundance)
-        data = get_fig_parameters(classes_abondance=classes_abundance,
-                                  parent_dict=d_classes_ontology,
-                                  root_item=root, names=names)
-        data = get_data_proportion(data, total)
+        data = DataTable()
+        data.fill_parameters(classes_abondance=classes_abundance,
+                             parent_dict=d_classes_ontology,
+                             root_item=root, names=names)
+        data.calculate_proportions(total)
         return generate_sunburst_fig(data=data, output=output, analysis=TOPOLOGY_A,
                                      total=total, root_cut=root_cut, ref_base=ref_base,
                                      write_fig=write_output, **kwargs)
@@ -314,18 +316,16 @@ def _enrichment_analysis(ref_classes_abundance, classes_abundance, d_classes_ont
         Plotly graph_objects figure of the sunburst
     """
     if ref_base:
-        data = get_fig_parameters(classes_abondance=ref_classes_abundance,
-                                  parent_dict=d_classes_ontology,
-                                  root_item=root, subset_abundance=classes_abundance,
-                                  names=names)
+        data = DataTable()
+        data.fill_parameters(classes_abondance=ref_classes_abundance,
+                             parent_dict=d_classes_ontology,
+                             root_item=root, subset_abundance=classes_abundance, names=names)
     else:
-        data = get_fig_parameters(classes_abondance=classes_abundance,
-                                  parent_dict=d_classes_ontology,
-                                  root_item=root, names=names)
-
-    data = get_data_proportion(data, total)
-    return generate_sunburst_fig(data=data, output=output, analysis=ENRICHMENT_A,
-                                 ref_classes_abundance=ref_classes_abundance, test=test,
+        data = DataTable()
+        data.fill_parameters(classes_abondance=classes_abundance, parent_dict=d_classes_ontology,
+                             root_item=root, names=names)
+    data.calculate_proportions(total)
+    return generate_sunburst_fig(data=data, output=output, analysis=ENRICHMENT_A, test=test,
                                  total=total, root_cut=root_cut, ref_base=ref_base,
                                  write_fig=write_output, **kwargs)
 

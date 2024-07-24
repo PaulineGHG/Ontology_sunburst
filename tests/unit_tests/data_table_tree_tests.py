@@ -2,7 +2,6 @@ import copy
 import unittest
 import io
 
-from numpy import nan
 from functools import wraps
 from ontosunburst.data_table_tree import *
 from ontosunburst.ontology import *
@@ -33,32 +32,6 @@ NAMES = {'FRAMES': 'Root', 'cdeeg+': 'CDEEG+', 'cdeeg': 'CDEEG', 'cdecf': 'CDECF
          'eg': 'EG', 'cde': 'CDE', 'cf': 'CF', 'h': 'H', 'g': 'G', 'f': 'F', 'e': 'E', 'd': 'D',
          'c': 'C', 'ab': 'AB', 'b': 'B'}
 
-DATA = {'ID': ['FRAMES', 'cdeeg+__FRAMES', 'cdeeg__cdeeg+__FRAMES', 'cdecf__FRAMES', 'gh__FRAMES',
-               'eg__cdeeg__cdeeg+__FRAMES', 'eg__FRAMES', 'cde__cdeeg__cdeeg+__FRAMES',
-               'cde__cdecf__FRAMES', 'cf__cdecf__FRAMES', 'h__gh__FRAMES',
-               'g__eg__cdeeg__cdeeg+__FRAMES', 'g__eg__FRAMES', 'g__gh__FRAMES',
-               'f__cf__cdecf__FRAMES', 'e__eg__cdeeg__cdeeg+__FRAMES',
-               'e__cde__cdeeg__cdeeg+__FRAMES', 'e__eg__FRAMES', 'e__cde__cdecf__FRAMES',
-               'd__cde__cdecf__FRAMES', 'd__cde__cdeeg__cdeeg+__FRAMES', 'c__cde__cdecf__FRAMES',
-               'c__cf__cdecf__FRAMES', 'c__cde__cdeeg__cdeeg+__FRAMES', 'ab__FRAMES',
-               'b__ab__FRAMES', 'a__ab__FRAMES'],
-        'Onto ID': ['FRAMES', 'cdeeg+', 'cdeeg', 'cdecf', 'gh', 'eg', 'eg', 'cde', 'cde', 'cf', 'h',
-                    'g', 'g', 'g', 'f', 'e', 'e', 'e', 'e', 'd', 'd', 'c', 'c', 'c', 'ab', 'b',
-                    'a'],
-        'Parent': ['', 'FRAMES', 'cdeeg+__FRAMES', 'FRAMES', 'FRAMES', 'cdeeg__cdeeg+__FRAMES',
-                   'FRAMES', 'cdeeg__cdeeg+__FRAMES', 'cdecf__FRAMES', 'cdecf__FRAMES',
-                   'gh__FRAMES', 'eg__cdeeg__cdeeg+__FRAMES', 'eg__FRAMES', 'gh__FRAMES',
-                   'cf__cdecf__FRAMES', 'eg__cdeeg__cdeeg+__FRAMES', 'cde__cdeeg__cdeeg+__FRAMES',
-                   'eg__FRAMES', 'cde__cdecf__FRAMES', 'cde__cdecf__FRAMES',
-                   'cde__cdeeg__cdeeg+__FRAMES', 'cde__cdecf__FRAMES', 'cf__cdecf__FRAMES',
-                   'cde__cdeeg__cdeeg+__FRAMES', 'FRAMES', 'ab__FRAMES', 'ab__FRAMES'],
-        'Label': ['FRAMES', 'cdeeg+', 'cdeeg', 'cdecf', 'gh', 'eg', 'eg', 'cde', 'cde', 'cf', 'h',
-                  'g', 'g', 'g', 'f', 'e', 'e', 'e', 'e', 'd', 'd', 'c', 'c', 'c', 'ab', 'b', 'a'],
-        'Count': [6, 3, 3, 3, nan, nan, nan, 3, 3, 3, nan, nan, nan, nan, nan, nan, nan, nan, nan,
-                  nan, nan, 3, 3, 3, 3, 2, 1],
-        'Reference count': [36, 19, 19, 18, 15, 12, 12, 12, 12, 9, 8, 7, 7, 7, 6, 5, 5, 5, 5, 4, 4,
-                            3, 3, 3, 3, 2, 1]}
-
 W_PROP = [1.0, 0.5, 0.5, 0.5, nan, nan, nan, 0.5, 0.5, 0.5, nan, nan, nan, nan, nan, nan, nan, nan,
           nan, nan, nan, 0.5, 0.5, 0.5, 0.5, 0.3333333333333333, 0.16666666666666666]
 
@@ -70,9 +43,6 @@ W_REF_PROP = [1.0, 0.5277777777777778, 0.5277777777777778, 0.5, 0.41666666666666
               0.08333333333333333, 0.08333333333333333, 0.08333333333333333, 0.05555555555555555,
               0.027777777777777776]
 
-W_RELAT_PROP = [1000000, 283582, 283582, 268656, 223880, 141791, 179104, 141791, 153517, 115138,
-                119402, 82711, 104477, 104477, 76758, 59079, 59079, 74626, 63965, 51172, 47263,
-                38379, 38379, 35447, 44776, 29850, 14925]
 W_REL_PROP = {'FRAMES': 1000000, 'cdeeg+__FRAMES': 283582, 'cdeeg__cdeeg+__FRAMES': 283582,
               'cdecf__FRAMES': 268656, 'gh__FRAMES': 223880, 'eg__cdeeg__cdeeg+__FRAMES': 141791,
               'eg__FRAMES': 179104, 'cde__cdeeg__cdeeg+__FRAMES': 141791,
@@ -85,13 +55,6 @@ W_REL_PROP = {'FRAMES': 1000000, 'cdeeg+__FRAMES': 283582, 'cdeeg__cdeeg+__FRAME
               'c__cde__cdecf__FRAMES': 38379, 'c__cf__cdecf__FRAMES': 38379,
               'c__cde__cdeeg__cdeeg+__FRAMES': 35447, 'ab__FRAMES': 44776, 'b__ab__FRAMES': 29850,
               'a__ab__FRAMES': 14925}
-
-DATA_PROP = DATA
-DATA_PROP[PROP] = W_PROP
-DATA_PROP[REF_PROP] = W_REF_PROP
-
-DATA_R_PROP = DATA_PROP
-DATA_R_PROP[RELAT_PROP] = W_RELAT_PROP
 
 
 # ==================================================================================================
@@ -174,23 +137,6 @@ class TestGenerateDataTable(unittest.TestCase):
         sub_abu = get_sub_abundance(None, 'eg', 12)
         self.assertEqual(sub_abu, 12)
 
-    @test_for(add_value_data)
-    def test_add_value_data(self):
-        data = DataTable()
-        data.add_value(m_id='bjr', onto_id='Bjr_0', label='bonjour', count=2, ref_count=8,
-                       parent='salutations')
-        data.add_value(m_id='slt', onto_id='sl_1', label='salut', count=0.5, ref_count=2.3,
-                       parent='salutations')
-        wanted_data = {IDS: ['bjr', 'slt'],
-                       ONTO_ID: ['Bjr_0', 'sl_1'],
-                       PARENT: ['salutations', 'salutations'],
-                       LABEL: ['bonjour', 'salut'],
-                       COUNT: [2, 0.5],
-                       REF_COUNT: [8, 2.3],
-                       PROP: [nan, nan], REF_PROP: [nan, nan], RELAT_PROP: [nan, nan],
-                       PVAL: [nan, nan]}
-        self.assertEqual(data.get_data_dict(), wanted_data)
-
     @test_for(get_all_ids)
     def test_get_all_c_ids(self):
         all_ids = get_all_ids('c', 'c', MC_ONTO, ROOTS[METACYC], set())
@@ -211,28 +157,137 @@ class TestGenerateDataTable(unittest.TestCase):
         wanted_ids = {'eg__FRAMES', 'eg__cdeeg__cdeeg+__FRAMES'}
         self.assertEqual(all_ids, wanted_ids)
 
-    @test_for(get_fig_parameters)
+    @test_for(DataTable.add_value)
+    def test_add_value_data(self):
+        data = DataTable()
+        data.add_value(m_id='bjr', onto_id='Bjr_0', label='bonjour', count=2, ref_count=8,
+                       parent='salutations')
+        data.add_value(m_id='slt', onto_id='sl_1', label='salut', count=0.5, ref_count=2.3,
+                       parent='salutations')
+        wanted_data = {IDS: ['bjr', 'slt'],
+                       ONTO_ID: ['Bjr_0', 'sl_1'],
+                       PARENT: ['salutations', 'salutations'],
+                       LABEL: ['bonjour', 'salut'],
+                       COUNT: [2, 0.5],
+                       REF_COUNT: [8, 2.3],
+                       PROP: [nan, nan], REF_PROP: [nan, nan], RELAT_PROP: [nan, nan],
+                       PVAL: [nan, nan]}
+        self.assertEqual(data.get_data_dict(), wanted_data)
+
+    @test_for(DataTable.fill_parameters)
     def test_get_fig_parameters(self):
         data = DataTable()
         data.fill_parameters(classes_abondance=MET_RAB_D, parent_dict=MC_ONTO,
                              root_item=ROOTS[METACYC], subset_abundance=MET_LAB_D, names=None)
         lines = set(data.get_col())
-        w_lines = {('cde__cdeeg__cdeeg+__FRAMES', 'cde', 'cde', 'cdeeg__cdeeg+__FRAMES', 3, 12, nan, nan, nan, nan), ('d__cde__cdeeg__cdeeg+__FRAMES', 'd', 'd', 'cde__cdeeg__cdeeg+__FRAMES', nan, 4, nan, nan, nan, nan), ('b__ab__FRAMES', 'b', 'b', 'ab__FRAMES', 2, 2, nan, nan, nan, nan), ('g__eg__FRAMES', 'g', 'g', 'eg__FRAMES', nan, 7, nan, nan, nan, nan), ('eg__FRAMES', 'eg', 'eg', 'FRAMES', nan, 12, nan, nan, nan, nan), ('c__cde__cdecf__FRAMES', 'c', 'c', 'cde__cdecf__FRAMES', 3, 3, nan, nan, nan, nan), ('g__eg__cdeeg__cdeeg+__FRAMES', 'g', 'g', 'eg__cdeeg__cdeeg+__FRAMES', nan, 7, nan, nan, nan, nan), ('e__eg__cdeeg__cdeeg+__FRAMES', 'e', 'e', 'eg__cdeeg__cdeeg+__FRAMES', nan, 5, nan, nan, nan, nan), ('cdeeg__cdeeg+__FRAMES', 'cdeeg', 'cdeeg', 'cdeeg+__FRAMES', 3, 19, nan, nan, nan, nan), ('cdecf__FRAMES', 'cdecf', 'cdecf', 'FRAMES', 3, 18, nan, nan, nan, nan), ('ab__FRAMES', 'ab', 'ab', 'FRAMES', 3, 3, nan, nan, nan, nan), ('e__cde__cdeeg__cdeeg+__FRAMES', 'e', 'e', 'cde__cdeeg__cdeeg+__FRAMES', nan, 5, nan, nan, nan, nan), ('c__cde__cdeeg__cdeeg+__FRAMES', 'c', 'c', 'cde__cdeeg__cdeeg+__FRAMES', 3, 3, nan, nan, nan, nan), ('c__cf__cdecf__FRAMES', 'c', 'c', 'cf__cdecf__FRAMES', 3, 3, nan, nan, nan, nan), ('cde__cdecf__FRAMES', 'cde', 'cde', 'cdecf__FRAMES', 3, 12, nan, nan, nan, nan), ('FRAMES', 'FRAMES', 'FRAMES', '', 6, 36, nan, nan, nan, nan), ('f__cf__cdecf__FRAMES', 'f', 'f', 'cf__cdecf__FRAMES', nan, 6, nan, nan, nan, nan), ('eg__cdeeg__cdeeg+__FRAMES', 'eg', 'eg', 'cdeeg__cdeeg+__FRAMES', nan, 12, nan, nan, nan, nan), ('e__eg__FRAMES', 'e', 'e', 'eg__FRAMES', nan, 5, nan, nan, nan, nan), ('g__gh__FRAMES', 'g', 'g', 'gh__FRAMES', nan, 7, nan, nan, nan, nan), ('h__gh__FRAMES', 'h', 'h', 'gh__FRAMES', nan, 8, nan, nan, nan, nan), ('cdeeg+__FRAMES', 'cdeeg+', 'cdeeg+', 'FRAMES', 3, 19, nan, nan, nan, nan), ('gh__FRAMES', 'gh', 'gh', 'FRAMES', nan, 15, nan, nan, nan, nan), ('e__cde__cdecf__FRAMES', 'e', 'e', 'cde__cdecf__FRAMES', nan, 5, nan, nan, nan, nan), ('cf__cdecf__FRAMES', 'cf', 'cf', 'cdecf__FRAMES', 3, 9, nan, nan, nan, nan), ('a__ab__FRAMES', 'a', 'a', 'ab__FRAMES', 1, 1, nan, nan, nan, nan), ('d__cde__cdecf__FRAMES', 'd', 'd', 'cde__cdecf__FRAMES', nan, 4, nan, nan, nan, nan)}
+        w_lines = {('cde__cdeeg__cdeeg+__FRAMES', 'cde', 'cde', 'cdeeg__cdeeg+__FRAMES', 3, 12, nan,
+                    nan, nan, nan), (
+                       'd__cde__cdeeg__cdeeg+__FRAMES', 'd', 'd', 'cde__cdeeg__cdeeg+__FRAMES', nan,
+                       4,
+                       nan, nan, nan, nan),
+                   ('b__ab__FRAMES', 'b', 'b', 'ab__FRAMES', 2, 2, nan, nan, nan, nan),
+                   ('g__eg__FRAMES', 'g', 'g', 'eg__FRAMES', nan, 7, nan, nan, nan, nan),
+                   ('eg__FRAMES', 'eg', 'eg', 'FRAMES', nan, 12, nan, nan, nan, nan), (
+                       'c__cde__cdecf__FRAMES', 'c', 'c', 'cde__cdecf__FRAMES', 3, 3, nan, nan, nan,
+                       nan), (
+                       'g__eg__cdeeg__cdeeg+__FRAMES', 'g', 'g', 'eg__cdeeg__cdeeg+__FRAMES', nan,
+                       7,
+                       nan, nan, nan, nan), (
+                       'e__eg__cdeeg__cdeeg+__FRAMES', 'e', 'e', 'eg__cdeeg__cdeeg+__FRAMES', nan,
+                       5,
+                       nan, nan, nan, nan), (
+                       'cdeeg__cdeeg+__FRAMES', 'cdeeg', 'cdeeg', 'cdeeg+__FRAMES', 3, 19, nan, nan,
+                       nan, nan),
+                   ('cdecf__FRAMES', 'cdecf', 'cdecf', 'FRAMES', 3, 18, nan, nan, nan, nan),
+                   ('ab__FRAMES', 'ab', 'ab', 'FRAMES', 3, 3, nan, nan, nan, nan), (
+                       'e__cde__cdeeg__cdeeg+__FRAMES', 'e', 'e', 'cde__cdeeg__cdeeg+__FRAMES', nan,
+                       5,
+                       nan, nan, nan, nan), (
+                       'c__cde__cdeeg__cdeeg+__FRAMES', 'c', 'c', 'cde__cdeeg__cdeeg+__FRAMES', 3,
+                       3,
+                       nan, nan, nan, nan), (
+                       'c__cf__cdecf__FRAMES', 'c', 'c', 'cf__cdecf__FRAMES', 3, 3, nan, nan, nan,
+                       nan),
+                   ('cde__cdecf__FRAMES', 'cde', 'cde', 'cdecf__FRAMES', 3, 12, nan, nan, nan, nan),
+                   ('FRAMES', 'FRAMES', 'FRAMES', '', 6, 36, nan, nan, nan, nan), (
+                       'f__cf__cdecf__FRAMES', 'f', 'f', 'cf__cdecf__FRAMES', nan, 6, nan, nan, nan,
+                       nan), (
+                       'eg__cdeeg__cdeeg+__FRAMES', 'eg', 'eg', 'cdeeg__cdeeg+__FRAMES', nan, 12,
+                       nan,
+                       nan, nan, nan),
+                   ('e__eg__FRAMES', 'e', 'e', 'eg__FRAMES', nan, 5, nan, nan, nan, nan),
+                   ('g__gh__FRAMES', 'g', 'g', 'gh__FRAMES', nan, 7, nan, nan, nan, nan),
+                   ('h__gh__FRAMES', 'h', 'h', 'gh__FRAMES', nan, 8, nan, nan, nan, nan),
+                   ('cdeeg+__FRAMES', 'cdeeg+', 'cdeeg+', 'FRAMES', 3, 19, nan, nan, nan, nan),
+                   ('gh__FRAMES', 'gh', 'gh', 'FRAMES', nan, 15, nan, nan, nan, nan), (
+                       'e__cde__cdecf__FRAMES', 'e', 'e', 'cde__cdecf__FRAMES', nan, 5, nan, nan,
+                       nan,
+                       nan),
+                   ('cf__cdecf__FRAMES', 'cf', 'cf', 'cdecf__FRAMES', 3, 9, nan, nan, nan, nan),
+                   ('a__ab__FRAMES', 'a', 'a', 'ab__FRAMES', 1, 1, nan, nan, nan, nan), (
+                       'd__cde__cdecf__FRAMES', 'd', 'd', 'cde__cdecf__FRAMES', nan, 4, nan, nan,
+                       nan,
+                       nan)}
         self.assertEqual(lines, w_lines)
 
-    @test_for(get_fig_parameters)
+    @test_for(DataTable.fill_parameters)
     def test_get_fig_parameters_names(self):
         data = DataTable()
         data.fill_parameters(classes_abondance=MET_RAB_D, parent_dict=MC_ONTO,
                              root_item=ROOTS[METACYC], subset_abundance=MET_LAB_D, names=NAMES)
         lines = set(data.get_col())
-        w_lines = {('ab__FRAMES', 'ab', 'AB', 'FRAMES', 3, 3, nan, nan, nan, nan), ('d__cde__cdecf__FRAMES', 'd', 'D', 'cde__cdecf__FRAMES', nan, 4, nan, nan, nan, nan), ('b__ab__FRAMES', 'b', 'B', 'ab__FRAMES', 2, 2, nan, nan, nan, nan), ('h__gh__FRAMES', 'h', 'H', 'gh__FRAMES', nan, 8, nan, nan, nan, nan), ('g__eg__cdeeg__cdeeg+__FRAMES', 'g', 'G', 'eg__cdeeg__cdeeg+__FRAMES', nan, 7, nan, nan, nan, nan), ('cdeeg+__FRAMES', 'cdeeg+', 'CDEEG+', 'FRAMES', 3, 19, nan, nan, nan, nan), ('FRAMES', 'FRAMES', 'FRAMES', '', 6, 36, nan, nan, nan, nan), ('g__eg__FRAMES', 'g', 'G', 'eg__FRAMES', nan, 7, nan, nan, nan, nan), ('cde__cdeeg__cdeeg+__FRAMES', 'cde', 'CDE', 'cdeeg__cdeeg+__FRAMES', 3, 12, nan, nan, nan, nan), ('eg__cdeeg__cdeeg+__FRAMES', 'eg', 'EG', 'cdeeg__cdeeg+__FRAMES', nan, 12, nan, nan, nan, nan), ('c__cde__cdeeg__cdeeg+__FRAMES', 'c', 'C', 'cde__cdeeg__cdeeg+__FRAMES', 3, 3, nan, nan, nan, nan), ('g__gh__FRAMES', 'g', 'G', 'gh__FRAMES', nan, 7, nan, nan, nan, nan), ('e__eg__FRAMES', 'e', 'E', 'eg__FRAMES', nan, 5, nan, nan, nan, nan), ('eg__FRAMES', 'eg', 'EG', 'FRAMES', nan, 12, nan, nan, nan, nan), ('e__eg__cdeeg__cdeeg+__FRAMES', 'e', 'E', 'eg__cdeeg__cdeeg+__FRAMES', nan, 5, nan, nan, nan, nan), ('c__cf__cdecf__FRAMES', 'c', 'C', 'cf__cdecf__FRAMES', 3, 3, nan, nan, nan, nan), ('gh__FRAMES', 'gh', 'GH', 'FRAMES', nan, 15, nan, nan, nan, nan), ('cdeeg__cdeeg+__FRAMES', 'cdeeg', 'CDEEG', 'cdeeg+__FRAMES', 3, 19, nan, nan, nan, nan), ('e__cde__cdeeg__cdeeg+__FRAMES', 'e', 'E', 'cde__cdeeg__cdeeg+__FRAMES', nan, 5, nan, nan, nan, nan), ('d__cde__cdeeg__cdeeg+__FRAMES', 'd', 'D', 'cde__cdeeg__cdeeg+__FRAMES', nan, 4, nan, nan, nan, nan), ('c__cde__cdecf__FRAMES', 'c', 'C', 'cde__cdecf__FRAMES', 3, 3, nan, nan, nan, nan), ('a__ab__FRAMES', 'a', 'a', 'ab__FRAMES', 1, 1, nan, nan, nan, nan), ('e__cde__cdecf__FRAMES', 'e', 'E', 'cde__cdecf__FRAMES', nan, 5, nan, nan, nan, nan), ('cdecf__FRAMES', 'cdecf', 'CDECF', 'FRAMES', 3, 18, nan, nan, nan, nan), ('cde__cdecf__FRAMES', 'cde', 'CDE', 'cdecf__FRAMES', 3, 12, nan, nan, nan, nan), ('cf__cdecf__FRAMES', 'cf', 'CF', 'cdecf__FRAMES', 3, 9, nan, nan, nan, nan), ('f__cf__cdecf__FRAMES', 'f', 'F', 'cf__cdecf__FRAMES', nan, 6, nan, nan, nan, nan)}
+        w_lines = {('ab__FRAMES', 'ab', 'AB', 'FRAMES', 3, 3, nan, nan, nan, nan), (
+            'd__cde__cdecf__FRAMES', 'd', 'D', 'cde__cdecf__FRAMES', nan, 4, nan, nan, nan, nan),
+                   ('b__ab__FRAMES', 'b', 'B', 'ab__FRAMES', 2, 2, nan, nan, nan, nan),
+                   ('h__gh__FRAMES', 'h', 'H', 'gh__FRAMES', nan, 8, nan, nan, nan, nan), (
+                       'g__eg__cdeeg__cdeeg+__FRAMES', 'g', 'G', 'eg__cdeeg__cdeeg+__FRAMES', nan,
+                       7,
+                       nan, nan, nan, nan),
+                   ('cdeeg+__FRAMES', 'cdeeg+', 'CDEEG+', 'FRAMES', 3, 19, nan, nan, nan, nan),
+                   ('FRAMES', 'FRAMES', 'FRAMES', '', 6, 36, nan, nan, nan, nan),
+                   ('g__eg__FRAMES', 'g', 'G', 'eg__FRAMES', nan, 7, nan, nan, nan, nan), (
+                       'cde__cdeeg__cdeeg+__FRAMES', 'cde', 'CDE', 'cdeeg__cdeeg+__FRAMES', 3, 12,
+                       nan,
+                       nan, nan, nan), (
+                       'eg__cdeeg__cdeeg+__FRAMES', 'eg', 'EG', 'cdeeg__cdeeg+__FRAMES', nan, 12,
+                       nan,
+                       nan, nan, nan), (
+                       'c__cde__cdeeg__cdeeg+__FRAMES', 'c', 'C', 'cde__cdeeg__cdeeg+__FRAMES', 3,
+                       3,
+                       nan, nan, nan, nan),
+                   ('g__gh__FRAMES', 'g', 'G', 'gh__FRAMES', nan, 7, nan, nan, nan, nan),
+                   ('e__eg__FRAMES', 'e', 'E', 'eg__FRAMES', nan, 5, nan, nan, nan, nan),
+                   ('eg__FRAMES', 'eg', 'EG', 'FRAMES', nan, 12, nan, nan, nan, nan), (
+                       'e__eg__cdeeg__cdeeg+__FRAMES', 'e', 'E', 'eg__cdeeg__cdeeg+__FRAMES', nan,
+                       5,
+                       nan, nan, nan, nan), (
+                       'c__cf__cdecf__FRAMES', 'c', 'C', 'cf__cdecf__FRAMES', 3, 3, nan, nan, nan,
+                       nan),
+                   ('gh__FRAMES', 'gh', 'GH', 'FRAMES', nan, 15, nan, nan, nan, nan), (
+                       'cdeeg__cdeeg+__FRAMES', 'cdeeg', 'CDEEG', 'cdeeg+__FRAMES', 3, 19, nan, nan,
+                       nan, nan), (
+                       'e__cde__cdeeg__cdeeg+__FRAMES', 'e', 'E', 'cde__cdeeg__cdeeg+__FRAMES', nan,
+                       5,
+                       nan, nan, nan, nan), (
+                       'd__cde__cdeeg__cdeeg+__FRAMES', 'd', 'D', 'cde__cdeeg__cdeeg+__FRAMES', nan,
+                       4,
+                       nan, nan, nan, nan), (
+                       'c__cde__cdecf__FRAMES', 'c', 'C', 'cde__cdecf__FRAMES', 3, 3, nan, nan, nan,
+                       nan), ('a__ab__FRAMES', 'a', 'a', 'ab__FRAMES', 1, 1, nan, nan, nan, nan), (
+                       'e__cde__cdecf__FRAMES', 'e', 'E', 'cde__cdecf__FRAMES', nan, 5, nan, nan,
+                       nan,
+                       nan),
+                   ('cdecf__FRAMES', 'cdecf', 'CDECF', 'FRAMES', 3, 18, nan, nan, nan, nan),
+                   ('cde__cdecf__FRAMES', 'cde', 'CDE', 'cdecf__FRAMES', 3, 12, nan, nan, nan, nan),
+                   ('cf__cdecf__FRAMES', 'cf', 'CF', 'cdecf__FRAMES', 3, 9, nan, nan, nan, nan), (
+                       'f__cf__cdecf__FRAMES', 'f', 'F', 'cf__cdecf__FRAMES', nan, 6, nan, nan, nan,
+                       nan)}
         self.assertEqual(lines, w_lines)
 
 
 class TestAddProportionDataTable(unittest.TestCase):
 
-    @test_for(get_data_proportion)
+    @test_for(DataTable.calculate_proportions)
     def test_get_data_proportion_no_relative(self):
         data = DataTable()
         data.fill_parameters(classes_abondance=MET_RAB_D, parent_dict=MC_ONTO,
@@ -244,7 +299,7 @@ class TestAddProportionDataTable(unittest.TestCase):
             else:
                 self.assertEqual(data.prop[i], W_PROP[i])
 
-    @test_for(get_data_proportion)
+    @test_for(DataTable.calculate_proportions)
     def test_get_data_proportion_no_relative_ref(self):
         data = DataTable()
         data.fill_parameters(classes_abondance=MET_RAB_D, parent_dict=MC_ONTO,
@@ -253,7 +308,7 @@ class TestAddProportionDataTable(unittest.TestCase):
         for i in range(data.len):
             self.assertEqual(data.ref_prop[i], W_REF_PROP[i])
 
-    @test_for(get_data_proportion)
+    @test_for(DataTable.calculate_proportions)
     def test_get_data_proportion_relative(self):
         data = DataTable()
         data.fill_parameters(classes_abondance=MET_RAB_D, parent_dict=MC_ONTO,
@@ -266,18 +321,14 @@ class TestAddProportionDataTable(unittest.TestCase):
 # ENRICHMENT TESTS
 # ==================================================================================================
 
-ENRICH_DATA = {IDS: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-               ONTO_ID: ['00', '01', '02', '03', '04', '05', '06', '07', '08', '09'],
-               PARENT: ['', 0, 0, 0, 0, 1, 1, 1, 2, 2],
-               LABEL: ['00', '01', '02', '03', '04', '05', '06', '07', '08', '09'],
-               COUNT: [50, 5, 25, 20, 1, 5, nan, nan, 1, 1],
-               REF_COUNT: [100, 40, 30, 20, 10, 20, 5, 1, 1, 3],
-               PROP: [1, 0.1, 0.5, 0.4, 0.02, 0.1, nan, nan, 0.02, 0.02],
-               REF_PROP: [1, 0.4, 0.3, 0.2, 0.1, 0.2, 0.05, 0.01, 0.01, 0.03],
-               RELAT_PROP: [1, 0.4, 0.3, 0.2, 0.1, 0.2, 0.05, 0.01, 0.01, 0.03]}
+ENRICH_AB = {'00': 50, '01': 5, '02': 25, '03': 20, '04': 1, '05': 5, '06': nan, '07': nan,
+             '08': 1, '09': 1}
 ENRICH_REF_AB = {'00': 100, '01': 40, '02': 30, '03': 20, '04': 10, '05': 20, '06': 5, '07': 1,
                  '08': 1, '09': 3}
-LABEL_NAMES = ['r', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']
+E_LABElS = {'00': '0', '01': '1', '02': '2', '03': '3', '04': '4',
+            '05': '5', '06': '6', '07': '7', '08': '8', '09': '9'}
+E_ONTO = {'01': ['00'], '02': ['00'], '03': ['00'], '04': ['00'], '05': ['01'],
+          '06': ['01'], '07': ['01'], '08': ['02'], '09': ['02']}
 
 
 # Expected :
@@ -286,11 +337,13 @@ LABEL_NAMES = ['r', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eigh
 
 class TestEnrichmentAnalysis(unittest.TestCase):
 
-    @test_for(get_data_enrichment_analysis)
+    @test_for(DataTable.make_enrichment_analysis)
     def test_get_data_enrichment_analysis_single_value(self):
-        data, significant = get_data_enrichment_analysis(ENRICH_DATA, ENRICH_REF_AB, BINOMIAL_TEST)
-        lines = data_to_lines(data)
-        p_value_1 = [l[-1] for l in lines if l[0] == 1][0]
+        data = DataTable()
+        data.fill_parameters(ENRICH_REF_AB, E_ONTO, '00', ENRICH_AB, E_LABElS)
+        data.calculate_proportions(True)
+        data.make_enrichment_analysis(BINOMIAL_TEST)
+        p_value_1 = [data.p_val[i] for i in range(data.len) if data.onto_ids[i] == '01'][0]
         M = 100
         N = 50
         m = 40
@@ -299,115 +352,140 @@ class TestEnrichmentAnalysis(unittest.TestCase):
         exp_p_value_1 = np.log10(exp_p_value_1)
         self.assertEqual(p_value_1, exp_p_value_1)
 
-    @test_for(get_data_enrichment_analysis)
+    @test_for(DataTable.make_enrichment_analysis)
     def test_get_data_enrichment_analysis_binomial(self):
-        data, significant = get_data_enrichment_analysis(ENRICH_DATA, ENRICH_REF_AB, BINOMIAL_TEST)
-        lines = data_to_lines(data)
+        data = DataTable()
+        data.fill_parameters(ENRICH_REF_AB, E_ONTO, '00', ENRICH_AB, E_LABElS)
+        data.calculate_proportions(True)
+        significant = data.make_enrichment_analysis(BINOMIAL_TEST)
+        lines = set(data.get_col())
         exp_significant = {'01': 3.7996e-06, '03': 0.0011251149, '02': 0.0030924096}
-        exp_lines = {(7, '07', 1, '07', nan, 1, nan, 0.01, 0.01, nan),
-                     (3, '03', 0, '03', 20, 20, 0.4, 0.2, 0.2, 2.948803113091024),
-                     (5, '05', 1, '05', 5, 20, 0.1, 0.2, 0.2, -1.103304935668835),
-                     (4, '04', 0, '04', 1, 10, 0.02, 0.1, 0.1, -1.2341542222355069),
-                     (2, '02', 0, '02', 25, 30, 0.5, 0.3, 0.3, 2.509702991379166),
-                     (1, '01', 0, '01', 5, 40, 0.1, 0.4, 0.4, -5.420266413988895),
-                     (9, '09', 2, '09', 1, 3, 0.02, 0.03, 0.03, 0.0),
-                     (8, '08', 2, '08', 1, 1, 0.02, 0.01, 0.01, 0.4034095751193356),
-                     (0, '00', '', '00', 50, 100, 1, 1, 1, 0.0),
-                     (6, '06', 1, '06', nan, 5, nan, 0.05, 0.05, nan)}
-        self.assertEqual(lines, exp_lines)
+        exp_lines = {('01__00', '01', '1', '00', 5, 40, 0.1, 0.4, 400000, -5.420266413988895),
+                     ('02__00', '02', '2', '00', 25, 30, 0.5, 0.3, 300000, 2.509702991379166),
+                     ('03__00', '03', '3', '00', 20, 20, 0.4, 0.2, 200000, 2.948803113091024),
+                     ('05__01__00', '05', '5', '01__00', 5, 20, 0.1, 0.2, 200000,
+                      -1.103304935668835),
+                     ('00', '00', '00', '', 50, 100, 1.0, 1.0, 1000000, 0.0),
+                     ('04__00', '04', '4', '00', 1, 10, 0.02, 0.1, 100000, -1.2341542222355069),
+                     ('06__01__00', '06', '6', '01__00', nan, 5, nan, 0.05, 50000, nan),
+                     ('08__02__00', '08', '8', '02__00', 1, 1, 0.02, 0.01, 10000,
+                      0.4034095751193356),
+                     ('07__01__00', '07', '7', '01__00', nan, 1, nan, 0.01, 10000, nan),
+                     ('09__02__00', '09', '9', '02__00', 1, 3, 0.02, 0.03, 30000, 0.0)}
+        for l in lines:
+            l = tuple([nan if type(x) != str and np.isnan(x) else x for x in l])
+            self.assertIn(l, exp_lines)
+        self.assertEqual(len(lines), len(exp_lines))
         self.assertEqual(significant, exp_significant)
 
-    @test_for(get_data_enrichment_analysis)
+    @test_for(DataTable.make_enrichment_analysis)
     def test_get_data_enrichment_analysis_hypergeometric(self):
-        data, significant = get_data_enrichment_analysis(ENRICH_DATA, ENRICH_REF_AB, HYPERGEO_TEST)
-        lines = data_to_lines(data)
-        exp_lines = {(8, '08', 2, '08', 1, 1, 0.02, 0.01, 0.01, -0.0),
-                     (3, '03', 0, '03', 20, 20, 0.4, 0.2, 0.2, 6.754831139005899),
-                     (6, '06', 1, '06', nan, 5, nan, 0.05, 0.05, nan),
-                     (5, '05', 1, '05', 5, 20, 0.1, 0.2, 0.2, -1.6413993451973743),
-                     (9, '09', 2, '09', 1, 3, 0.02, 0.03, 0.03, -1.4464911998299308e-16),
-                     (4, '04', 0, '04', 1, 10, 0.02, 0.1, 0.1, -1.8051946563380086),
-                     (2, '02', 0, '02', 25, 30, 0.5, 0.3, 0.3, 4.692610428021241),
-                     (0, '00', '', '00', 50, 100, 1, 1, 1, 0.3010299956639812),
-                     (1, '01', 0, '01', 5, 40, 0.1, 0.4, 0.4, -9.138873998573988),
-                     (7, '07', 1, '07', nan, 1, nan, 0.01, 0.01, nan)}
+        data = DataTable()
+        data.fill_parameters(ENRICH_REF_AB, E_ONTO, '00', ENRICH_AB, E_LABElS)
+        data.calculate_proportions(True)
+        significant = data.make_enrichment_analysis(HYPERGEO_TEST)
+        lines = set(data.get_col())
+        print(lines)
+        exp_lines = {('02__00', '02', '2', '00', 25, 30, 0.5, 0.3, 300000, 4.692610428021241),
+                     ('00', '00', '00', '', 50, 100, 1.0, 1.0, 1000000, 0.3010299956639812),
+                     ('08__02__00', '08', '8', '02__00', 1, 1, 0.02, 0.01, 10000, -0.0),
+                     ('03__00', '03', '3', '00', 20, 20, 0.4, 0.2, 200000, 6.754831139005899),
+                     ('05__01__00', '05', '5', '01__00', 5, 20, 0.1, 0.2, 200000,
+                      -1.6413993451973743),
+                     ('09__02__00', '09', '9', '02__00', 1, 3, 0.02, 0.03, 30000,
+                      -1.4464911998299308e-16),
+                     ('06__01__00', '06', '6', '01__00', nan, 5, nan, 0.05, 50000, nan),
+                     ('01__00', '01', '1', '00', 5, 40, 0.1, 0.4, 400000, -9.138873998573988),
+                     ('04__00', '04', '4', '00', 1, 10, 0.02, 0.1, 100000, -1.8051946563380086),
+                     ('07__01__00', '07', '7', '01__00', nan, 1, nan, 0.01, 10000, nan)}
         exp_significant = {'01': 7e-10, '03': 1.759e-07, '02': 2.0295e-05}
-        self.assertEqual(lines, exp_lines)
-        self.assertEqual(significant, exp_significant)
-
-    def test_get_data_enrichment_analysis_names(self):
-        data = copy.deepcopy(ENRICH_DATA)
-        data[LABEL] = LABEL_NAMES
-        data, significant = get_data_enrichment_analysis(data, ENRICH_REF_AB, BINOMIAL_TEST)
-        lines = data_to_lines(data)
-        exp_lines = {(2, '02', 0, 'two', 25, 30, 0.5, 0.3, 0.3, 2.509702991379166),
-                     (4, '04', 0, 'four', 1, 10, 0.02, 0.1, 0.1, -1.2341542222355069),
-                     (9, '09', 2, 'nine', 1, 3, 0.02, 0.03, 0.03, 0.0),
-                     (0, '00', '', 'r', 50, 100, 1, 1, 1, 0.0),
-                     (6, '06', 1, 'six', nan, 5, nan, 0.05, 0.05, nan),
-                     (7, '07', 1, 'seven', nan, 1, nan, 0.01, 0.01, nan),
-                     (1, '01', 0, 'one', 5, 40, 0.1, 0.4, 0.4, -5.420266413988895),
-                     (5, '05', 1, 'five', 5, 20, 0.1, 0.2, 0.2, -1.103304935668835),
-                     (3, '03', 0, 'three', 20, 20, 0.4, 0.2, 0.2, 2.948803113091024),
-                     (8, '08', 2, 'eight', 1, 1, 0.02, 0.01, 0.01, 0.4034095751193356)}
-        exp_significant = {'01': 3.7996e-06, '03': 0.0011251149, '02': 0.0030924096}
-        self.assertEqual(lines, exp_lines)
+        for l in lines:
+            l = tuple([nan if type(x) != str and np.isnan(x) else x for x in l])
+            self.assertIn(l, exp_lines)
+        self.assertEqual(len(lines), len(exp_lines))
         self.assertEqual(significant, exp_significant)
 
 
 # TOPOLOGY MANAGEMENT TESTS
 # ==================================================================================================
 
-MULTI_ROOT_DATA = {IDS: ['R', 'R-1', 'R-2', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
-                   ONTO_ID: ['R', 'R-1', 'R-2', '00', '01', '02', '03', '04', '05', '06', '07',
-                             '08', '09'],
-                   PARENT: ['', 'R', 'R-1', 'R-2', '0', '0', '0', '0', '1', '1', '1', '2', '2'],
-                   LABEL: ['R', 'R-1', 'R-2', '00', '01', '02', '03', '04', '05', '06', '07', '08',
-                           '09'],
-                   COUNT: [50, 50, 50, 50, 5, 25, 20, 1, 5, nan, nan, 1, 1],
-                   REF_COUNT: [100, 100, 100, 100, 40, 30, 20, 10, 20, 5, 1, 1, 3],
-                   PROP: [1, 1, 1, 1, 0.1, 0.5, 0.4, 0.02, 0.1, nan, nan, 0.02, 0.02],
-                   REF_PROP: [1, 1, 1, 1, 0.4, 0.3, 0.2, 0.1, 0.2, 0.05, 0.01, 0.01, 0.03],
-                   RELAT_PROP: [1000000, 1000000, 1000000, 1000000, 400000.0, 300000.0, 200000.0,
-                                100000.0, 200000.0, 50000.0, 10000.0, 10000.0, 30000.0]}
+ROOT_AB = {'R': 50, 'R-1': 50, 'R-2': 50, '00': 50, '01': 5, '02': 25, '03': 20, '04': 1, '05': 5,
+           '06': nan, '07': nan, '08': 1, '09': 1}
+ROOT_REF_AB = {'R': 100, 'R-1': 100, 'R-2': 100, '00': 100, '01': 40, '02': 30, '03': 20, '04': 10,
+               '05': 20, '06': 5, '07': 1, '08': 1, '09': 3}
+ROOT_LABElS = {'R': 'r', '00': '0', '01': '1', '02': '2', '03': '3',
+               '04': '4', '05': '5', '06': '6', '07': '7', '08': '8', '09': '9'}
+ROOT_ONTO = {'01': ['00'], '02': ['00'], '03': ['00'], '04': ['00'], '05': ['01'], '00': ['R-2'],
+             '06': ['01'], '07': ['01'], '08': ['02'], '09': ['02'], 'R-1': ['R'], 'R-2': ['R-1']}
 
 
 class TestTopologyManagement(unittest.TestCase):
 
-    @test_for(data_cut_root)
+    @test_for(DataTable.cut_root)
     def test_data_cut_root_uncut(self):
-        data_b = copy.deepcopy(MULTI_ROOT_DATA)
-        data = data_cut_root(data_b, ROOT_UNCUT)
-        self.assertEqual(data, MULTI_ROOT_DATA)
+        data = DataTable()
+        data.fill_parameters(ROOT_REF_AB, ROOT_ONTO, 'R', ROOT_AB, ROOT_LABElS)
+        data.calculate_proportions(True)
+        exp_d = data.get_data_dict()
+        data.cut_root(ROOT_UNCUT)
+        self.assertEqual(data.get_data_dict(), exp_d)
 
-    @test_for(data_cut_root)
+    @test_for(DataTable.cut_root)
     def test_data_cut_root_cut(self):
-        data_b = copy.deepcopy(MULTI_ROOT_DATA)
-        data = data_cut_root(data_b, ROOT_CUT)
-        exp_data = {'ID': ['1', '2', '3', '4', '5', '6', '7', '8', '9'],
-                    'Onto ID': ['01', '02', '03', '04', '05', '06', '07', '08', '09'],
-                    'Parent': ['0', '0', '0', '0', '1', '1', '1', '2', '2'],
-                    'Label': ['01', '02', '03', '04', '05', '06', '07', '08', '09'],
-                    'Count': [5, 25, 20, 1, 5, nan, nan, 1, 1],
-                    'Reference count': [40, 30, 20, 10, 20, 5, 1, 1, 3],
-                    'Proportion': [0.1, 0.5, 0.4, 0.02, 0.1, nan, nan, 0.02, 0.02],
-                    'Reference proportion': [0.4, 0.3, 0.2, 0.1, 0.2, 0.05, 0.01, 0.01, 0.03],
-                    'Relative proportion': [400000.0, 300000.0, 200000.0, 100000.0, 200000.0,
-                                            50000.0, 10000.0, 10000.0, 30000.0]}
-        self.assertEqual(data, exp_data)
+        data = DataTable()
+        data.fill_parameters(ROOT_REF_AB, ROOT_ONTO, 'R', ROOT_AB, ROOT_LABElS)
+        data.calculate_proportions(True)
+        data.cut_root(ROOT_CUT)
+        lines = set(data.get_col())
+        exp_lines = {('01__00__R-2__R-1__R', '01', '1', '00', 5, 40, 0.1, 0.4, 400000, nan),
+                     (
+                     '06__01__00__R-2__R-1__R', '06', '6', '01__00__R-2__R-1__R', nan, 5, nan, 0.05,
+                     50000, nan),
+                     (
+                     '07__01__00__R-2__R-1__R', '07', '7', '01__00__R-2__R-1__R', nan, 1, nan, 0.01,
+                     10000, nan),
+                     ('05__01__00__R-2__R-1__R', '05', '5', '01__00__R-2__R-1__R', 5, 20, 0.1, 0.2,
+                      200000, nan),
+                     ('03__00__R-2__R-1__R', '03', '3', '00', 20, 20, 0.4, 0.2, 200000, nan),
+                     ('04__00__R-2__R-1__R', '04', '4', '00', 1, 10, 0.02, 0.1, 100000, nan),
+                     ('09__02__00__R-2__R-1__R', '09', '9', '02__00__R-2__R-1__R', 1, 3, 0.02, 0.03,
+                      30000, nan),
+                     ('02__00__R-2__R-1__R', '02', '2', '00', 25, 30, 0.5, 0.3, 300000, nan),
+                     ('08__02__00__R-2__R-1__R', '08', '8', '02__00__R-2__R-1__R', 1, 1, 0.02, 0.01,
+                      10000, nan)}
+        self.assertEqual(data.len, 9)
+        self.assertEqual(len(lines), len(exp_lines))
+        for l in lines:
+            l = tuple([nan if type(x) != str and np.isnan(x) else x for x in l])
+            self.assertIn(l, exp_lines)
 
-    @test_for(data_cut_root)
+    @test_for(DataTable.cut_root)
     def test_data_cut_root_total_cut(self):
-        data_b = copy.deepcopy(MULTI_ROOT_DATA)
-        data = data_cut_root(data_b, ROOT_TOTAL_CUT)
-        exp_data = {'ID': ['1', '2', '3', '4', '5', '6', '7', '8', '9'],
-                    'Onto ID': ['01', '02', '03', '04', '05', '06', '07', '08', '09'],
-                    'Parent': ['', '', '', '', '1', '1', '1', '2', '2'],
-                    'Label': ['01', '02', '03', '04', '05', '06', '07', '08', '09'],
-                    'Count': [5, 25, 20, 1, 5, nan, nan, 1, 1],
-                    'Reference count': [40, 30, 20, 10, 20, 5, 1, 1, 3],
-                    'Proportion': [0.1, 0.5, 0.4, 0.02, 0.1, nan, nan, 0.02, 0.02],
-                    'Reference proportion': [0.4, 0.3, 0.2, 0.1, 0.2, 0.05, 0.01, 0.01, 0.03],
-                    'Relative proportion': [400000.0, 300000.0, 200000.0, 100000.0, 200000.0,
-                                            50000.0, 10000.0, 10000.0, 30000.0]}
-        self.assertEqual(data, exp_data)
+        data = DataTable()
+        data.fill_parameters(ROOT_REF_AB, ROOT_ONTO, 'R', ROOT_AB, ROOT_LABElS)
+        data.calculate_proportions(True)
+        data.cut_root(ROOT_TOTAL_CUT)
+        lines = set(data.get_col())
+        exp_lines = {('01__00__R-2__R-1__R', '01', '1', '', 5, 40, 0.1, 0.4, 400000, nan),
+                     (
+                         '06__01__00__R-2__R-1__R', '06', '6', '01__00__R-2__R-1__R', nan, 5, nan,
+                         0.05,
+                         50000, nan),
+                     (
+                         '07__01__00__R-2__R-1__R', '07', '7', '01__00__R-2__R-1__R', nan, 1, nan,
+                         0.01,
+                         10000, nan),
+                     ('05__01__00__R-2__R-1__R', '05', '5', '01__00__R-2__R-1__R', 5, 20, 0.1, 0.2,
+                      200000, nan),
+                     ('03__00__R-2__R-1__R', '03', '3', '', 20, 20, 0.4, 0.2, 200000, nan),
+                     ('04__00__R-2__R-1__R', '04', '4', '', 1, 10, 0.02, 0.1, 100000, nan),
+                     ('09__02__00__R-2__R-1__R', '09', '9', '02__00__R-2__R-1__R', 1, 3, 0.02, 0.03,
+                      30000, nan),
+                     ('02__00__R-2__R-1__R', '02', '2', '', 25, 30, 0.5, 0.3, 300000, nan),
+                     ('08__02__00__R-2__R-1__R', '08', '8', '02__00__R-2__R-1__R', 1, 1, 0.02, 0.01,
+                      10000, nan)}
+        self.assertEqual(data.len, 9)
+        self.assertEqual(len(lines), len(exp_lines))
+        for l in lines:
+            l = tuple([nan if type(x) != str and np.isnan(x) else x for x in l])
+            self.assertIn(l, exp_lines)

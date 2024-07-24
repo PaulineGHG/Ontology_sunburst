@@ -1,5 +1,4 @@
 import os.path
-from typing import List, Dict
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -69,8 +68,8 @@ def get_fig_kwargs(output: str, analysis: str, **kwargs):
         font_color, font_size, table_title, table_legend, table_color
 
 
-def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: str,
-                          analysis: str = TOPOLOGY_A, ref_classes_abundance=None,
+def generate_sunburst_fig(data: DataTable, output: str,
+                          analysis: str = TOPOLOGY_A,
                           test=BINOMIAL_TEST, total: bool = True,
                           root_cut: str = ROOT_CUT, ref_base: bool = True,
                           write_fig: bool = True, **kwargs) -> go.Figure:
@@ -78,24 +77,12 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
 
     Parameters
     ----------
-    data: Dict[str, List[str or int or float]]
-        Dictionary with lists of :
-            - ids : ID (str)
-            - onto ids : Onto ID (str)
-            - labels : Label (str)
-            - parents ids : Parent (str)
-            - abundance value : Count (int)
-            - reference abundance value : Reference_count (int)
-            - proportion : Proportion (0 < float <= 1)
-            - reference proportion : Reference_proportion (0 < float <= 1)
-            - branch proportion : Relative_prop
-            - p-value : P-values of enrichment analysis
+    data: DataTable
+
     output: str
         Path to output to save the figure without extension
     analysis: str (optional, default=topology)
         Analysis mode : topology or enrichment
-    ref_classes_abundance: Dict[str, int] (optional, default=None)
-        Abundances of reference set classes
     test: str (optional, default=Binomial)
         Type of test for enrichment analysis : Binomial or Hypergeometric
     total: bool (optional, default=True)
@@ -117,38 +104,38 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
 
     if total:
         branch_values = 'total'
-        values = data[RELAT_PROP]
+        values = data.relative_prop
     else:
         branch_values = 'remainder'
-        values = data[COUNT]
+        values = data.count
 
     if analysis == TOPOLOGY_A:
-        data = data_cut_root(data, root_cut)
-        fig = go.Figure(go.Sunburst(labels=data[LABEL], parents=data[PARENT], values=values,
-                                    ids=data[IDS],
+        data.cut_root(root_cut)
+        fig = go.Figure(go.Sunburst(labels=data.labels, parents=data.parents, values=values,
+                                    ids=data.ids,
                                     hoverinfo='label+text', maxdepth=max_depth,
                                     branchvalues=branch_values,
                                     hovertext=get_hover_fig_text(data, TOPOLOGY_A, ref_base),
-                                    marker=dict(colors=data[COUNT], colorscale=colorscale,
+                                    marker=dict(colors=data.count, colorscale=colorscale,
                                                 cmin=c_min, cmax=c_max, cmid=c_mid, showscale=True,
                                                 colorbar=dict(title=dict(text=colorbar_legend)))))
         fig.update_layout(title=dict(text=title, x=0.5, xanchor='center'))
 
     elif analysis == ENRICHMENT_A:
-        data, significant = get_data_enrichment_analysis(data, ref_classes_abundance, test)
-        data = data_cut_root(data, root_cut)
+        significant = data.make_enrichment_analysis(test)
+        data.cut_root(root_cut)
         fig = make_subplots(rows=1, cols=2,
                             column_widths=[0.3, 0.7],
                             vertical_spacing=0.03,
                             subplot_titles=(table_title, title),
                             specs=[[{'type': 'table'}, {'type': 'sunburst'}]])
 
-        fig.add_trace(go.Sunburst(labels=data[LABEL], parents=data[PARENT],
-                                  values=values, ids=data[IDS],
+        fig.add_trace(go.Sunburst(labels=data.labels, parents=data.parents,
+                                  values=values, ids=data.ids,
                                   hovertext=get_hover_fig_text(data, ENRICHMENT_A, ref_base),
                                   hoverinfo='label+text', maxdepth=max_depth,
                                   branchvalues=branch_values,
-                                  marker=dict(colors=data[PVAL], colorscale=colorscale,
+                                  marker=dict(colors=data.p_val, colorscale=colorscale,
                                               cmid=c_mid, cmax=c_max, cmin=c_min, showscale=True,
                                               colorbar=dict(title=dict(text=colorbar_legend)))),
                       row=1, col=2)
@@ -170,7 +157,7 @@ def generate_sunburst_fig(data: Dict[str, List[str or int or float]], output: st
     return fig
 
 
-def get_hover_fig_text(data: Dict[str, List[str or int or float]], analysis: str, ref_base: bool) \
+def get_hover_fig_text(data: DataTable, analysis: str, ref_base: bool) \
         -> List[str]:
     """
 
@@ -186,41 +173,41 @@ def get_hover_fig_text(data: Dict[str, List[str or int or float]], analysis: str
     """
     if analysis == ENRICHMENT_A:
         if ref_base:
-            return [f'P value: {10 ** (-data[PVAL][i])}<br>'
-                    f'{COUNT}: <b>{data[COUNT][i]}</b><br>'
-                    f'{REF_COUNT}: {data[REF_COUNT][i]}<br>'
-                    f'{PROP}: <b>{round(data[PROP][i] * 100, 2)}%</b><br>'
-                    f'{REF_PROP}: {round(data[REF_PROP][i] * 100, 2)}%<br>'
-                    f'{IDS}: {data[ONTO_ID][i]}'
-                    if data[PVAL][i] > 0 else
-                    f'P value: {10 ** data[PVAL][i]}<br>'
-                    f'{COUNT}: <b>{data[COUNT][i]}</b><br>'
-                    f'{REF_COUNT}: {data[REF_COUNT][i]}<br>'
-                    f'{PROP}: <b>{round(data[PROP][i] * 100, 2)}%</b><br>'
-                    f'{REF_PROP}: {round(data[REF_PROP][i] * 100, 2)}%<br>'
-                    f'{IDS}: {data[ONTO_ID][i]}'
-                    for i in range(len(data[PVAL]))]
+            return [f'P value: {10 ** (-data.p_val[i])}<br>'
+                    f'{COUNT}: <b>{data.count[i]}</b><br>'
+                    f'{REF_COUNT}: {data.ref_count[i]}<br>'
+                    f'{PROP}: <b>{round(data.prop[i] * 100, 2)}%</b><br>'
+                    f'{REF_PROP}: {round(data.ref_prop[i] * 100, 2)}%<br>'
+                    f'{IDS}: {data.onto_ids[i]}'
+                    if data.p_val[i] > 0 else
+                    f'P value: {10 ** data.p_val[i]}<br>'
+                    f'{COUNT}: <b>{data.count[i]}</b><br>'
+                    f'{REF_COUNT}: {data.ref_count[i]}<br>'
+                    f'{PROP}: <b>{round(data.prop[i] * 100, 2)}%</b><br>'
+                    f'{REF_PROP}: {round(data.ref_prop[i] * 100, 2)}%<br>'
+                    f'{IDS}: {data.onto_ids[i]}'
+                    for i in range(data.len)]
         else:
-            return [f'P value: {10 ** (-data[PVAL][i])}<br>'
-                    f'{COUNT}: <b>{data[COUNT][i]}</b><br>'
-                    f'{PROP}: <b>{round(data[PROP][i] * 100, 2)}%</b><br>'
-                    f'{IDS}: {data[ONTO_ID][i]}'
-                    if data[PVAL][i] > 0 else
-                    f'P value: {10 ** data[PVAL][i]}<br>'
-                    f'{COUNT}: <b>{data[COUNT][i]}</b><br>'
-                    f'{PROP}: <b>{round(data[PROP][i] * 100, 2)}%</b><br>'
-                    f'{IDS}: {data[ONTO_ID][i]}'
-                    for i in range(len(data[PVAL]))]
+            return [f'P value: {10 ** (-data.p_val[i])}<br>'
+                    f'{COUNT}: <b>{data.count[i]}</b><br>'
+                    f'{PROP}: <b>{round(data.prop[i] * 100, 2)}%</b><br>'
+                    f'{IDS}: {data.onto_ids[i]}'
+                    if data.p_val[i] > 0 else
+                    f'P value: {10 ** data.p_val[i]}<br>'
+                    f'{COUNT}: <b>{data.count[i]}</b><br>'
+                    f'{PROP}: <b>{round(data.prop[i] * 100, 2)}%</b><br>'
+                    f'{IDS}: {data.onto_ids[i]}'
+                    for i in range(data.len)]
     elif analysis == TOPOLOGY_A:
         if ref_base:
-            return [f'{COUNT}: <b>{data[COUNT][i]}</b><br>'
-                    f'{REF_COUNT}: {data[REF_COUNT][i]}<br>'
-                    f'{PROP}: <b>{round(data[PROP][i] * 100, 2)}%</b><br>'
-                    f'{REF_PROP}: {round(data[REF_PROP][i] * 100, 2)}%<br>'
-                    f'{IDS}: {data[ONTO_ID][i]}'
-                    for i in range(len(data[PROP]))]
+            return [f'{COUNT}: <b>{data.count[i]}</b><br>'
+                    f'{REF_COUNT}: {data.ref_count[i]}<br>'
+                    f'{PROP}: <b>{round(data.prop[i] * 100, 2)}%</b><br>'
+                    f'{REF_PROP}: {round(data.ref_prop[i] * 100, 2)}%<br>'
+                    f'{IDS}: {data.onto_ids[i]}'
+                    for i in range(data.len)]
         else:
-            return [f'{COUNT}: <b>{data[COUNT][i]}</b><br>'
-                    f'{PROP}: <b>{round(data[PROP][i] * 100, 2)}%</b><br>'
-                    f'{IDS}: {data[ONTO_ID][i]}'
-                    for i in range(len(data[PROP]))]
+            return [f'{COUNT}: <b>{data.count[i]}</b><br>'
+                    f'{PROP}: <b>{round(data.prop[i] * 100, 2)}%</b><br>'
+                    f'{IDS}: {data.onto_ids[i]}'
+                    for i in range(data.len)]

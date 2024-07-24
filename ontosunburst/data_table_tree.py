@@ -1,5 +1,6 @@
-from typing import List, Dict, Tuple, Set
+from typing import List, Dict, Set
 import numpy as np
+from numpy import nan
 import scipy.stats as stats
 
 # ==================================================================================================
@@ -67,7 +68,21 @@ class DataTable:
     def fill_parameters(self, classes_abondance: Dict[str, int], parent_dict: Dict[str, List[str]],
                         root_item, subset_abundance: Dict[str, int] = None,
                         names: Dict[str, str] = None):
+        """ Fill DataTable list attributes (self.ids, self.onto_ids, self.labels, self.parents,
+        self.count, self.ref_count)
 
+        Parameters
+        ----------
+        classes_abondance: Dict[str, int]
+            Dictionary associating for each class the number of objects found belonging to the class
+        parent_dict: Dict[str, List[str]]
+            Dictionary associating for each class, its parents classes
+        root_item: str
+            Name of the root item of the ontology
+        subset_abundance: Dict[str, int] = None
+        names: Dict[str, str]
+            Dictionary associating metabolic object ID to its Name
+        """
         for c_onto_id, c_abundance in classes_abondance.items():
             c_sub_abundance = get_sub_abundance(subset_abundance, c_onto_id, c_abundance)
             if c_onto_id != root_item:
@@ -89,6 +104,23 @@ class DataTable:
 
     def add_value(self, m_id: str, onto_id: str, label: str, count: float, ref_count: float,
                   parent: str):
+        """ Fill the data attributes for an object class.
+
+        Parameters
+        ----------
+        m_id: str
+            ID unique of the object class to add
+        onto_id: str
+            ID in the ontology
+        label: str
+            Label (name) of the object class to add
+        count: int
+            Abundance value of the object class to add
+        ref_count: int
+            Reference abundance value of the object class to add
+        parent: str
+            Parent object class of the object class to add
+        """
         if m_id in self.ids:
             raise ValueError(f'{m_id} already in data IDs, all IDs must be unique.')
         self.ids.append(m_id)
@@ -97,13 +129,21 @@ class DataTable:
         self.parents.append(parent)
         self.count.append(count)
         self.ref_count.append(ref_count)
-        self.prop.append(np.nan)
-        self.ref_prop.append(np.nan)
-        self.relative_prop.append(np.nan)
-        self.p_val.append(np.nan)
+        self.prop.append(nan)
+        self.ref_prop.append(nan)
+        self.relative_prop.append(nan)
+        self.p_val.append(nan)
         self.len += 1
 
     def calculate_proportions(self, total: bool):
+        """ Calculate DataTable proportion list attributes (self.prop, self.ref_prop,
+        self.relative_prop). If total add relative proportion to +1 parent for branch value.
+
+        Parameters
+        ----------
+        total: bool
+            True to have branch values proportional of the total parent
+        """
         # Get total proportion
         max_abondance = int(np.nanmax(self.count))
         self.prop = [x / max_abondance for x in self.count]
@@ -123,6 +163,14 @@ class DataTable:
                     self.__get_relative_prop(p)
 
     def __get_relative_prop(self, p_id: str):
+        """ Get recursively relative proportion of a parent children to itself. Set it to class
+        self.relative_prop attribute.
+
+        Parameters
+        ----------
+        p_id: str
+            ID of the parent
+        """
         if p_id == '':
             prop_p = MAX_RELATIVE_NB
             count_p = max(self.ref_count)
@@ -143,42 +191,59 @@ class DataTable:
             if c in self.parents:
                 self.__get_relative_prop(c)
 
-    def make_enrichment_analysis(self, ref_classes_abundance: Dict[str, int], test: str):
-        M = np.max(list(ref_classes_abundance.values()))  # M = ref set total item number
-        m_list = [ref_classes_abundance[x] if x in ref_classes_abundance.keys() else 0 for x in
-                  self.onto_ids]
+    def make_enrichment_analysis(self, test: str) -> Dict[str, float]:
+        """ Performs statistical tests for enrichment analysis.
 
-        N = int(np.nanmax(self.count))  # N = interest set total item number
+        Parameters
+        ----------
+        test: str
+            Type of test : binomial or hypergeometric
+
+        Returns
+        -------
+        Dict[str, float]
+            Dictionary of significant metabolic object label associated with their p-value
+        """
+        m = np.max(self.ref_count)  # M = ref set total item number
+        n = int(np.nanmax(self.count))  # N = interest set total item number
         nb_classes = len(set([self.labels[i] for i in range(self.len)
                               if not np.isnan(self.count[i])]))
         significant_representation = dict()
-        for i in range(len(m_list)):
-            if type(self.count) == int:  # If count not nan (= if concept in interest set)
+        for i in range(self.len):
+            if type(self.count[i]) == int:  # If count not nan (= if concept in interest set)
                 # Binomial Test
                 if test == BINOMIAL_TEST:
-                    p_val = stats.binomtest(self.count[i], N, m_list[i] / M,
+                    p_val = stats.binomtest(self.count[i], n, self.ref_count[i] / m,
                                             alternative='two-sided').pvalue
                 # Hypergeometric Test
                 elif test == HYPERGEO_TEST:
-                    p_val_upper = stats.hypergeom.sf(self.count[i] - 1, M, m_list[i], N)
-                    p_val_lower = stats.hypergeom.cdf(self.count[i], M, m_list[i], N)
+                    p_val_upper = stats.hypergeom.sf(self.count[i] - 1, m, self.ref_count[i], n)
+                    p_val_lower = stats.hypergeom.cdf(self.count[i], m, self.ref_count[i], n)
                     p_val = 2 * min(p_val_lower, p_val_upper)  # bilateral
                 else:
                     raise ValueError(
                         f'test parameter must be in : {[BINOMIAL_TEST, HYPERGEO_TEST]}')
-                if ((self.count[i] / N) - (m_list[i] / M)) > 0:  # If over-represented :
-                    self.p_val.append(-np.log10(p_val))  # Positive log10(p-value)
+                if ((self.count[i] / n) - (self.ref_count[i] / m)) > 0:  # If over-represented :
+                    self.p_val[i] = -np.log10(p_val)  # Positive log10(p-value)
                 else:  # If under-represented :
-                    self.p_val.append(np.log10(p_val))  # Negative log10(p-value)
+                    self.p_val[i] = np.log10(p_val)  # Negative log10(p-value)
                 if p_val < 0.05 / nb_classes:  # Keep significant p-values : Bonferroni correction
                     significant_representation[self.onto_ids[i]] = p_val.round(10)
-            else:
-                self.p_val.append(np.nan)
         significant_representation = dict(
             sorted(significant_representation.items(), key=lambda item: item[1]))
         return significant_representation
 
     def cut_root(self, mode: str):
+        """ Filter data to cut (or not) the root to remove not necessary 100% represented classes.
+
+        Parameters
+        ----------
+        mode: str
+            Mode of root cutting
+            - uncut: doesn't cut and keep all nodes from ontology root
+            - cut: keep only the lowest level 100% shared node
+            - total: remove all 100% shared nodes (produces a pie at center)
+        """
         if mode not in {ROOT_UNCUT, ROOT_CUT, ROOT_TOTAL_CUT}:
             raise ValueError(f'Root cutting mode {mode} unknown, '
                              f'must be in {[ROOT_UNCUT, ROOT_CUT, ROOT_TOTAL_CUT]}')
@@ -192,13 +257,13 @@ class DataTable:
                 self.parents = ['' if x in roots else x for x in self.parents]
 
     def delete_value(self, v_index: int or List[int]):
-        data = self.get_data_dict().values()
+        data = self.get_data_dict()
         if type(v_index) == int:
             v_index = [v_index]
-            for i in v_index:
-                for v in data:
-                    del v[i]
-                self.len -= 1
+        for i in sorted(v_index, reverse=True):
+            for k, v in data.items():
+                del v[i]
+            self.len -= 1
 
     def get_col(self, index: int or List[int] = None) -> List or List[List]:
         if index is None:
@@ -216,73 +281,6 @@ class DataTable:
 # ==================================================================================================
 # FUNCTIONS
 # ==================================================================================================
-
-# Generate Data table
-# --------------------------------------------------------------------------------------------------
-def get_fig_parameters(classes_abondance: Dict[str, int], parent_dict: Dict[str, List[str]],
-                       root_item, subset_abundance: Dict[str, int] = None,
-                       names: Dict[str, str] = None) -> Dict[str, List[str or int or float]]:
-    """ Returns a dictionary of parameters to create the sunburst figure.
-
-    Parameters
-    ----------
-    classes_abondance: Dict[str, int]
-        Dictionary associating for each class the number of metabolites found belonging to the class
-    parent_dict: Dict[str, List[str]]
-        Dictionary associating for each class, its parents classes
-    root_item: str
-        Name of the root item of the ontology
-    subset_abundance: Dict[str, int] = None
-    names: Dict[str, str]
-        Dictionary associating metabolic object ID to its Name
-
-    Returns
-    -------
-    Dict[str, List[str or int or float]]
-        Dictionary with lists of :
-            - ids : ID (str)
-            - onto ids : Onto ID (str)
-            - labels : Label (str)
-            - parents ids : Parent (str)
-            - abundance value : Count (int)
-            - reference abundance value : Reference_count (int)
-    """
-    data = {IDS: list(),
-            ONTO_ID: list(),
-            PARENT: list(),
-            LABEL: list(),
-            COUNT: list(),
-            REF_COUNT: list()}
-    for c_onto_id, c_abundance in classes_abondance.items():
-        c_sub_abundance = get_sub_abundance(subset_abundance, c_onto_id, c_abundance)
-        if c_onto_id != root_item:
-            if names is not None:
-                try:
-                    c_label = names[c_onto_id]
-                except KeyError:
-                    c_label = c_onto_id
-            else:
-                c_label = c_onto_id
-            all_c_ids = get_all_ids(c_onto_id, c_onto_id, parent_dict, root_item, set())
-            for c_id in all_c_ids:
-                data = add_value_data(data=data,
-                                      m_id=c_id,
-                                      onto_id=c_onto_id,
-                                      label=c_label,
-                                      value=c_sub_abundance,
-                                      base_value=c_abundance,
-                                      parent=c_id[len(c_onto_id) + 2:])  # Remove c_label__ prefix
-        else:
-            data = add_value_data(data=data,
-                                  m_id=c_onto_id,
-                                  onto_id=c_onto_id,
-                                  label=c_onto_id,
-                                  value=c_sub_abundance,
-                                  base_value=c_abundance,
-                                  parent='')
-    return data
-
-
 def get_all_ids(m_id: str, n_id: str, parent_dict: Dict[str, List[str]], root: str,
                 all_ids: Set[str]) -> Set[str]:
     """ Return recursively all unique IDs associated with a label. The IDs correspond to the path
@@ -342,283 +340,3 @@ def get_sub_abundance(subset_abundance: Dict[str, float] or None, c_label: str,
     else:
         c_sub_abundance = c_abundance
     return c_sub_abundance
-
-
-def add_value_data(data: Dict[str, List[str or int or float]], m_id: str, onto_id: str, label: str,
-                   value: float, base_value: float, parent: str) \
-        -> Dict[str, List[str or int or float]]:
-    """ Fill the data dictionary for a metabolite class.
-
-    Parameters
-    ----------
-    data: Dict[str, List[str or int or float]]
-        Dictionary with lists of :
-            - ids : ID (str)
-            - onto ids : Onto ID (str)
-            - labels : Label (str)
-            - parents ids : Parent (str)
-            - abundance value : Count (float)
-            - reference abundance value : Reference_count (float)
-    m_id: str
-        ID unique of the metabolite class to add
-    onto_id: str
-        ID in the ontology
-    label: str
-        Label (name) of the metabolite class to add
-    value: int
-        Abundance value of the metabolite class to add
-    base_value: int
-
-    parent: str
-        Parent metabolite class of the metabolite class to add
-
-    Returns
-    -------
-    Dict[str, List[str or int or float]]
-        Dictionary with lists of :
-            - ids : ID (str)
-            - onto ids : Onto ID (str)
-            - labels : Label (str)
-            - parents ids : Parent (str)
-            - abundance value : Count (int)
-            - reference abundance value : Reference_count (int)
-    """
-    if m_id in data[IDS]:
-        raise ValueError(f'{m_id} already in data IDs, all IDs must be unique.')
-    data[IDS].append(m_id)
-    data[ONTO_ID].append(onto_id)
-    data[LABEL].append(label)
-    data[PARENT].append(parent)
-    data[COUNT].append(value)
-    data[REF_COUNT].append(base_value)
-    return data
-
-
-# Add Proportion to Data table
-# --------------------------------------------------------------------------------------------------
-def get_data_proportion(data: Dict[str, List[str or int or float]], total: bool) \
-        -> Dict[str, List[str or int or float]]:
-    """ Add a proportion value for color. If total add relative proportion to +1 parent for branch
-    value.
-
-    Parameters
-    ----------
-    data: Dict[str, List[str or int or float]]
-        Dictionary with lists of :
-            - ids : ID (str)
-            - onto ids : Onto ID (str)
-            - labels : Label (str)
-            - parents ids : Parent (str)
-            - abundance value : Count (int)
-            - reference abundance value : Reference_count (int)
-    total: bool
-        True to have branch values proportional of the total parent
-
-    Returns
-    -------
-    Dict[str, List[str or int or float]]
-        Dictionary with lists of :
-            - ids : ID (str)
-            - onto ids : Onto ID (str)
-            - labels : Label (str)
-            - parents ids : Parent (str)
-            - abundance value : Count (int)
-            - reference abundance value : Reference_count (int)
-            - proportion : Proportion (0 < float <= 1)
-            - reference proportion : Reference_proportion (0 < float <= 1)
-            - branch proportion : Relative_prop
-    """
-    # Get total proportion
-    max_abondance = int(np.nanmax(data[COUNT]))
-    data[PROP] = [x / max_abondance for x in data[COUNT]]
-    # Get reference proportion
-    max_ref_abondance = np.max(data[REF_COUNT])
-    data[REF_PROP] = [x / max_ref_abondance for x in data[REF_COUNT]]
-    # Get proportion relative to +1 parent proportion for total branch value
-    if total:
-        data[RELAT_PROP] = [x for x in data[PROP]]
-        p = ''
-        data = get_relative_prop(data, p)
-        # IDK WHY IT WORKS ???
-        missed = [data[IDS][i] for i in range(len(data[IDS])) if data[RELAT_PROP][i] < 1]
-        if missed:
-            parents = {data[PARENT][data[IDS].index(m)] for m in missed}
-            for p in parents:
-                data = get_relative_prop(data, p)
-            # missed = [data[IDS][i] for i in range(len(data[IDS])) if data[RELAT_PROP][i] < 1]
-    return data
-
-
-def get_relative_prop(data: Dict[str, List[str or int or float]], p_id: str) \
-        -> Dict[str, List[str or int or float]]:
-    """ Get recursively relative proportion of a parent children to itself. Add id to data
-    Relative_proportion.
-
-    Parameters
-    ----------
-    data: Dict[str, List[str or int or float]]
-        Dictionary with lists of :
-            - ids : ID (str)
-            - onto ids : Onto ID (str)
-            - labels : Label (str)
-            - parents ids : Parent (str)
-            - abundance value : Count (int)
-            - reference abundance value : Reference_count (int)
-            - proportion : Proportion (0 < float <= 1)
-            - reference proportion : Reference_proportion (0 < float <= 1)
-            - branch proportion : Relative_prop
-    p_id: str
-        ID of the parent
-
-    Returns
-    -------
-    Dict[str, List[str or int or float]]
-        Dictionary with lists of :
-            - ids : ID (str)
-            - onto ids : Onto ID (str)
-            - labels : Label (str)
-            - parents ids : Parent (str)
-            - abundance value : Count (int)
-            - reference abundance value : Reference_count (int)
-            - proportion : Proportion (0 < float <= 1)
-            - reference proportion : Reference_proportion (0 < float <= 1)
-            - branch proportion : Relative_prop --> + actual children values
-    """
-    if p_id == '':
-        prop_p = MAX_RELATIVE_NB
-        count_p = max(data[REF_COUNT])
-    else:
-        prop_p = data[RELAT_PROP][data[IDS].index(p_id)]
-        count_p = data[REF_COUNT][data[IDS].index(p_id)]
-    index_p = [i for i, v in enumerate(data[PARENT]) if v == p_id]
-    p_children = [data[IDS][i] for i in index_p]
-    count_p_children = [data[REF_COUNT][i] for i in index_p]
-    if sum(count_p_children) > count_p:
-        total = sum(count_p_children)
-    else:
-        total = count_p
-    for i, c in enumerate(p_children):
-        prop_c = int((count_p_children[i] / total) * prop_p)
-        data[RELAT_PROP][data[IDS].index(c)] = prop_c
-    for c in p_children:
-        if c in data[PARENT]:
-            data = get_relative_prop(data, c)
-    return data
-
-
-# Enrichment analysis
-# --------------------------------------------------------------------------------------------------
-def get_data_enrichment_analysis(data: Dict[str, List[str or int or float]],
-                                 ref_classes_abundance: Dict[str, int], test: str) \
-        -> Tuple[Dict[str, List[str or int or float]], Dict[str, float]]:
-    """ Performs statistical tests for enrichment analysis.
-
-    Parameters
-    ----------
-    data: Dict[str, List[str or int or float]]
-        Dictionary with lists of :
-            - ids : ID (str)
-            - onto ids : Onto ID (str)
-            - labels : Label (str)
-            - parents ids : Parent (str)
-            - abundance value : Count (int)
-            - reference abundance value : Reference_count (int)
-            - proportion : Proportion (0 < float <= 1)
-            - reference proportion : Reference_proportion (0 < float <= 1)
-            - branch proportion : Relative_prop
-    ref_classes_abundance: Dict[str, int]
-        Abundances of reference set classes
-    test: str
-        Type of test Binomial or Hypergeometric
-
-    Returns
-    -------
-    Dict[str, List[str or int or float]]
-        Dictionary with lists of :
-            - ids : ID (str)
-            - onto ids : Onto ID (str)
-            - labels : Label (str)
-            - parents ids : Parent (str)
-            - abundance value : Count (int)
-            - reference abundance value : Reference_count (int)
-            - proportion : Proportion (0 < float <= 1)
-            - reference proportion : Reference_proportion (0 < float <= 1)
-            - branch proportion : Relative_prop
-            - p-value : P-values of enrichment analysis
-    Dict[str, float]
-        Dictionary of significant metabolic object label associated with their p-value
-    """
-    M = np.max(list(ref_classes_abundance.values()))  # M = ref set total item number
-
-    m_list = [ref_classes_abundance[x] if x in ref_classes_abundance.keys() else 0 for x in
-              data[ONTO_ID]]
-
-    N = int(np.nanmax(data[COUNT]))  # N = interest set total item number
-    n_list = data[COUNT]
-    data[PVAL] = list()
-    nb_classes = len(set([data[LABEL][i] for i in range(len(data[COUNT]))
-                          if not np.isnan(data[COUNT][i])]))
-    significant_representation = dict()
-    for i in range(len(m_list)):
-        if type(n_list[i]) == int:  # If count not nan (= if concept in interest set)
-            # Binomial Test
-            if test == BINOMIAL_TEST:
-                p_val = stats.binomtest(n_list[i], N, m_list[i] / M, alternative='two-sided').pvalue
-            # Hypergeometric Test
-            elif test == HYPERGEO_TEST:
-                p_val_upper = stats.hypergeom.sf(n_list[i] - 1, M, m_list[i], N)
-                p_val_lower = stats.hypergeom.cdf(n_list[i], M, m_list[i], N)
-                p_val = 2 * min(p_val_lower, p_val_upper)  # bilateral
-            else:
-                raise ValueError(f'test parameter must be in : {[BINOMIAL_TEST, HYPERGEO_TEST]}')
-            if ((n_list[i] / N) - (m_list[i] / M)) > 0:  # If over-represented :
-                data[PVAL].append(-np.log10(p_val))  # Positive log10(p-value)
-            else:  # If under-represented :
-                data[PVAL].append(np.log10(p_val))  # Negative log10(p-value)
-            if p_val < 0.05 / nb_classes:  # Capture significant p-values : Bonferroni correction
-                significant_representation[data[ONTO_ID][i]] = p_val.round(10)
-        else:
-            data[PVAL].append(np.nan)
-    significant_representation = dict(
-        sorted(significant_representation.items(), key=lambda item: item[1]))
-    return data, significant_representation
-
-
-# Topology management
-# --------------------------------------------------------------------------------------------------
-def data_cut_root(data: Dict[str, List[str or int or float]], mode: str) \
-        -> Dict[str, List[str or int or float]]:
-    """ Filter data to cut (or not) the root to remove not necessary 100% represented classes.
-
-    Parameters
-    ----------
-    data: Dict[str, List[str or int or float]]
-        Dictionary of figure parameters
-    mode: str
-        Mode of root cutting
-        - uncut: doesn't cut and keep all nodes from ontology root
-        - cut: keep only the lowest level 100% shared node
-        - total: remove all 100% shared nodes (produces a pie at center)
-
-    Returns
-    -------
-    Dict[str, List[str or int or float]]
-        Dictionary of figure parameters with root cut applied
-    """
-    if mode not in {ROOT_UNCUT, ROOT_CUT, ROOT_TOTAL_CUT}:
-        raise ValueError(f'Root cutting mode {mode} unknown, '
-                         f'must be in {[ROOT_UNCUT, ROOT_CUT, ROOT_TOTAL_CUT]}')
-    if mode == ROOT_UNCUT:
-        return data
-    else:
-        roots_ind = [i for i in range(len(data[IDS])) if data[RELAT_PROP][i] == MAX_RELATIVE_NB]
-        roots = [data[IDS][i] for i in roots_ind]
-        for root_id in roots:
-            root_ind = data[IDS].index(root_id)
-            for v in data.values():
-                del v[root_ind]
-        if mode == ROOT_CUT:
-            data[PARENT] = [str(x).split('__')[0] if x in roots else x for x in data[PARENT]]
-        if mode == ROOT_TOTAL_CUT:
-            data[PARENT] = ['' if x in roots else x for x in data[PARENT]]
-    return data
