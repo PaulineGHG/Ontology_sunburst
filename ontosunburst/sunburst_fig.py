@@ -68,10 +68,8 @@ def get_fig_kwargs(output: str, analysis: str, **kwargs):
         font_color, font_size, table_title, table_legend, table_color
 
 
-def generate_sunburst_fig(data: DataTable, output: str,
-                          analysis: str = TOPOLOGY_A,
-                          test=BINOMIAL_TEST, total: bool = True,
-                          root_cut: str = ROOT_CUT, ref_set: bool = True,
+def generate_sunburst_fig(data: DataTable, output: str, analysis: str = TOPOLOGY_A,
+                          test=BINOMIAL_TEST, root_cut: str = ROOT_CUT, ref_set: bool = True,
                           write_fig: bool = True, **kwargs) -> go.Figure:
     """ Generate a Sunburst figure and save it to output path.
 
@@ -85,8 +83,6 @@ def generate_sunburst_fig(data: DataTable, output: str,
         Analysis mode : topology or enrichment
     test: str (optional, default=Binomial)
         Type of test for enrichment analysis : Binomial or Hypergeometric
-    total: bool (optional, default=True)
-        True to have branch values proportional of the total parent
     root_cut: str (optional, default=ROOT_CUT)
         mode for root cutting (uncut, cut, total)
     ref_set: bool (optional, default=True)
@@ -102,19 +98,12 @@ def generate_sunburst_fig(data: DataTable, output: str,
         font_color, font_size, table_title, table_legend, table_color = \
         get_fig_kwargs(output, analysis, **kwargs)
 
-    if total:
-        branch_values = 'total'
-        values = data.relative_prop
-    else:
-        branch_values = 'remainder'
-        values = data.count
-
     if analysis == TOPOLOGY_A:
         data.cut_root(root_cut)
-        fig = go.Figure(go.Sunburst(labels=data.labels, parents=data.parents, values=values,
-                                    ids=data.ids,
+        fig = go.Figure(go.Sunburst(labels=data.labels, parents=data.parents,
+                                    values=data.relative_prop, ids=data.ids,
                                     hoverinfo='label+text', maxdepth=max_depth,
-                                    branchvalues=branch_values,
+                                    branchvalues='total',
                                     hovertext=get_hover_fig_text(data, TOPOLOGY_A, ref_set),
                                     marker=dict(colors=data.count, colorscale=colorscale,
                                                 cmin=c_min, cmax=c_max, cmid=c_mid, showscale=True,
@@ -131,10 +120,10 @@ def generate_sunburst_fig(data: DataTable, output: str,
                             specs=[[{'type': 'table'}, {'type': 'sunburst'}]])
 
         fig.add_trace(go.Sunburst(labels=data.labels, parents=data.parents,
-                                  values=values, ids=data.ids,
+                                  values=data.relative_prop, ids=data.ids,
                                   hovertext=get_hover_fig_text(data, ENRICHMENT_A, ref_set),
                                   hoverinfo='label+text', maxdepth=max_depth,
-                                  branchvalues=branch_values,
+                                  branchvalues='total',
                                   marker=dict(colors=data.p_val, colorscale=colorscale,
                                               cmid=c_mid, cmax=c_max, cmin=c_min, showscale=True,
                                               colorbar=dict(title=dict(text=colorbar_legend)))),

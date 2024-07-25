@@ -135,14 +135,12 @@ class DataTable:
         self.p_val.append(nan)
         self.len += 1
 
-    def calculate_proportions(self, total: bool, ref_base: bool):
+    def calculate_proportions(self, ref_base: bool):
         """ Calculate DataTable proportion list attributes (self.prop, self.ref_prop,
         self.relative_prop). If total add relative proportion to +1 parent for branch value.
 
         Parameters
         ----------
-        total: bool
-            True to have branch values proportional of the total parent
         ref_base: bool
             True if reference base representation
         """
@@ -153,19 +151,15 @@ class DataTable:
         max_ref_abondance = np.max(self.ref_count)
         self.ref_prop = [x / max_ref_abondance for x in self.ref_count]
         # Get proportion relative to +1 parent proportion for total branch value
-        if total:
-            self.relative_prop = [x for x in self.prop]
-            p = ''
-            self.__get_relative_prop(p, ref_base)
-            # IDK WHY IT WORKS ???
-            missed = [self.ids[i] for i in range(self.len) if self.relative_prop[i] < 1]
-            if missed:
-                parents = {self.parents[self.ids.index(m)] for m in missed}
-                for p in parents:
-                    self.__get_relative_prop(p, ref_base)
-            # to_del = [i for i in range(self.len) if self.relative_prop[i] == 0]
-            # self.delete_value(to_del)
-            # print(self)
+        self.relative_prop = [x for x in self.prop]
+        p = ''
+        self.__get_relative_prop(p, ref_base)
+        # IDK WHY IT WORKS ???
+        missed = [self.ids[i] for i in range(self.len) if self.relative_prop[i] < 1]
+        if missed:
+            parents = {self.parents[self.ids.index(m)] for m in missed}
+            for p in parents:
+                self.__get_relative_prop(p, ref_base)
 
     def __get_relative_prop(self, p_id: str, ref_base: bool):
         """ Get recursively relative proportion of a parent children to itself. Set it to class

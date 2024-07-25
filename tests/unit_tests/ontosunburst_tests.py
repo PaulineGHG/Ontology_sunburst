@@ -124,7 +124,7 @@ class TestOntosunburstCustomOnto(unittest.TestCase):
                            abundances=C_LAB, reference_set=C_REF, ref_abundances=C_RAB,
                            analysis='topology', output='test1', write_output=False,
                            class_ontology=C_ONTO, labels=C_LABELS, endpoint_url=None,
-                           test=BINOMIAL_TEST, total=True, root_cut=ROOT_TOTAL_CUT,
+                           test=BINOMIAL_TEST, root_cut=ROOT_TOTAL_CUT,
                            ref_base=True, show_leaves=True)
         w_fig_file = os.path.join('test_files', 'test1.json')
         self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
@@ -135,7 +135,7 @@ class TestOntosunburstCustomOnto(unittest.TestCase):
                            abundances=C_RAB, reference_set=None, ref_abundances=None,
                            analysis='topology', output='test2', write_output=False,
                            class_ontology=C_ONTO, labels=DEFAULT, endpoint_url=None,
-                           test=BINOMIAL_TEST, total=True, root_cut=ROOT_CUT,
+                           test=BINOMIAL_TEST, root_cut=ROOT_CUT,
                            ref_base=False, show_leaves=True)
         w_fig_file = os.path.join('test_files', 'test2.json')
         self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
@@ -146,7 +146,7 @@ class TestOntosunburstCustomOnto(unittest.TestCase):
                            abundances=C_LAB, reference_set=C_REF, ref_abundances=C_RAB,
                            analysis='topology', output='test3', write_output=False,
                            class_ontology=C_ONTO, labels=C_LABELS, endpoint_url=None,
-                           test=BINOMIAL_TEST, total=True, root_cut=ROOT_UNCUT,
+                           test=BINOMIAL_TEST, root_cut=ROOT_UNCUT,
                            ref_base=False, show_leaves=False, bg_color='#eeeeee')
         w_fig_file = os.path.join('test_files', 'test3.json')
         self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
@@ -159,7 +159,7 @@ class TestOntosunburstCustomOnto(unittest.TestCase):
                            abundances=E_LAB, reference_set=E_REF, ref_abundances=E_RAB,
                            analysis='enrichment', output='test4', write_output=False,
                            class_ontology=E_ONTO, labels=E_LABElS, endpoint_url=None,
-                           test=BINOMIAL_TEST, total=True, root_cut=ROOT_CUT,
+                           test=BINOMIAL_TEST, root_cut=ROOT_CUT,
                            ref_base=True, show_leaves=True)
         w_fig_file = os.path.join('test_files', 'test4.json')
         self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
@@ -170,7 +170,7 @@ class TestOntosunburstCustomOnto(unittest.TestCase):
                            abundances=E_LAB, reference_set=E_REF, ref_abundances=E_RAB,
                            analysis='enrichment', output='test5', write_output=False,
                            class_ontology=E_ONTO, labels=E_LABElS, endpoint_url=None,
-                           test=HYPERGEO_TEST, total=True, root_cut=ROOT_UNCUT,
+                           test=HYPERGEO_TEST, root_cut=ROOT_UNCUT,
                            ref_base=False, show_leaves=True)
         w_fig_file = os.path.join('test_files', 'test5.json')
         self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
@@ -181,7 +181,7 @@ class TestOntosunburstCustomOnto(unittest.TestCase):
                            abundances=E_LAB, reference_set=E_REF, ref_abundances=E_RAB,
                            analysis='enrichment', output='test6', write_output=False,
                            class_ontology=E_ONTO, labels=E_LABElS, endpoint_url=None,
-                           test=HYPERGEO_TEST, total=False, root_cut=ROOT_UNCUT,
+                           test=HYPERGEO_TEST, root_cut=ROOT_UNCUT,
                            ref_base=False, show_leaves=True)
         w_fig_file = os.path.join('test_files', 'test6.json')
         # self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
@@ -222,7 +222,7 @@ class TestOntosunburstMetaCyc(unittest.TestCase):
                            abundances=MET_LAB, reference_set=MET_REF, ref_abundances=MET_RAB,
                            analysis=TOPOLOGY_A, output='mc1', write_output=False,
                            class_ontology=None, labels=DEFAULT, endpoint_url=None,
-                           test=HYPERGEO_TEST, total=True, root_cut=ROOT_CUT,
+                           test=HYPERGEO_TEST, root_cut=ROOT_CUT,
                            ref_base=True, show_leaves=True)
         w_fig_file = os.path.join('test_files', 'test_mc1.json')
         self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
@@ -233,7 +233,7 @@ class TestOntosunburstMetaCyc(unittest.TestCase):
                            abundances=MET_LAB, reference_set=MET_REF, ref_abundances=MET_RAB,
                            analysis=TOPOLOGY_A, output='mc2', write_output=False,
                            class_ontology=None, labels={'Acids': 'ACIDS !!'}, endpoint_url=None,
-                           test=HYPERGEO_TEST, total=True, root_cut=ROOT_CUT,
+                           test=HYPERGEO_TEST, root_cut=ROOT_CUT,
                            ref_base=False, show_leaves=False)
         w_fig_file = os.path.join('test_files', 'test_mc2.json')
         self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
@@ -244,7 +244,7 @@ class TestOntosunburstMetaCyc(unittest.TestCase):
                            abundances=None, reference_set=None, ref_abundances=None,
                            analysis=TOPOLOGY_A, output='mc3', write_output=False,
                            class_ontology=None, labels=DEFAULT, endpoint_url=None,
-                           test=HYPERGEO_TEST, total=True, root_cut=ROOT_CUT,
+                           test=HYPERGEO_TEST, root_cut=ROOT_CUT,
                            ref_base=False, show_leaves=True)
         w_fig_file = os.path.join('test_files', 'test_mc3.json')
         self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
@@ -256,7 +256,7 @@ class TestOntosunburstMetaCyc(unittest.TestCase):
                            abundances=MET_LAB, reference_set=MET_REF, ref_abundances=MET_RAB,
                            analysis=ENRICHMENT_A, output='mc4', write_output=False,
                            class_ontology=None, labels=DEFAULT, endpoint_url=None,
-                           test=HYPERGEO_TEST, total=True, root_cut=ROOT_CUT,
+                           test=HYPERGEO_TEST, root_cut=ROOT_CUT,
                            ref_base=False, show_leaves=False)
         w_fig_file = os.path.join('test_files', 'test_mc4.json')
         # self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
@@ -267,7 +267,7 @@ class TestOntosunburstMetaCyc(unittest.TestCase):
                            abundances=MET_LAB, reference_set=MET_REF, ref_abundances=MET_RAB,
                            analysis=ENRICHMENT_A, output='mc5', write_output=False,
                            class_ontology=None, labels=DEFAULT, endpoint_url=None,
-                           test=BINOMIAL_TEST, total=True, root_cut=ROOT_CUT,
+                           test=BINOMIAL_TEST, root_cut=ROOT_CUT,
                            ref_base=True, show_leaves=True)
         w_fig_file = os.path.join('test_files', 'test_mc5.json')
         # self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
@@ -279,7 +279,7 @@ class TestOntosunburstMetaCyc(unittest.TestCase):
                            abundances=None, reference_set=PWY_REF, ref_abundances=None,
                            analysis=TOPOLOGY_A, output='mc6', write_output=False,
                            class_ontology=None, labels=DEFAULT, endpoint_url=None,
-                           test=BINOMIAL_TEST, total=True, root_cut=ROOT_CUT,
+                           test=BINOMIAL_TEST, root_cut=ROOT_CUT,
                            ref_base=True, show_leaves=True)
         w_fig_file = os.path.join('test_files', 'test_mc6.json')
         self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
@@ -291,7 +291,7 @@ class TestOntosunburstMetaCyc(unittest.TestCase):
                            abundances=None, reference_set=RXN_REF, ref_abundances=None,
                            analysis=TOPOLOGY_A, output='mc7', write_output=False,
                            class_ontology=None, labels=DEFAULT, endpoint_url=None,
-                           test=BINOMIAL_TEST, total=True, root_cut=ROOT_CUT,
+                           test=BINOMIAL_TEST, root_cut=ROOT_CUT,
                            ref_base=True, show_leaves=True)
         w_fig_file = os.path.join('test_files', 'test_mc7.json')
         self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
@@ -315,7 +315,7 @@ class TestOntosunburstEC(unittest.TestCase):
                            abundances=None, reference_set=REF_EC, ref_abundances=None,
                            analysis=TOPOLOGY_A, output='ec1', write_output=False,
                            class_ontology=None, labels=DEFAULT, endpoint_url=None,
-                           test=BINOMIAL_TEST, total=True, root_cut=ROOT_CUT,
+                           test=BINOMIAL_TEST, root_cut=ROOT_CUT,
                            ref_base=True, show_leaves=True)
         w_fig_file = os.path.join('test_files', 'test_ec1.json')
         self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
@@ -326,7 +326,7 @@ class TestOntosunburstEC(unittest.TestCase):
                            abundances=None, reference_set=REF_EC, ref_abundances=None,
                            analysis=TOPOLOGY_A, output='ec2', write_output=False,
                            class_ontology=None, labels=None, endpoint_url=None,
-                           test=BINOMIAL_TEST, total=True, root_cut=ROOT_CUT,
+                           test=BINOMIAL_TEST, root_cut=ROOT_CUT,
                            ref_base=True, show_leaves=True)
         w_fig_file = os.path.join('test_files', 'test_ec2.json')
         self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
@@ -337,7 +337,7 @@ class TestOntosunburstEC(unittest.TestCase):
                            abundances=None, reference_set=REF_EC, ref_abundances=None,
                            analysis=ENRICHMENT_A, output='ec3', write_output=False,
                            class_ontology=None, labels={'1.-.-.-': ':D'}, endpoint_url=None,
-                           test=BINOMIAL_TEST, total=True, root_cut=ROOT_CUT,
+                           test=BINOMIAL_TEST, root_cut=ROOT_CUT,
                            ref_base=True, show_leaves=True)
         w_fig_file = os.path.join('test_files', 'test_ec3.json')
         self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
@@ -358,7 +358,7 @@ class TestOntosunburstKegg(unittest.TestCase):
                            abundances=None, reference_set=None, ref_abundances=None,
                            analysis=TOPOLOGY_A, output='kg1', write_output=False,
                            class_ontology=None, labels=DEFAULT, endpoint_url=None,
-                           test=BINOMIAL_TEST, total=True, root_cut=ROOT_CUT,
+                           test=BINOMIAL_TEST, root_cut=ROOT_CUT,
                            ref_base=False, show_leaves=True)
         w_fig_file = os.path.join('test_files', 'test_kg1.json')
         self.assertTrue(are_fig_dict_equals(fig, w_fig_file))

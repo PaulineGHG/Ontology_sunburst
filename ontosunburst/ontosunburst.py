@@ -48,7 +48,6 @@ def ontosunburst(metabolic_objects: List[str],
                  labels: str or Dict[str, str] = DEFAULT,
                  endpoint_url: str = None,
                  test: str = BINOMIAL_TEST,
-                 total: bool = True,
                  root_cut: str = ROOT_CUT,
                  ref_base: bool = False,
                  show_leaves: bool = False,
@@ -140,7 +139,7 @@ def ontosunburst(metabolic_objects: List[str],
                            metabolic_objects=metabolic_objects, abundances=abundances,
                            reference_set=reference_set, ref_abundances=ref_abundances,
                            d_classes_ontology=class_ontology, endpoint_url=endpoint_url,
-                           output=output, write_output=write_output, names=names, total=total,
+                           output=output, write_output=write_output, names=names,
                            test=test, root=root, root_cut=root_cut, ref_base=ref_base,
                            show_leaves=show_leaves, **kwargs)
     end_time = time()
@@ -153,7 +152,7 @@ def ontosunburst(metabolic_objects: List[str],
 # ==================================================================================================
 def _global_analysis(ontology, analysis, metabolic_objects, abundances, reference_set,
                      ref_abundances, d_classes_ontology, endpoint_url, output, write_output, names,
-                     total, test, root, root_cut, ref_base, show_leaves, **kwargs):
+                     test, root, root_cut, ref_base, show_leaves, **kwargs):
     """
 
     Parameters
@@ -169,7 +168,6 @@ def _global_analysis(ontology, analysis, metabolic_objects, abundances, referenc
     output
     write_output
     names
-    total
     test
     root
     root_cut
@@ -217,7 +215,7 @@ def _global_analysis(ontology, analysis, metabolic_objects, abundances, referenc
                                         classes_abundance=classes_abundance,
                                         d_classes_ontology=d_classes_ontology,
                                         output=output, write_output=write_output, names=names,
-                                        total=total, test=test, root=root, root_cut=root_cut,
+                                        test=test, root=root, root_cut=root_cut,
                                         ref_base=ref_base, **kwargs)
         else:
             raise AttributeError('Missing reference set parameter')
@@ -228,7 +226,7 @@ def _global_analysis(ontology, analysis, metabolic_objects, abundances, referenc
                                   classes_abundance=classes_abundance,
                                   d_classes_ontology=d_classes_ontology,
                                   output=output, write_output=write_output, names=names,
-                                  total=total, root=root, root_cut=root_cut, ref_base=ref_base,
+                                  root=root, root_cut=root_cut, ref_base=ref_base,
                                   **kwargs)
 
     else:
@@ -236,7 +234,7 @@ def _global_analysis(ontology, analysis, metabolic_objects, abundances, referenc
 
 
 def _topology_analysis(ref_classes_abundance, classes_abundance, d_classes_ontology, output,
-                       write_output, names, total, root, root_cut, ref_base, **kwargs) -> go.Figure:
+                       write_output, names, root, root_cut, ref_base, **kwargs) -> go.Figure:
     """ Performs the topology analysis showing the abundance of each classes.
 
     Parameters
@@ -247,7 +245,6 @@ def _topology_analysis(ref_classes_abundance, classes_abundance, d_classes_ontol
     output
     write_output
     names
-    total
     root
     root_cut
     ref_base
@@ -267,7 +264,7 @@ def _topology_analysis(ref_classes_abundance, classes_abundance, d_classes_ontol
                              parent_dict=d_classes_ontology,
                              root_item=root, subset_abundance=classes_abundance,
                              names=names)
-        data.calculate_proportions(total, ref_base)
+        data.calculate_proportions(ref_base)
 
     else:
         ref_set = False
@@ -276,14 +273,14 @@ def _topology_analysis(ref_classes_abundance, classes_abundance, d_classes_ontol
         data.fill_parameters(ref_abundance=classes_abundance,
                              parent_dict=d_classes_ontology,
                              root_item=root, names=names)
-        data.calculate_proportions(total, ref_base)
+        data.calculate_proportions(ref_base)
     return generate_sunburst_fig(data=data, output=output, analysis=TOPOLOGY_A,
-                                 total=total, root_cut=root_cut, ref_set=ref_set,
+                                 root_cut=root_cut, ref_set=ref_set,
                                  write_fig=write_output, **kwargs)
 
 
 def _enrichment_analysis(ref_classes_abundance, classes_abundance, d_classes_ontology, output,
-                         write_output, names, total, test, root, root_cut, ref_base, **kwargs) \
+                         write_output, names, test, root, root_cut, ref_base, **kwargs) \
         -> go.Figure:
     """ Performs the enrichment analysis showing enrichment of the interest set in comparison to
     the reference set.
@@ -296,7 +293,6 @@ def _enrichment_analysis(ref_classes_abundance, classes_abundance, d_classes_ont
     output
     write_output
     names
-    total
     test
     root
     root_cut
@@ -311,9 +307,9 @@ def _enrichment_analysis(ref_classes_abundance, classes_abundance, d_classes_ont
     data.fill_parameters(ref_abundance=ref_classes_abundance,
                          parent_dict=d_classes_ontology,
                          root_item=root, subset_abundance=classes_abundance, names=names)
-    data.calculate_proportions(total, ref_base)
+    data.calculate_proportions(ref_base)
     return generate_sunburst_fig(data=data, output=output, analysis=ENRICHMENT_A, test=test,
-                                 total=total, root_cut=root_cut, ref_set=True,
+                                 root_cut=root_cut, ref_set=True,
                                  write_fig=write_output, **kwargs)
 
 

@@ -35,7 +35,7 @@ MC_LABELS = {'FRAMES': 'Root', 'cdeeg+': 'CDEEG+', 'cdeeg': 'CDEEG', 'cdecf': 'C
              'c': 'C', 'ab': 'AB', 'b': 'B'}
 MC_DATA = DataTable()
 MC_DATA.fill_parameters(MC_REF_AB, MC_ONTO, ROOTS[METACYC], MC_AB, MC_LABELS)
-MC_DATA.calculate_proportions(True, True)
+MC_DATA.calculate_proportions(True)
 
 # Enrichment
 E_AB = {'00': 50, '01': 5, '02': 25, '03': 20, '04': 1, '05': 5, '06': nan, '07': nan,
@@ -49,7 +49,7 @@ E_ONTO = {'01': ['00'], '02': ['00'], '03': ['00'], '04': ['00'], '05': ['01'],
 
 E_DATA = DataTable()
 E_DATA.fill_parameters(E_REF_AB, E_ONTO, '00', E_AB, E_LABElS)
-E_DATA.calculate_proportions(True, True)
+E_DATA.calculate_proportions(True)
 E_DATA.make_enrichment_analysis(BINOMIAL_TEST)
 
 
