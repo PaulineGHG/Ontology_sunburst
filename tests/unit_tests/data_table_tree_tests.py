@@ -1,4 +1,3 @@
-import copy
 import unittest
 import io
 
@@ -17,20 +16,20 @@ No automatic tests integrated.
 
 # --------------------------------------------------------------------------------------------------
 
-MC_ONTO = {'a': ['ab'], 'b': ['ab'], 'c': ['cde', 'cf'], 'd': ['cde'], 'e': ['cde', 'eg'],
+CT_ONTO = {'a': ['ab'], 'b': ['ab'], 'c': ['cde', 'cf'], 'd': ['cde'], 'e': ['cde', 'eg'],
            'f': ['cf'], 'g': ['gh', 'eg'], 'h': ['gh'],
            'ab': [ROOTS[METACYC]], 'cde': ['cdecf', 'cdeeg'], 'cf': ['cdecf'],
            'eg': ['cdeeg', ROOTS[METACYC]], 'gh': [ROOTS[METACYC]],
            'cdecf': [ROOTS[METACYC]], 'cdeeg': ['cdeeg+'], 'cdeeg+': [ROOTS[METACYC]]}
 
-MET_LAB_D = {'FRAMES': 6, 'cde': 3, 'cf': 3, 'cdecf': 3, 'cdeeg+': 3, 'cdeeg': 3, 'c': 3, 'ab': 3,
-             'b': 2, 'a': 1}
-MET_RAB_D = {'FRAMES': 36, 'cdeeg+': 19, 'cdeeg': 19, 'cdecf': 18, 'gh': 15, 'eg': 12, 'cde': 12,
+CT_AB = {'FRAMES': 6, 'cde': 3, 'cf': 3, 'cdecf': 3, 'cdeeg+': 3, 'cdeeg': 3, 'c': 3, 'ab': 3,
+         'b': 2, 'a': 1}
+CT_REF_AB = {'FRAMES': 36, 'cdeeg+': 19, 'cdeeg': 19, 'cdecf': 18, 'gh': 15, 'eg': 12, 'cde': 12,
              'cf': 9, 'h': 8, 'g': 7, 'f': 6, 'e': 5, 'd': 4, 'c': 3, 'ab': 3, 'b': 2, 'a': 1}
 
-NAMES = {'FRAMES': 'Root', 'cdeeg+': 'CDEEG+', 'cdeeg': 'CDEEG', 'cdecf': 'CDECF', 'gh': 'GH',
-         'eg': 'EG', 'cde': 'CDE', 'cf': 'CF', 'h': 'H', 'g': 'G', 'f': 'F', 'e': 'E', 'd': 'D',
-         'c': 'C', 'ab': 'AB', 'b': 'B'}
+CT_LAB = {'FRAMES': 'Root', 'cdeeg+': 'CDEEG+', 'cdeeg': 'CDEEG', 'cdecf': 'CDECF', 'gh': 'GH',
+          'eg': 'EG', 'cde': 'CDE', 'cf': 'CF', 'h': 'H', 'g': 'G', 'f': 'F', 'e': 'E', 'd': 'D',
+          'c': 'C', 'ab': 'AB', 'b': 'B'}
 
 W_PROP = [1.0, 0.5, 0.5, 0.5, nan, nan, nan, 0.5, 0.5, 0.5, nan, nan, nan, nan, nan, nan, nan, nan,
           nan, nan, nan, 0.5, 0.5, 0.5, 0.5, 0.3333333333333333, 0.16666666666666666]
@@ -119,17 +118,17 @@ class TestGenerateDataTable(unittest.TestCase):
 
     @test_for(get_sub_abundance)
     def test_get_sub_abundances_exists_diff(self):
-        sub_abu = get_sub_abundance(MET_LAB_D, 'cf', 9)
+        sub_abu = get_sub_abundance(CT_AB, 'cf', 9)
         self.assertEqual(sub_abu, 3)
 
     @test_for(get_sub_abundance)
     def test_get_sub_abundances_exists_equ(self):
-        sub_abu = get_sub_abundance(MET_LAB_D, 'a', 1)
+        sub_abu = get_sub_abundance(CT_AB, 'a', 1)
         self.assertEqual(sub_abu, 1)
 
     @test_for(get_sub_abundance)
     def test_get_sub_abundances_not_exists(self):
-        sub_abu = get_sub_abundance(MET_LAB_D, 'eg', 12)
+        sub_abu = get_sub_abundance(CT_AB, 'eg', 12)
         self.assertTrue(np.isnan(sub_abu))
 
     @test_for(get_sub_abundance)
@@ -139,21 +138,21 @@ class TestGenerateDataTable(unittest.TestCase):
 
     @test_for(get_all_ids)
     def test_get_all_c_ids(self):
-        all_ids = get_all_ids('c', 'c', MC_ONTO, ROOTS[METACYC], set())
+        all_ids = get_all_ids('c', 'c', CT_ONTO, ROOTS[METACYC], set())
         wanted_ids = {'c__cf__cdecf__FRAMES', 'c__cde__cdecf__FRAMES',
                       'c__cde__cdeeg__cdeeg+__FRAMES'}
         self.assertEqual(all_ids, wanted_ids)
 
     @test_for(get_all_ids)
     def test_get_all_e_ids(self):
-        all_ids = get_all_ids('e', 'e', MC_ONTO, ROOTS[METACYC], set())
+        all_ids = get_all_ids('e', 'e', CT_ONTO, ROOTS[METACYC], set())
         wanted_ids = {'e__cde__cdeeg__cdeeg+__FRAMES', 'e__eg__FRAMES',
                       'e__eg__cdeeg__cdeeg+__FRAMES', 'e__cde__cdecf__FRAMES'}
         self.assertEqual(all_ids, wanted_ids)
 
     @test_for(get_all_ids)
     def test_get_all_eg_ids(self):
-        all_ids = get_all_ids('eg', 'eg', MC_ONTO, ROOTS[METACYC], set())
+        all_ids = get_all_ids('eg', 'eg', CT_ONTO, ROOTS[METACYC], set())
         wanted_ids = {'eg__FRAMES', 'eg__cdeeg__cdeeg+__FRAMES'}
         self.assertEqual(all_ids, wanted_ids)
 
@@ -177,8 +176,8 @@ class TestGenerateDataTable(unittest.TestCase):
     @test_for(DataTable.fill_parameters)
     def test_get_fig_parameters(self):
         data = DataTable()
-        data.fill_parameters(ref_abundance=MET_RAB_D, parent_dict=MC_ONTO,
-                             root_item=ROOTS[METACYC], subset_abundance=MET_LAB_D, names=None)
+        data.fill_parameters(ref_abundance=CT_REF_AB, parent_dict=CT_ONTO,
+                             root_item=ROOTS[METACYC], subset_abundance=CT_AB, names=None)
         lines = set(data.get_col())
         w_lines = {('cde__cdeeg__cdeeg+__FRAMES', 'cde', 'cde', 'cdeeg__cdeeg+__FRAMES', 3, 12, nan,
                     nan, nan, nan), (
@@ -233,8 +232,8 @@ class TestGenerateDataTable(unittest.TestCase):
     @test_for(DataTable.fill_parameters)
     def test_get_fig_parameters_names(self):
         data = DataTable()
-        data.fill_parameters(ref_abundance=MET_RAB_D, parent_dict=MC_ONTO,
-                             root_item=ROOTS[METACYC], subset_abundance=MET_LAB_D, names=NAMES)
+        data.fill_parameters(ref_abundance=CT_REF_AB, parent_dict=CT_ONTO,
+                             root_item=ROOTS[METACYC], subset_abundance=CT_AB, names=CT_LAB)
         lines = set(data.get_col())
         w_lines = {('ab__FRAMES', 'ab', 'AB', 'FRAMES', 3, 3, nan, nan, nan, nan), (
             'd__cde__cdecf__FRAMES', 'd', 'D', 'cde__cdecf__FRAMES', nan, 4, nan, nan, nan, nan),
@@ -290,8 +289,8 @@ class TestAddProportionDataTable(unittest.TestCase):
     @test_for(DataTable.calculate_proportions)
     def test_get_data_proportion_no_relative(self):
         data = DataTable()
-        data.fill_parameters(ref_abundance=MET_RAB_D, parent_dict=MC_ONTO,
-                             root_item=ROOTS[METACYC], subset_abundance=MET_LAB_D, names=NAMES)
+        data.fill_parameters(ref_abundance=CT_REF_AB, parent_dict=CT_ONTO,
+                             root_item=ROOTS[METACYC], subset_abundance=CT_AB, names=CT_LAB)
         data.calculate_proportions(True)
         for i in range(data.len):
             if np.isnan(data.prop[i]):
@@ -302,8 +301,8 @@ class TestAddProportionDataTable(unittest.TestCase):
     @test_for(DataTable.calculate_proportions)
     def test_get_data_proportion_no_relative_ref(self):
         data = DataTable()
-        data.fill_parameters(ref_abundance=MET_RAB_D, parent_dict=MC_ONTO,
-                             root_item=ROOTS[METACYC], subset_abundance=MET_LAB_D, names=NAMES)
+        data.fill_parameters(ref_abundance=CT_REF_AB, parent_dict=CT_ONTO,
+                             root_item=ROOTS[METACYC], subset_abundance=CT_AB, names=CT_LAB)
         data.calculate_proportions(True)
         for i in range(data.len):
             self.assertEqual(data.ref_prop[i], W_REF_PROP[i])
@@ -311,8 +310,8 @@ class TestAddProportionDataTable(unittest.TestCase):
     @test_for(DataTable.calculate_proportions)
     def test_get_data_proportion_relative(self):
         data = DataTable()
-        data.fill_parameters(ref_abundance=MET_RAB_D, parent_dict=MC_ONTO,
-                             root_item=ROOTS[METACYC], subset_abundance=MET_LAB_D, names=NAMES)
+        data.fill_parameters(ref_abundance=CT_REF_AB, parent_dict=CT_ONTO,
+                             root_item=ROOTS[METACYC], subset_abundance=CT_AB, names=CT_LAB)
         data.calculate_proportions(True)
         for k, v in W_REL_PROP.items():
             self.assertEqual(data.relative_prop[data.ids.index(k)], v)
@@ -372,9 +371,9 @@ class TestEnrichmentAnalysis(unittest.TestCase):
                       0.4034095751193356),
                      ('07__01__00', '07', '7', '01__00', nan, 1, nan, 0.01, 10000, nan),
                      ('09__02__00', '09', '9', '02__00', 1, 3, 0.02, 0.03, 30000, 0.0)}
-        for l in lines:
-            l = tuple([nan if type(x) != str and np.isnan(x) else x for x in l])
-            self.assertIn(l, exp_lines)
+        for line in lines:
+            line = tuple([nan if type(x) != str and np.isnan(x) else x for x in line])
+            self.assertIn(line, exp_lines)
         self.assertEqual(len(lines), len(exp_lines))
         self.assertEqual(significant, exp_significant)
 
@@ -385,7 +384,6 @@ class TestEnrichmentAnalysis(unittest.TestCase):
         data.calculate_proportions(True)
         significant = data.make_enrichment_analysis(HYPERGEO_TEST)
         lines = set(data.get_col())
-        print(lines)
         exp_lines = {('02__00', '02', '2', '00', 25, 30, 0.5, 0.3, 300000, 4.692610428021241),
                      ('00', '00', '00', '', 50, 100, 1.0, 1.0, 1000000, 0.3010299956639812),
                      ('08__02__00', '08', '8', '02__00', 1, 1, 0.02, 0.01, 10000, -0.0),
@@ -399,9 +397,9 @@ class TestEnrichmentAnalysis(unittest.TestCase):
                      ('04__00', '04', '4', '00', 1, 10, 0.02, 0.1, 100000, -1.8051946563380086),
                      ('07__01__00', '07', '7', '01__00', nan, 1, nan, 0.01, 10000, nan)}
         exp_significant = {'01': 7e-10, '03': 1.759e-07, '02': 2.0295e-05}
-        for l in lines:
-            l = tuple([nan if type(x) != str and np.isnan(x) else x for x in l])
-            self.assertIn(l, exp_lines)
+        for line in lines:
+            line = tuple([nan if type(x) != str and np.isnan(x) else x for x in line])
+            self.assertIn(line, exp_lines)
         self.assertEqual(len(lines), len(exp_lines))
         self.assertEqual(significant, exp_significant)
 
@@ -417,6 +415,25 @@ ROOT_LABElS = {'R': 'r', '00': '0', '01': '1', '02': '2', '03': '3',
                '04': '4', '05': '5', '06': '6', '07': '7', '08': '8', '09': '9'}
 ROOT_ONTO = {'01': ['00'], '02': ['00'], '03': ['00'], '04': ['00'], '05': ['01'], '00': ['R-2'],
              '06': ['01'], '07': ['01'], '08': ['02'], '09': ['02'], 'R-1': ['R'], 'R-2': ['R-1']}
+
+
+PATH_ONTO = {'a': ['ab', 'cdeeg++++'], 'b': ['ab'], 'c': ['cde', 'cf'], 'd': ['cde'], 'e': ['cde', 'eg'],
+             'f': ['cf'], 'g': ['gh', 'eg'], 'h': ['gh'], 'ab': [ROOTS[METACYC]],
+             'cde': ['cde+'], 'cde+': ['cde++'], 'cde++': ['cde+++'], 'cde+++': ['cdecf', 'cdeeg'],
+             'cf': ['cdecf'], 'eg': ['cdeeg', ROOTS[METACYC]], 'gh': [ROOTS[METACYC]],
+             'cdecf': [ROOTS[METACYC]],
+             'cdeeg': ['cdeeg+'], 'cdeeg+': ['cdeeg++'], 'cdeeg++': ['cdeeg+++'],
+             'cdeeg+++': ['cdeeg++++'], 'cdeeg++++': [ROOTS[METACYC]]}
+PATH_AB = {'FRAMES': 6, 'cde': 3, 'cde+': 3, 'cde++': 3, 'cde+++': 3, 'cf': 3, 'cdecf': 3,
+           'cdeeg++++': 3, 'cdeeg+++': 3, 'cdeeg++': 3, 'cdeeg+': 3, 'cdeeg': 3, 'c': 3, 'ab': 3,
+           'b': 2, 'a': 1}
+PATH_REF_AB = {'FRAMES': 36, 'cdeeg++++': 19, 'cdeeg+++': 19, 'cdeeg++': 19, 'cdeeg+': 19,
+               'cdeeg': 19, 'cdecf': 18, 'gh': 15, 'eg': 12, 'cde': 12, 'cde+': 12, 'cde++': 12,
+               'cde+++': 12, 'cf': 9, 'h': 8, 'g': 7, 'f': 6, 'e': 5, 'd': 4, 'c': 3, 'ab': 3,
+               'b': 2, 'a': 1}
+PATH_LAB = {'FRAMES': 'Root', 'cdeeg+': 'CDEEG+', 'cdeeg': 'CDEEG', 'cdecf': 'CDECF', 'gh': 'GH',
+            'eg': 'EG', 'cde': 'CDE', 'cf': 'CF', 'h': 'H', 'g': 'G', 'f': 'F', 'e': 'E', 'd': 'D',
+            'c': 'C', 'ab': 'AB', 'b': 'B'}
 
 
 class TestTopologyManagement(unittest.TestCase):
@@ -439,11 +456,13 @@ class TestTopologyManagement(unittest.TestCase):
         lines = set(data.get_col())
         exp_lines = {('01__00__R-2__R-1__R', '01', '1', '00', 5, 40, 0.1, 0.4, 400000, nan),
                      (
-                     '06__01__00__R-2__R-1__R', '06', '6', '01__00__R-2__R-1__R', nan, 5, nan, 0.05,
-                     50000, nan),
+                         '06__01__00__R-2__R-1__R', '06', '6', '01__00__R-2__R-1__R', nan, 5, nan,
+                         0.05,
+                         50000, nan),
                      (
-                     '07__01__00__R-2__R-1__R', '07', '7', '01__00__R-2__R-1__R', nan, 1, nan, 0.01,
-                     10000, nan),
+                         '07__01__00__R-2__R-1__R', '07', '7', '01__00__R-2__R-1__R', nan, 1, nan,
+                         0.01,
+                         10000, nan),
                      ('05__01__00__R-2__R-1__R', '05', '5', '01__00__R-2__R-1__R', 5, 20, 0.1, 0.2,
                       200000, nan),
                      ('03__00__R-2__R-1__R', '03', '3', '00', 20, 20, 0.4, 0.2, 200000, nan),
@@ -455,9 +474,9 @@ class TestTopologyManagement(unittest.TestCase):
                       10000, nan)}
         self.assertEqual(data.len, 9)
         self.assertEqual(len(lines), len(exp_lines))
-        for l in lines:
-            l = tuple([nan if type(x) != str and np.isnan(x) else x for x in l])
-            self.assertIn(l, exp_lines)
+        for line in lines:
+            line = tuple([nan if type(x) != str and np.isnan(x) else x for x in line])
+            self.assertIn(line, exp_lines)
 
     @test_for(DataTable.cut_root)
     def test_data_cut_root_total_cut(self):
@@ -486,6 +505,15 @@ class TestTopologyManagement(unittest.TestCase):
                       10000, nan)}
         self.assertEqual(data.len, 9)
         self.assertEqual(len(lines), len(exp_lines))
-        for l in lines:
-            l = tuple([nan if type(x) != str and np.isnan(x) else x for x in l])
-            self.assertIn(l, exp_lines)
+        for line in lines:
+            line = tuple([nan if type(x) != str and np.isnan(x) else x for x in line])
+            self.assertIn(line, exp_lines)
+
+    @test_for(DataTable.cut_nested_path)
+    def test_cut_path_uncut(self):
+        from ontosunburst.sunburst_fig import generate_sunburst_fig
+        data = DataTable()
+        data.fill_parameters(PATH_REF_AB, PATH_ONTO, ROOTS[METACYC], PATH_AB, PATH_LAB)
+        data.calculate_proportions(True)
+        data.cut_nested_path(PATH_DEEPER)
+        generate_sunburst_fig(data, 'test', bg_color='black', font_color='white')

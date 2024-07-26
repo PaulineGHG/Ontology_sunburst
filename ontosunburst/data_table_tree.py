@@ -1,3 +1,4 @@
+import copy
 from typing import List, Dict, Set
 import numpy as np
 from numpy import nan
@@ -34,6 +35,12 @@ PVAL = 'Pvalue'
 ROOT_CUT = 'cut'
 ROOT_TOTAL_CUT = 'total'
 ROOT_UNCUT = 'uncut'
+
+# Path cut
+PATH_UNCUT = 'uncut'
+PATH_DEEPER = 'deeper'
+PATH_HIGHER = 'higher'
+PATH_BOUND = 'bound'
 
 
 # ==================================================================================================
@@ -261,6 +268,59 @@ class DataTable:
                 self.parents = [str(x).split('__')[0] if x in roots else x for x in self.parents]
             if mode == ROOT_TOTAL_CUT:
                 self.parents = ['' if x in roots else x for x in self.parents]
+
+    def cut_nested_path(self, mode: str):
+        if mode != PATH_UNCUT:
+            nested_paths = []
+            for p_i in range(self.len):
+                p = self.ids[p_i]
+                p_children = [self.ids[i] for i in range(self.len) if self.parents[i] == p]
+                if len(p_children) == 1:
+                    p_p = self.parents[p_i]
+                    p_p_children = [self.ids[i] for i in range(self.len) if self.parents[i] == p_p]
+                    if len(p_p_children) != 1:
+                        p_count = self.count[p_i]
+                        c_i = self.ids.index(p_children[0])
+                        c_count = self.count[c_i]
+                        if p_count == c_count:
+                            nested_paths.append(self.get_full_nested_path(c_i, [p_i]))
+            to_del = []
+            if mode == PATH_DEEPER:
+                for path in nested_paths:
+                    to_del += path[:-1]
+                    to_keep = path[-1]
+                    root_p = self.parents[path[0]]
+                    self.parents[to_keep] = root_p
+                    self.labels[to_keep] = '... ' + self.labels[to_keep]
+            elif mode == PATH_HIGHER:
+                for path in nested_paths:
+                    to_del += path[1:]
+                    to_keep = path[0]
+                    to_keep_c = [i for i in range(self.len) if self.parents[i] == self.ids[path[-1]]]
+                    for c_i in to_keep_c:
+                        self.parents[c_i] = self.ids[to_keep]
+                    self.labels[to_keep] += ' ...'
+            elif mode == PATH_BOUND:
+                for path in nested_paths:
+                    to_del += path[1:-1]
+                    to_keep_up = path[0]
+                    to_keep_do = path[-1]
+                    self.parents[to_keep_do] = self.ids[to_keep_up]
+                    self.labels[to_keep_up] += ' ...'
+                    self.labels[to_keep_do] = '... ' + self.labels[to_keep_do]
+            self.delete_value(to_del)
+
+    def get_full_nested_path(self, p_i, n_path):
+        n_path.append(p_i)
+        p = self.ids[p_i]
+        p_children = [self.ids[i] for i in range(self.len) if self.parents[i] == p]
+        if len(p_children) == 1:
+            p_count = self.count[p_i]
+            c_i = self.ids.index(p_children[0])
+            c_count = self.count[c_i]
+            if p_count == c_count:
+                n_path = self.get_full_nested_path(c_i, n_path)
+        return n_path
 
     def delete_value(self, v_index: int or List[int]):
         data = self.get_data_dict()
