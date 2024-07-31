@@ -74,7 +74,7 @@ class DataTable:
 
     def fill_parameters(self, ref_abundance: Dict[str, int], parent_dict: Dict[str, List[str]],
                         root_item, subset_abundance: Dict[str, int] = None,
-                        names: Dict[str, str] = None):
+                        names: Dict[str, str] = None, ref_base: bool = True):
         """ Fill DataTable list attributes (self.ids, self.onto_ids, self.labels, self.parents,
         self.count, self.ref_count)
 
@@ -89,25 +89,46 @@ class DataTable:
         subset_abundance: Dict[str, int] = None
         names: Dict[str, str]
             Dictionary associating metabolic object ID to its Name
+        ref_base
         """
-        for c_onto_id, c_abundance in ref_abundance.items():
-            c_sub_abundance = get_sub_abundance(subset_abundance, c_onto_id, c_abundance)
-            if c_onto_id != root_item:
-                if names is not None:
-                    try:
-                        c_label = names[c_onto_id]
-                    except KeyError:
+        if ref_base:
+            for c_onto_id, c_abundance in ref_abundance.items():
+                c_sub_abundance = get_sub_abundance(subset_abundance, c_onto_id, c_abundance)
+                if c_onto_id != root_item:
+                    if names is not None:
+                        try:
+                            c_label = names[c_onto_id]
+                        except KeyError:
+                            c_label = c_onto_id
+                    else:
                         c_label = c_onto_id
+                    all_c_ids = get_all_ids(c_onto_id, c_onto_id, parent_dict, root_item, set())
+                    for c_id in all_c_ids:
+                        self.add_value(m_id=c_id, onto_id=c_onto_id, label=c_label,
+                                       count=c_sub_abundance, ref_count=c_abundance,
+                                       parent=c_id[len(c_onto_id) + 2:])  # Remove c_label__ prefix
                 else:
-                    c_label = c_onto_id
-                all_c_ids = get_all_ids(c_onto_id, c_onto_id, parent_dict, root_item, set())
-                for c_id in all_c_ids:
-                    self.add_value(m_id=c_id, onto_id=c_onto_id, label=c_label,
-                                   count=c_sub_abundance, ref_count=c_abundance,
-                                   parent=c_id[len(c_onto_id) + 2:])  # Remove c_label__ prefix
-            else:
-                self.add_value(m_id=c_onto_id, onto_id=c_onto_id, label=c_onto_id,
-                               count=c_sub_abundance, ref_count=c_abundance, parent='')
+                    self.add_value(m_id=c_onto_id, onto_id=c_onto_id, label=c_onto_id,
+                                   count=c_sub_abundance, ref_count=c_abundance, parent='')
+        else:
+            for c_onto_id, c_abundance in subset_abundance.items():
+                c_ref_abundance = ref_abundance[c_onto_id]
+                if c_onto_id != root_item:
+                    if names is not None:
+                        try:
+                            c_label = names[c_onto_id]
+                        except KeyError:
+                            c_label = c_onto_id
+                    else:
+                        c_label = c_onto_id
+                    all_c_ids = get_all_ids(c_onto_id, c_onto_id, parent_dict, root_item, set())
+                    for c_id in all_c_ids:
+                        self.add_value(m_id=c_id, onto_id=c_onto_id, label=c_label,
+                                       count=c_abundance, ref_count=c_ref_abundance,
+                                       parent=c_id[len(c_onto_id) + 2:])  # Remove c_label__ prefix
+                else:
+                    self.add_value(m_id=c_onto_id, onto_id=c_onto_id, label=c_onto_id,
+                                   count=c_abundance, ref_count=c_ref_abundance, parent='')
 
     def add_value(self, m_id: str, onto_id: str, label: str, count: float, ref_count: float,
                   parent: str):
@@ -204,44 +225,52 @@ class DataTable:
             if c in self.parents:
                 self.__get_relative_prop(c, ref_base)
 
-    def make_enrichment_analysis(self, test: str) -> Dict[str, float]:
+    def make_enrichment_analysis(self, test: str, scores=None) -> Dict[str, float]:
         """ Performs statistical tests for enrichment analysis.
 
         Parameters
         ----------
         test: str
             Type of test : binomial or hypergeometric
+        scores: Dict
 
         Returns
         -------
         Dict[str, float]
             Dictionary of significant metabolic object label associated with their p-value
         """
-        m = np.max(self.ref_count)  # M = ref set total item number
-        n = int(np.nanmax(self.count))  # N = interest set total item number
         nb_classes = len(set([self.labels[i] for i in range(self.len)
                               if not np.isnan(self.count[i])]))
         significant_representation = dict()
-        for i in range(self.len):
-            if type(self.count[i]) == int:  # If count not nan (= if concept in interest set)
-                # Binomial Test
-                if test == BINOMIAL_TEST:
-                    p_val = stats.binomtest(self.count[i], n, self.ref_count[i] / m,
-                                            alternative='two-sided').pvalue
-                # Hypergeometric Test
-                elif test == HYPERGEO_TEST:
-                    p_val_upper = stats.hypergeom.sf(self.count[i] - 1, m, self.ref_count[i], n)
-                    p_val_lower = stats.hypergeom.cdf(self.count[i], m, self.ref_count[i], n)
-                    p_val = 2 * min(p_val_lower, p_val_upper)  # bilateral
-                else:
-                    raise ValueError(
-                        f'test parameter must be in : {[BINOMIAL_TEST, HYPERGEO_TEST]}')
-                if ((self.count[i] / n) - (self.ref_count[i] / m)) > 0:  # If over-represented :
-                    self.p_val[i] = -np.log10(p_val)  # Positive log10(p-value)
-                else:  # If under-represented :
-                    self.p_val[i] = np.log10(p_val)  # Negative log10(p-value)
-                if p_val < 0.05 / nb_classes:  # Keep significant p-values : Bonferroni correction
-                    significant_representation[self.onto_ids[i]] = p_val.round(10)
+        if scores is not None:
+            for i in range(self.len):
+                p_val = scores[self.onto_ids[i]]
+                self.p_val[i] = -np.log10(p_val)
+                if p_val < 0.05 / nb_classes:  # Keep significant p-values : Bonferroni
+                    significant_representation[self.onto_ids[i]] = p_val
+        else:
+            m = np.max(self.ref_count)  # M = ref set total item number
+            n = int(np.nanmax(self.count))  # N = interest set total item number
+            for i in range(self.len):
+                if type(self.count[i]) == int:  # If count not nan (= if concept in interest set)
+                    # Binomial Test
+                    if test == BINOMIAL_TEST:
+                        p_val = stats.binomtest(self.count[i], n, self.ref_count[i] / m,
+                                                alternative='two-sided').pvalue
+                    # Hypergeometric Test
+                    elif test == HYPERGEO_TEST:
+                        p_val_upper = stats.hypergeom.sf(self.count[i] - 1, m, self.ref_count[i], n)
+                        p_val_lower = stats.hypergeom.cdf(self.count[i], m, self.ref_count[i], n)
+                        p_val = 2 * min(p_val_lower, p_val_upper)  # bilateral
+                    else:
+                        raise ValueError(
+                            f'test parameter must be in : {[BINOMIAL_TEST, HYPERGEO_TEST]}')
+                    if ((self.count[i] / n) - (self.ref_count[i] / m)) > 0:  # If over-represented :
+                        self.p_val[i] = -np.log10(p_val)  # Positive log10(p-value)
+                    else:  # If under-represented :
+                        self.p_val[i] = np.log10(p_val)  # Negative log10(p-value)
+                    if p_val < 0.05 / nb_classes:  # Keep significant p-values : Bonferroni
+                        significant_representation[self.onto_ids[i]] = p_val
         significant_representation = dict(
             sorted(significant_representation.items(), key=lambda item: item[1]))
         return significant_representation

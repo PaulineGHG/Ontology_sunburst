@@ -4,8 +4,8 @@ from typing import List, Dict
 from time import time
 import plotly.graph_objects as go
 
-from ontosunburst.ontology import get_abundance_dict, get_classes_abundance, extract_classes, \
-    reduce_d_ontology, METACYC, CHEBI, EC, GO, KEGG, ROOTS
+from ontosunburst.ontology import get_abundance_dict, get_classes_abundance, get_classes_scores, \
+    extract_classes, reduce_d_ontology, METACYC, CHEBI, EC, GO, KEGG, ROOTS
 
 from ontosunburst.data_table_tree import DataTable, BINOMIAL_TEST, ROOT_CUT
 from ontosunburst.sunburst_fig import generate_sunburst_fig, TOPOLOGY_A, ENRICHMENT_A
@@ -39,6 +39,7 @@ def ontosunburst(metabolic_objects: List[str],
                  ontology: str = None,
                  root: str = None,
                  abundances: List[float] = None,
+                 scores: List[float] = None,
                  reference_set: List[str] = None,
                  ref_abundances: List[float] = None,
                  analysis: str = TOPOLOGY_A,
@@ -82,8 +83,6 @@ def ontosunburst(metabolic_objects: List[str],
         URL of ChEBI or GO ontology for SPARQL requests
     test: str (optional, default=binomial)
         Type of test if analysis=enrichment, must be in : [binomial, hypergeometric]
-    total: bool (optional, default=True)
-        True to have branch values proportional of the total parent (may not work in some cases)
     root_cut: str (optional, default=cut)
         mode for root cutting (uncut, cut, total)
     ref_base: bool (optional, default=False)
@@ -137,6 +136,7 @@ def ontosunburst(metabolic_objects: List[str],
     # WORKFLOW -------------------------------------------------------------------------------------
     fig = _global_analysis(ontology=ontology, analysis=analysis,
                            metabolic_objects=metabolic_objects, abundances=abundances,
+                           scores=scores,
                            reference_set=reference_set, ref_abundances=ref_abundances,
                            d_classes_ontology=class_ontology, endpoint_url=endpoint_url,
                            output=output, write_output=write_output, names=names,
@@ -150,7 +150,7 @@ def ontosunburst(metabolic_objects: List[str],
 # ==================================================================================================
 #                                             FUNCTIONS
 # ==================================================================================================
-def _global_analysis(ontology, analysis, metabolic_objects, abundances, reference_set,
+def _global_analysis(ontology, analysis, metabolic_objects, abundances, scores, reference_set,
                      ref_abundances, d_classes_ontology, endpoint_url, output, write_output, names,
                      test, root, root_cut, ref_base, show_leaves, **kwargs):
     """
@@ -179,14 +179,19 @@ def _global_analysis(ontology, analysis, metabolic_objects, abundances, referenc
     -------
 
     """
+    obj_all_classes, d_classes_ontology, names = extract_classes(ontology, metabolic_objects, root,
+                                                                 d_classes_ontology=d_classes_ontology,
+                                                                 endpoint_url=endpoint_url)
+    classes_scores = None
     abundances_dict = get_abundance_dict(abundances=abundances,
                                          metabolic_objects=metabolic_objects,
                                          ref=False)
-
-    obj_all_classes, d_classes_ontology = extract_classes(ontology, metabolic_objects, root,
-                                                          d_classes_ontology=d_classes_ontology,
-                                                          endpoint_url=endpoint_url)
     classes_abundance = get_classes_abundance(obj_all_classes, abundances_dict, show_leaves)
+    if scores is not None:
+        scores_dict = get_abundance_dict(abundances=scores,
+                                         metabolic_objects=metabolic_objects,
+                                         ref=False)
+        classes_scores = get_classes_scores(classes_abundance, scores_dict, root)
 
     if not obj_all_classes:
         print('No object classified, passing.')
@@ -199,26 +204,23 @@ def _global_analysis(ontology, analysis, metabolic_objects, abundances, referenc
         ref_abundances_dict = get_abundance_dict(abundances=ref_abundances,
                                                  metabolic_objects=reference_set,
                                                  ref=True)
-        ref_all_classes, d_classes_ontology = extract_classes(ontology, reference_set, root,
+        ref_all_classes, d_classes_ontology, names = extract_classes(ontology, reference_set, root,
                                                               d_classes_ontology=d_classes_ontology,
                                                               endpoint_url=endpoint_url)
         ref_classes_abundance = get_classes_abundance(ref_all_classes, ref_abundances_dict,
                                                       show_leaves)
-
     else:
         ref_classes_abundance = None
 
     # Enrichment figure
     if analysis == ENRICHMENT_A:
-        if ref_classes_abundance is not None:
-            return _enrichment_analysis(ref_classes_abundance=ref_classes_abundance,
-                                        classes_abundance=classes_abundance,
-                                        d_classes_ontology=d_classes_ontology,
-                                        output=output, write_output=write_output, names=names,
-                                        test=test, root=root, root_cut=root_cut,
-                                        ref_base=ref_base, **kwargs)
-        else:
-            raise AttributeError('Missing reference set parameter')
+        return _enrichment_analysis(ref_classes_abundance=ref_classes_abundance,
+                                    classes_abundance=classes_abundance,
+                                    classes_scores=classes_scores,
+                                    d_classes_ontology=d_classes_ontology,
+                                    output=output, write_output=write_output, names=names,
+                                    test=test, root=root, root_cut=root_cut,
+                                    ref_base=ref_base, **kwargs)
 
     # Proportion figure
     elif analysis == TOPOLOGY_A:
@@ -258,14 +260,11 @@ def _topology_analysis(ref_classes_abundance, classes_abundance, d_classes_ontol
         ref_set = True
         d_classes_ontology = reduce_d_ontology(d_classes_ontology,
                                                {**ref_classes_abundance, **classes_abundance})
-
         data = DataTable()
         data.fill_parameters(ref_abundance=ref_classes_abundance,
                              parent_dict=d_classes_ontology,
                              root_item=root, subset_abundance=classes_abundance,
                              names=names)
-        data.calculate_proportions(ref_base)
-
     else:
         ref_set = False
         d_classes_ontology = reduce_d_ontology(d_classes_ontology, classes_abundance)
@@ -273,13 +272,15 @@ def _topology_analysis(ref_classes_abundance, classes_abundance, d_classes_ontol
         data.fill_parameters(ref_abundance=classes_abundance,
                              parent_dict=d_classes_ontology,
                              root_item=root, names=names)
-        data.calculate_proportions(ref_base)
+    data.calculate_proportions(ref_base)
+    data.cut_root(root_cut)
     return generate_sunburst_fig(data=data, output=output, analysis=TOPOLOGY_A,
                                  root_cut=root_cut, ref_set=ref_set,
                                  write_fig=write_output, **kwargs)
 
 
-def _enrichment_analysis(ref_classes_abundance, classes_abundance, d_classes_ontology, output,
+def _enrichment_analysis(ref_classes_abundance, classes_abundance, classes_scores,
+                         d_classes_ontology, output,
                          write_output, names, test, root, root_cut, ref_base, **kwargs) \
         -> go.Figure:
     """ Performs the enrichment analysis showing enrichment of the interest set in comparison to
@@ -304,12 +305,27 @@ def _enrichment_analysis(ref_classes_abundance, classes_abundance, d_classes_ont
         Plotly graph_objects figure of the sunburst
     """
     data = DataTable()
-    data.fill_parameters(ref_abundance=ref_classes_abundance,
-                         parent_dict=d_classes_ontology,
-                         root_item=root, subset_abundance=classes_abundance, names=names)
+    if ref_classes_abundance is not None:
+        d_classes_ontology = reduce_d_ontology(d_classes_ontology,
+                                               {**ref_classes_abundance, **classes_abundance})
+        ref_set = True
+        data.fill_parameters(ref_abundance=ref_classes_abundance, parent_dict=d_classes_ontology,
+                             root_item=root, subset_abundance=classes_abundance, names=names,
+                             ref_base=ref_base)
+    else:
+        ref_set = False
+        d_classes_ontology = reduce_d_ontology(d_classes_ontology, classes_abundance)
+        data.fill_parameters(ref_abundance=classes_abundance,
+                             parent_dict=d_classes_ontology,
+                             root_item=root, names=names)
     data.calculate_proportions(ref_base)
+    print(data.len)
+    significant = data.make_enrichment_analysis(test, classes_scores)
+    print(data)
+    print(significant)
+    data.cut_root(root_cut)
     return generate_sunburst_fig(data=data, output=output, analysis=ENRICHMENT_A, test=test,
-                                 root_cut=root_cut, ref_set=True,
+                                 significant=significant, ref_set=ref_set,
                                  write_fig=write_output, **kwargs)
 
 

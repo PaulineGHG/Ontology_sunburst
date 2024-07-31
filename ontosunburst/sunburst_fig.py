@@ -69,7 +69,7 @@ def get_fig_kwargs(output: str, analysis: str, **kwargs):
 
 
 def generate_sunburst_fig(data: DataTable, output: str, analysis: str = TOPOLOGY_A,
-                          test=BINOMIAL_TEST, root_cut: str = ROOT_CUT, ref_set: bool = True,
+                          test=BINOMIAL_TEST, significant: Dict = None, ref_set: bool = True,
                           write_fig: bool = True, **kwargs) -> go.Figure:
     """ Generate a Sunburst figure and save it to output path.
 
@@ -99,7 +99,6 @@ def generate_sunburst_fig(data: DataTable, output: str, analysis: str = TOPOLOGY
         get_fig_kwargs(output, analysis, **kwargs)
 
     if analysis == TOPOLOGY_A:
-        data.cut_root(root_cut)
         fig = go.Figure(go.Sunburst(labels=data.labels, parents=data.parents,
                                     values=data.relative_prop, ids=data.ids,
                                     hoverinfo='label+text', maxdepth=max_depth,
@@ -111,8 +110,6 @@ def generate_sunburst_fig(data: DataTable, output: str, analysis: str = TOPOLOGY
         fig.update_layout(title=dict(text=title, x=0.5, xanchor='center'))
 
     elif analysis == ENRICHMENT_A:
-        significant = data.make_enrichment_analysis(test)
-        data.cut_root(root_cut)
         fig = make_subplots(rows=1, cols=2,
                             column_widths=[0.3, 0.7],
                             vertical_spacing=0.03,
