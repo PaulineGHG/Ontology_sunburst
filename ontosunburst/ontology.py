@@ -236,7 +236,6 @@ def extract_chebi_roles(chebi_ids: List[str], endpoint_url: str) \
 
     for c, p in d_roles_ontology.items():
         d_roles_ontology[c] = list(p)
-    print(d_roles_ontology)
     print(f'{chebi_ok}/{total_nb} chebi id with roles associated.')
     return all_roles, d_roles_ontology, d_labels
 

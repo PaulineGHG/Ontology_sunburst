@@ -103,75 +103,72 @@ class TestChEBIClassesExtraction(unittest.TestCase):
     @test_for(extract_chebi_roles)
     @patch('sys.stdout', new_callable=lambda: DualWriter(sys.stdout))
     def test_extract_chebi_roles(self, mock_stdout):
-        all_roles, d_roles_ontology = extract_chebi_roles(CH_LST, CH_URL)
+        all_roles, d_roles_ontology, names = extract_chebi_roles(CH_LST, CH_URL)
         output = mock_stdout.getvalue().strip()
-        wanted_ontology = {'xenobiotic': ['biological role'], 'biological role': ['role'],
-                           '38028': ['xenobiotic'], 'algal metabolite': ['eukaryotic metabolite'],
-                           'eukaryotic metabolite': ['metabolite'],
-                           'metabolite': ['biochemical role'],
-                           'biochemical role': ['biological role'],
-                           'marine metabolite': ['metabolite'],
-                           'plant metabolite': ['eukaryotic metabolite'],
-                           'animal metabolite': ['eukaryotic metabolite'],
-                           '28604': ['animal metabolite', 'plant metabolite', 'algal metabolite',
-                                     'marine metabolite'],
-                           'food emulsifier': ['food additive', 'emulsifier'],
-                           'food additive': ['food component', 'application'],
-                           'application': ['role'], 'food component': ['physiological role'],
-                           'physiological role': ['biological role'],
-                           'emulsifier': ['chemical role'], 'chemical role': ['role'],
-                           'laxative': ['drug'], 'drug': ['pharmaceutical'],
-                           'pharmaceutical': ['application'],
-                           '85146': ['food emulsifier', 'laxative']}
-        wanted_roles = {'38028': {'role', 'biological role', 'xenobiotic'},
-                        '28604': {'algal metabolite', 'biochemical role', 'biological role',
-                                  'eukaryotic metabolite', 'marine metabolite', 'plant metabolite',
-                                  'metabolite', 'animal metabolite', 'role'},
-                        '85146': {'emulsifier', 'food additive', 'pharmaceutical', 'application',
-                                  'biological role', 'food component', 'chemical role', 'role',
-                                  'physiological role', 'food emulsifier', 'drug', 'laxative'}}
-
+        wanted_ontology = {'35703': ['24432'], '24432': ['role'], '38028': ['35703'],
+                           '75767': ['75763'], '75763': ['25212'], '25212': ['52206'],
+                           '52206': ['24432'], '84735': ['75763'], '76507': ['25212'],
+                           '76924': ['75763'], '28604': ['75767', '76507', '84735', '76924'],
+                           '50503': ['23888'], '23888': ['52217'], '52217': ['33232'],
+                           '33232': ['role'], '63047': ['63046', '64047'],
+                           '64047': ['33232', '78295'], '78295': ['52211'], '52211': ['24432'],
+                           '63046': ['51086'], '51086': ['role'], '85146': ['50503', '63047']}
+        wanted_names = {'35703': 'xenobiotic', '24432': 'biological role', '38028': 'cyanuric acid',
+                        'role': 'role', '75767': 'animal metabolite',
+                        '75763': 'eukaryotic metabolite', '28604': 'isofucosterol',
+                        '25212': 'metabolite', '52206': 'biochemical role',
+                        '84735': 'algal metabolite', '76507': 'marine metabolite',
+                        '76924': 'plant metabolite', '50503': 'laxative', '23888': 'drug',
+                        '85146': 'carboxymethylcellulose', '52217': 'pharmaceutical',
+                        '33232': 'application', '63047': 'food emulsifier',
+                        '64047': 'food additive', '63046': 'emulsifier', '78295': 'food component',
+                        '52211': 'physiological role', '51086': 'chemical role'}
+        wanted_roles = {'38028': {'24432', 'role', '35703'},
+                        '28604': {'52206', '84735', '75767', 'role', '25212', '76507', '75763',
+                                  '24432', '76924'},
+                        '85146': {'52217', '50503', '63047', '51086', 'role', '63046', '23888',
+                                  '33232', '78295', '64047', '52211', '24432'}}
         self.assertEqual(output, '3/3 chebi id with roles associated.')
         self.assertDictEqual(all_roles, wanted_roles)
+        self.assertDictEqual(names, wanted_names)
         self.assertTrue(dicts_with_sorted_lists_equal(d_roles_ontology, wanted_ontology))
 
     @test_for(extract_classes)
     def test_extract_classes_chebi(self):
         ch_classes, d_classes_ontology, names = extract_classes(CHEBI, CH_LST, ROOTS[CHEBI], None,
                                                                 CH_URL)
-        wanted_ontology = {'xenobiotic': ['biological role'], 'biological role': ['role'],
-                           '38028': ['xenobiotic'], 'algal metabolite': ['eukaryotic metabolite'],
-                           'eukaryotic metabolite': ['metabolite'],
-                           'metabolite': ['biochemical role'],
-                           'biochemical role': ['biological role'],
-                           'marine metabolite': ['metabolite'],
-                           'plant metabolite': ['eukaryotic metabolite'],
-                           'animal metabolite': ['eukaryotic metabolite'],
-                           '28604': ['animal metabolite', 'plant metabolite', 'algal metabolite',
-                                     'marine metabolite'],
-                           'food emulsifier': ['food additive', 'emulsifier'],
-                           'food additive': ['food component', 'application'],
-                           'application': ['role'], 'food component': ['physiological role'],
-                           'physiological role': ['biological role'],
-                           'emulsifier': ['chemical role'], 'chemical role': ['role'],
-                           'laxative': ['drug'], 'drug': ['pharmaceutical'],
-                           'pharmaceutical': ['application'],
-                           '85146': ['food emulsifier', 'laxative']}
-        wanted_roles = {'38028': {'role', 'biological role', 'xenobiotic'},
-                        '28604': {'algal metabolite', 'biochemical role', 'biological role',
-                                  'eukaryotic metabolite', 'marine metabolite', 'plant metabolite',
-                                  'metabolite', 'animal metabolite', 'role'},
-                        '85146': {'emulsifier', 'food additive', 'pharmaceutical', 'application',
-                                  'biological role', 'food component', 'chemical role', 'role',
-                                  'physiological role', 'food emulsifier', 'drug', 'laxative'}}
+        wanted_ontology = {'35703': ['24432'], '24432': ['role'], '38028': ['35703'],
+                           '75767': ['75763'], '75763': ['25212'], '25212': ['52206'],
+                           '52206': ['24432'], '84735': ['75763'], '76507': ['25212'],
+                           '76924': ['75763'], '28604': ['75767', '76507', '84735', '76924'],
+                           '50503': ['23888'], '23888': ['52217'], '52217': ['33232'],
+                           '33232': ['role'], '63047': ['63046', '64047'],
+                           '64047': ['33232', '78295'], '78295': ['52211'], '52211': ['24432'],
+                           '63046': ['51086'], '51086': ['role'], '85146': ['50503', '63047']}
+        wanted_names = {'35703': 'xenobiotic', '24432': 'biological role', '38028': 'cyanuric acid',
+                        'role': 'role', '75767': 'animal metabolite',
+                        '75763': 'eukaryotic metabolite', '28604': 'isofucosterol',
+                        '25212': 'metabolite', '52206': 'biochemical role',
+                        '84735': 'algal metabolite', '76507': 'marine metabolite',
+                        '76924': 'plant metabolite', '50503': 'laxative', '23888': 'drug',
+                        '85146': 'carboxymethylcellulose', '52217': 'pharmaceutical',
+                        '33232': 'application', '63047': 'food emulsifier',
+                        '64047': 'food additive', '63046': 'emulsifier', '78295': 'food component',
+                        '52211': 'physiological role', '51086': 'chemical role'}
+        wanted_roles = {'38028': {'24432', 'role', '35703'},
+                        '28604': {'52206', '84735', '75767', 'role', '25212', '76507', '75763',
+                                  '24432', '76924'},
+                        '85146': {'52217', '50503', '63047', '51086', 'role', '63046', '23888',
+                                  '33232', '78295', '64047', '52211', '24432'}}
         self.assertEqual(ch_classes, wanted_roles)
+        self.assertDictEqual(names, wanted_names)
         self.assertTrue(dicts_with_sorted_lists_equal(d_classes_ontology, wanted_ontology))
 
     @test_for(ontosunburst)
     def test_ontosunburst_ch1(self):
         fig = ontosunburst(metabolic_objects=CH_LST, ontology=CHEBI, root='00',
                            abundances=None, reference_set=REF_CH, ref_abundances=None,
-                           analysis='topology', output='test_ch1', write_output=True,
+                           analysis='topology', output='test_ch1', write_output=False,
                            class_ontology=None, labels=None, endpoint_url=None,
                            ref_base=True, show_leaves=True)
         w_fig_file = os.path.join('test_files', 'test_ch1.json')
