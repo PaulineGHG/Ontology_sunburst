@@ -177,7 +177,7 @@ class TestGenerateDataTable(unittest.TestCase):
     def test_get_fig_parameters(self):
         data = DataTable()
         data.fill_parameters(ref_abundance=CT_REF_AB, parent_dict=CT_ONTO,
-                             root_item=ROOTS[METACYC], subset_abundance=CT_AB, names=None)
+                             root_item=ROOTS[METACYC], set_abundance=CT_AB, names=None)
         lines = set(data.get_col())
         w_lines = {('cde__cdeeg__cdeeg+__FRAMES', 'cde', 'cde', 'cdeeg__cdeeg+__FRAMES', 3, 12, nan,
                     nan, nan, nan), (
@@ -233,7 +233,7 @@ class TestGenerateDataTable(unittest.TestCase):
     def test_get_fig_parameters_names(self):
         data = DataTable()
         data.fill_parameters(ref_abundance=CT_REF_AB, parent_dict=CT_ONTO,
-                             root_item=ROOTS[METACYC], subset_abundance=CT_AB, names=CT_LAB)
+                             root_item=ROOTS[METACYC], set_abundance=CT_AB, names=CT_LAB)
         lines = set(data.get_col())
         w_lines = {('ab__FRAMES', 'ab', 'AB', 'FRAMES', 3, 3, nan, nan, nan, nan), (
             'd__cde__cdecf__FRAMES', 'd', 'D', 'cde__cdecf__FRAMES', nan, 4, nan, nan, nan, nan),
@@ -283,6 +283,60 @@ class TestGenerateDataTable(unittest.TestCase):
                        nan)}
         self.assertEqual(lines, w_lines)
 
+    @test_for(DataTable.fill_parameters)
+    def test_get_fig_parameters_no_ref_base(self):
+        data = DataTable()
+        data.fill_parameters(ref_abundance=CT_REF_AB, parent_dict=CT_ONTO,
+                             root_item=ROOTS[METACYC], set_abundance=CT_AB, names=None,
+                             ref_base=False)
+        lines = set(data.get_col())
+        w_lines = {('a__ab__FRAMES', 'a', 'a', 'ab__FRAMES', 1, 1, nan, nan, nan, nan),
+                   ('cde__cdecf__FRAMES', 'cde', 'cde', 'cdecf__FRAMES', 3, 12, nan, nan, nan, nan),
+                   ('c__cde__cdeeg__cdeeg+__FRAMES', 'c', 'c', 'cde__cdeeg__cdeeg+__FRAMES', 3, 3,
+                    nan, nan, nan, nan),
+                   ('c__cde__cdecf__FRAMES', 'c', 'c', 'cde__cdecf__FRAMES', 3, 3, nan, nan, nan,
+                    nan),
+                   ('cdeeg__cdeeg+__FRAMES', 'cdeeg', 'cdeeg', 'cdeeg+__FRAMES', 3, 19, nan, nan,
+                    nan, nan),
+                   ('FRAMES', 'FRAMES', 'FRAMES', '', 6, 36, nan, nan, nan, nan),
+                   ('b__ab__FRAMES', 'b', 'b', 'ab__FRAMES', 2, 2, nan, nan, nan, nan),
+                   ('cde__cdeeg__cdeeg+__FRAMES', 'cde', 'cde', 'cdeeg__cdeeg+__FRAMES', 3, 12, nan,
+                    nan, nan, nan),
+                   ('ab__FRAMES', 'ab', 'ab', 'FRAMES', 3, 3, nan, nan, nan, nan),
+                   ('c__cf__cdecf__FRAMES', 'c', 'c', 'cf__cdecf__FRAMES', 3, 3, nan, nan, nan,
+                    nan),
+                   ('cf__cdecf__FRAMES', 'cf', 'cf', 'cdecf__FRAMES', 3, 9, nan, nan, nan, nan),
+                   ('cdeeg+__FRAMES', 'cdeeg+', 'cdeeg+', 'FRAMES', 3, 19, nan, nan, nan, nan),
+                   ('cdecf__FRAMES', 'cdecf', 'cdecf', 'FRAMES', 3, 18, nan, nan, nan, nan)}
+        self.assertEqual(lines, w_lines)
+
+    @test_for(DataTable.fill_parameters)
+    def test_get_fig_parameters_no_ref(self):
+        data = DataTable()
+        data.fill_parameters(ref_abundance=CT_AB, parent_dict=CT_ONTO,
+                             root_item=ROOTS[METACYC], set_abundance=CT_AB, names=None,
+                             ref_base=False)
+        lines = set(data.get_col())
+        w_lines = {('b__ab__FRAMES', 'b', 'b', 'ab__FRAMES', 2, 2, nan, nan, nan, nan),
+                   ('ab__FRAMES', 'ab', 'ab', 'FRAMES', 3, 3, nan, nan, nan, nan),
+                   ('cde__cdeeg__cdeeg+__FRAMES', 'cde', 'cde', 'cdeeg__cdeeg+__FRAMES', 3, 3, nan,
+                    nan, nan, nan),
+                   ('c__cde__cdecf__FRAMES', 'c', 'c', 'cde__cdecf__FRAMES', 3, 3, nan, nan, nan,
+                    nan),
+                   ('cf__cdecf__FRAMES', 'cf', 'cf', 'cdecf__FRAMES', 3, 3, nan, nan, nan, nan),
+                   ('cde__cdecf__FRAMES', 'cde', 'cde', 'cdecf__FRAMES', 3, 3, nan, nan, nan, nan),
+                   ('cdeeg+__FRAMES', 'cdeeg+', 'cdeeg+', 'FRAMES', 3, 3, nan, nan, nan, nan),
+                   ('cdecf__FRAMES', 'cdecf', 'cdecf', 'FRAMES', 3, 3, nan, nan, nan, nan),
+                   ('cdeeg__cdeeg+__FRAMES', 'cdeeg', 'cdeeg', 'cdeeg+__FRAMES', 3, 3, nan, nan,
+                    nan, nan),
+                   ('FRAMES', 'FRAMES', 'FRAMES', '', 6, 6, nan, nan, nan, nan),
+                   ('c__cf__cdecf__FRAMES', 'c', 'c', 'cf__cdecf__FRAMES', 3, 3, nan, nan, nan,
+                    nan),
+                   ('c__cde__cdeeg__cdeeg+__FRAMES', 'c', 'c', 'cde__cdeeg__cdeeg+__FRAMES', 3, 3,
+                    nan, nan, nan, nan),
+                   ('a__ab__FRAMES', 'a', 'a', 'ab__FRAMES', 1, 1, nan, nan, nan, nan)}
+        self.assertEqual(lines, w_lines)
+
 
 class TestAddProportionDataTable(unittest.TestCase):
 
@@ -290,7 +344,7 @@ class TestAddProportionDataTable(unittest.TestCase):
     def test_get_data_proportion_no_relative(self):
         data = DataTable()
         data.fill_parameters(ref_abundance=CT_REF_AB, parent_dict=CT_ONTO,
-                             root_item=ROOTS[METACYC], subset_abundance=CT_AB, names=CT_LAB)
+                             root_item=ROOTS[METACYC], set_abundance=CT_AB, names=CT_LAB)
         data.calculate_proportions(True)
         for i in range(data.len):
             if np.isnan(data.prop[i]):
@@ -302,7 +356,7 @@ class TestAddProportionDataTable(unittest.TestCase):
     def test_get_data_proportion_no_relative_ref(self):
         data = DataTable()
         data.fill_parameters(ref_abundance=CT_REF_AB, parent_dict=CT_ONTO,
-                             root_item=ROOTS[METACYC], subset_abundance=CT_AB, names=CT_LAB)
+                             root_item=ROOTS[METACYC], set_abundance=CT_AB, names=CT_LAB)
         data.calculate_proportions(True)
         for i in range(data.len):
             self.assertEqual(data.ref_prop[i], W_REF_PROP[i])
@@ -311,7 +365,7 @@ class TestAddProportionDataTable(unittest.TestCase):
     def test_get_data_proportion_relative(self):
         data = DataTable()
         data.fill_parameters(ref_abundance=CT_REF_AB, parent_dict=CT_ONTO,
-                             root_item=ROOTS[METACYC], subset_abundance=CT_AB, names=CT_LAB)
+                             root_item=ROOTS[METACYC], set_abundance=CT_AB, names=CT_LAB)
         data.calculate_proportions(True)
         for k, v in W_REL_PROP.items():
             self.assertEqual(data.relative_prop[data.ids.index(k)], v)
@@ -358,7 +412,8 @@ class TestEnrichmentAnalysis(unittest.TestCase):
         data.calculate_proportions(True)
         significant = data.make_enrichment_analysis(BINOMIAL_TEST)
         lines = set(data.get_col())
-        exp_significant = {'01': 3.7996e-06, '03': 0.0011251149, '02': 0.0030924096}
+        exp_significant = {'01': 3.799562441228011e-06, '03': 0.001125114927936431,
+                           '02': 0.003092409570144631}
         exp_lines = {('01__00', '01', '1', '00', 5, 40, 0.1, 0.4, 400000, -5.420266413988895),
                      ('02__00', '02', '2', '00', 25, 30, 0.5, 0.3, 300000, 2.509702991379166),
                      ('03__00', '03', '3', '00', 20, 20, 0.4, 0.2, 200000, 2.948803113091024),
@@ -396,7 +451,36 @@ class TestEnrichmentAnalysis(unittest.TestCase):
                      ('01__00', '01', '1', '00', 5, 40, 0.1, 0.4, 400000, -9.138873998573988),
                      ('04__00', '04', '4', '00', 1, 10, 0.02, 0.1, 100000, -1.8051946563380086),
                      ('07__01__00', '07', '7', '01__00', nan, 1, nan, 0.01, 10000, nan)}
-        exp_significant = {'01': 7e-10, '03': 1.759e-07, '02': 2.0295e-05}
+        exp_significant = {'01': 7.263166523971598e-10, '03': 1.7586072571039978e-07,
+                           '02': 2.0295024128400847e-05}
+        for line in lines:
+            line = tuple([nan if type(x) != str and np.isnan(x) else x for x in line])
+            self.assertIn(line, exp_lines)
+        self.assertEqual(len(lines), len(exp_lines))
+        self.assertEqual(significant, exp_significant)
+
+    @test_for(DataTable.make_enrichment_analysis)
+    def test_get_data_enrichment_analysis_scores(self):
+        scores = {'00': 0.05, '01': 0.2, '02': 0.0004, '03': 0.5, '04': 0.000008, '05': 0.9,
+                  '06': 0.01, '07': nan, '08': nan, '09': 0.000023}
+        data = DataTable()
+        data.fill_parameters(ENRICH_REF_AB, E_ONTO, '00', ENRICH_AB, E_LABElS)
+        data.calculate_proportions(True)
+        significant = data.make_enrichment_analysis(HYPERGEO_TEST, scores)
+        lines = set(data.get_col())
+        exp_lines = {('05__01__00', '05', '5', '01__00', 5, 20, 0.1, 0.2, 200000,
+                      0.045757490560675115),
+                     ('02__00', '02', '2', '00', 25, 30, 0.5, 0.3, 300000, 3.3979400086720375),
+                     ('01__00', '01', '1', '00', 5, 40, 0.1, 0.4, 400000, 0.6989700043360187),
+                     ('04__00', '04', '4', '00', 1, 10, 0.02, 0.1, 100000, 5.096910013008056),
+                     ('07__01__00', '07', '7', '01__00', nan, 1, nan, 0.01, 10000, nan),
+                     ('00', '00', '00', '', 50, 100, 1.0, 1.0, 1000000, 1.3010299956639813),
+                     ('09__02__00', '09', '9', '02__00', 1, 3, 0.02, 0.03, 30000,
+                      4.638272163982407),
+                     ('03__00', '03', '3', '00', 20, 20, 0.4, 0.2, 200000, 0.3010299956639812),
+                     ('06__01__00', '06', '6', '01__00', nan, 5, nan, 0.05, 50000, 2.0),
+                     ('08__02__00', '08', '8', '02__00', 1, 1, 0.02, 0.01, 10000, nan)}
+        exp_significant = {'04': 8e-06, '09': 2.3e-05, '02': 0.0004}
         for line in lines:
             line = tuple([nan if type(x) != str and np.isnan(x) else x for x in line])
             self.assertIn(line, exp_lines)

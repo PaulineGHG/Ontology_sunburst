@@ -73,7 +73,7 @@ class DataTable:
                 REF_PROP: self.ref_prop, RELAT_PROP: self.relative_prop, PVAL: self.p_val}
 
     def fill_parameters(self, ref_abundance: Dict[str, int], parent_dict: Dict[str, List[str]],
-                        root_item, subset_abundance: Dict[str, int] = None,
+                        root_item: str, set_abundance: Dict[str, int],
                         names: Dict[str, str] = None, ref_base: bool = True):
         """ Fill DataTable list attributes (self.ids, self.onto_ids, self.labels, self.parents,
         self.count, self.ref_count)
@@ -86,14 +86,14 @@ class DataTable:
             Dictionary associating for each class, its parents classes
         root_item: str
             Name of the root item of the ontology
-        subset_abundance: Dict[str, int] = None
+        set_abundance: Dict[str, int]
         names: Dict[str, str]
             Dictionary associating metabolic object ID to its Name
         ref_base
         """
         if ref_base:
             for c_onto_id, c_abundance in ref_abundance.items():
-                c_sub_abundance = get_sub_abundance(subset_abundance, c_onto_id, c_abundance)
+                c_sub_abundance = get_sub_abundance(set_abundance, c_onto_id, c_abundance)
                 if c_onto_id != root_item:
                     if names is not None:
                         try:
@@ -111,7 +111,7 @@ class DataTable:
                     self.add_value(m_id=c_onto_id, onto_id=c_onto_id, label=c_onto_id,
                                    count=c_sub_abundance, ref_count=c_abundance, parent='')
         else:
-            for c_onto_id, c_abundance in subset_abundance.items():
+            for c_onto_id, c_abundance in set_abundance.items():
                 c_ref_abundance = ref_abundance[c_onto_id]
                 if c_onto_id != root_item:
                     if names is not None:

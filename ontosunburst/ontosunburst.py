@@ -263,7 +263,7 @@ def _topology_analysis(ref_classes_abundance, classes_abundance, d_classes_ontol
         data = DataTable()
         data.fill_parameters(ref_abundance=ref_classes_abundance,
                              parent_dict=d_classes_ontology,
-                             root_item=root, subset_abundance=classes_abundance,
+                             root_item=root, set_abundance=classes_abundance,
                              names=names)
     else:
         ref_set = False
@@ -310,7 +310,7 @@ def _enrichment_analysis(ref_classes_abundance, classes_abundance, classes_score
                                                {**ref_classes_abundance, **classes_abundance})
         ref_set = True
         data.fill_parameters(ref_abundance=ref_classes_abundance, parent_dict=d_classes_ontology,
-                             root_item=root, subset_abundance=classes_abundance, names=names,
+                             root_item=root, set_abundance=classes_abundance, names=names,
                              ref_base=ref_base)
     else:
         ref_set = False
