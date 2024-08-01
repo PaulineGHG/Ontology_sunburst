@@ -92,43 +92,35 @@ class DataTable:
         ref_base
         """
         if ref_base:
-            for c_onto_id, c_abundance in ref_abundance.items():
-                c_sub_abundance = get_sub_abundance(set_abundance, c_onto_id, c_abundance)
-                if c_onto_id != root_item:
-                    if names is not None:
-                        try:
-                            c_label = names[c_onto_id]
-                        except KeyError:
-                            c_label = c_onto_id
-                    else:
-                        c_label = c_onto_id
-                    all_c_ids = get_all_ids(c_onto_id, c_onto_id, parent_dict, root_item, set())
-                    for c_id in all_c_ids:
-                        self.add_value(m_id=c_id, onto_id=c_onto_id, label=c_label,
-                                       count=c_sub_abundance, ref_count=c_abundance,
-                                       parent=c_id[len(c_onto_id) + 2:])  # Remove c_label__ prefix
-                else:
-                    self.add_value(m_id=c_onto_id, onto_id=c_onto_id, label=c_onto_id,
-                                   count=c_sub_abundance, ref_count=c_abundance, parent='')
+            for c_onto_id, c_ref_abundance in ref_abundance.items():
+                c_abundance = get_sub_abundance(set_abundance, c_onto_id, c_ref_abundance)
+                self.__fill_id_parameter(c_onto_id, root_item, names, parent_dict, c_abundance,
+                                         c_ref_abundance)
         else:
             for c_onto_id, c_abundance in set_abundance.items():
                 c_ref_abundance = ref_abundance[c_onto_id]
-                if c_onto_id != root_item:
-                    if names is not None:
-                        try:
-                            c_label = names[c_onto_id]
-                        except KeyError:
-                            c_label = c_onto_id
-                    else:
-                        c_label = c_onto_id
-                    all_c_ids = get_all_ids(c_onto_id, c_onto_id, parent_dict, root_item, set())
-                    for c_id in all_c_ids:
-                        self.add_value(m_id=c_id, onto_id=c_onto_id, label=c_label,
-                                       count=c_abundance, ref_count=c_ref_abundance,
-                                       parent=c_id[len(c_onto_id) + 2:])  # Remove c_label__ prefix
-                else:
-                    self.add_value(m_id=c_onto_id, onto_id=c_onto_id, label=c_onto_id,
-                                   count=c_abundance, ref_count=c_ref_abundance, parent='')
+                self.__fill_id_parameter(c_onto_id, root_item, names, parent_dict, c_abundance,
+                                         c_ref_abundance)
+
+    def __fill_id_parameter(self, c_onto_id: str, root_item: str, names: Dict[str, str],
+                            parent_dict: Dict[str, List[str]], c_abundance: float,
+                            c_ref_abundance: float):
+        if c_onto_id != root_item:
+            if names is not None:
+                try:
+                    c_label = names[c_onto_id]
+                except KeyError:
+                    c_label = c_onto_id
+            else:
+                c_label = c_onto_id
+            all_c_ids = get_all_ids(c_onto_id, c_onto_id, parent_dict, root_item, set())
+            for c_id in all_c_ids:
+                self.add_value(m_id=c_id, onto_id=c_onto_id, label=c_label,
+                               count=c_abundance, ref_count=c_ref_abundance,
+                               parent=c_id[len(c_onto_id) + 2:])  # Remove c_label__ prefix
+        else:
+            self.add_value(m_id=c_onto_id, onto_id=c_onto_id, label=c_onto_id,
+                           count=c_abundance, ref_count=c_ref_abundance, parent='')
 
     def add_value(self, m_id: str, onto_id: str, label: str, count: float, ref_count: float,
                   parent: str):
