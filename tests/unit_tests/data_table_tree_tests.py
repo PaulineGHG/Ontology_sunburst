@@ -116,25 +116,20 @@ def data_to_lines(dico):
 
 class TestGenerateDataTable(unittest.TestCase):
 
-    @test_for(get_sub_abundance)
+    @test_for(get_set2_abundance)
     def test_get_sub_abundances_exists_diff(self):
-        sub_abu = get_sub_abundance(CT_AB, 'cf', 9)
+        sub_abu = get_set2_abundance(CT_AB, 'cf')
         self.assertEqual(sub_abu, 3)
 
-    @test_for(get_sub_abundance)
+    @test_for(get_set2_abundance)
     def test_get_sub_abundances_exists_equ(self):
-        sub_abu = get_sub_abundance(CT_AB, 'a', 1)
+        sub_abu = get_set2_abundance(CT_AB, 'a')
         self.assertEqual(sub_abu, 1)
 
-    @test_for(get_sub_abundance)
+    @test_for(get_set2_abundance)
     def test_get_sub_abundances_not_exists(self):
-        sub_abu = get_sub_abundance(CT_AB, 'eg', 12)
+        sub_abu = get_set2_abundance(CT_AB, 'eg')
         self.assertTrue(np.isnan(sub_abu))
-
-    @test_for(get_sub_abundance)
-    def test_get_sub_abundances_no_sub(self):
-        sub_abu = get_sub_abundance(None, 'eg', 12)
-        self.assertEqual(sub_abu, 12)
 
     @test_for(get_all_ids)
     def test_get_all_c_ids(self):

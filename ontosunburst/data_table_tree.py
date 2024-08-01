@@ -93,12 +93,12 @@ class DataTable:
         """
         if ref_base:
             for c_onto_id, c_ref_abundance in ref_abundance.items():
-                c_abundance = get_sub_abundance(set_abundance, c_onto_id, c_ref_abundance)
+                c_abundance = get_set2_abundance(set_abundance, c_onto_id)
                 self.__fill_id_parameter(c_onto_id, root_item, names, parent_dict, c_abundance,
                                          c_ref_abundance)
         else:
             for c_onto_id, c_abundance in set_abundance.items():
-                c_ref_abundance = ref_abundance[c_onto_id]
+                c_ref_abundance = get_set2_abundance(ref_abundance, c_onto_id)
                 self.__fill_id_parameter(c_onto_id, root_item, names, parent_dict, c_abundance,
                                          c_ref_abundance)
 
@@ -404,29 +404,22 @@ def get_all_ids(m_id: str, n_id: str, parent_dict: Dict[str, List[str]], root: s
     return all_ids
 
 
-def get_sub_abundance(subset_abundance: Dict[str, float] or None, c_label: str,
-                      c_abundance: float) -> float:
-    """ Get the subset abundance of a reference concept.
+def get_set2_abundance(set2_abundances: Dict[str, float] or None, c_label: str) -> float:
+    """ Get the set2 abundance of a set1 concept.
 
     Parameters
     ----------
-    subset_abundance: Dict[str, float] or None
-        Dictionary associating to all the subset concepts, its abundance
+    set2_abundances: Dict[str, float] or None
+        Dictionary associating to all the set1 concepts, its abundance
     c_label: str
-        Label of the reference concept
-    c_abundance: float
-        Abundance of the reference concept
+        Label of the set2 concept
 
     Returns
     -------
-    Abundance of the subset concept. If reference concept not in the subset, returns numpy.nan. If
-    the subset_abundance is None, returns c_abundance.
+    Abundance of the set1 concept. If set2 concept not in the set1, returns numpy.nan.
     """
-    if subset_abundance is not None:
-        try:
-            c_sub_abundance = subset_abundance[c_label]
-        except KeyError:
-            c_sub_abundance = np.nan
-    else:
-        c_sub_abundance = c_abundance
-    return c_sub_abundance
+    try:
+        c_set2_abundance = set2_abundances[c_label]
+    except KeyError:
+        c_set2_abundance = np.nan
+    return c_set2_abundance
