@@ -146,7 +146,7 @@ def extract_ec_classes(ec_list: List[str], d_classes_ontology: Dict[str, List[st
 # For ChEBI Ontology
 # --------------------------------------------------------------------------------------------------
 def extract_chebi_roles(chebi_ids: List[str], endpoint_url: str) \
-        -> Tuple[Dict[str, Set[str]], Dict[str, List[str]]]:
+        -> Tuple[Dict[str, Set[str]], Dict[str, List[str]], Dict[str, str]]:
     """ Extract all parent classes for each chebi ID + Generate ontology dictionary.
 
     Parameters
@@ -158,12 +158,15 @@ def extract_chebi_roles(chebi_ids: List[str], endpoint_url: str) \
 
     Returns
     -------
-    Tuple[Dict[str, Set[str]], Dict[str, List[str]]]
+    Tuple[Dict[str, Set[str]], Dict[str, List[str]], Dict[str, str]]
         Dictionary of all roles associated for each ChEBI ID
         Dictionary of roles ontology, associating for each role, its parent roles
+        Dictionary of labels
     """
+    root_id = '50906'
     d_roles_ontology = dict()
     all_roles = dict()
+    d_labels = dict()
     chebi_ok = 0
     total_nb = len(chebi_ids)
     for chebi_id in chebi_ids:
@@ -183,9 +186,9 @@ def extract_chebi_roles(chebi_ids: List[str], endpoint_url: str) \
         PREFIX oboInOwl: <http://www.geneontology.org/formats/oboInOwl#>
         PREFIX bp3: <http://www.biopax.org/release/biopax-level3.owl#>
     
-        SELECT DISTINCT ?molecule ?moleculeLabel ?role ?roleLabel ?parentRoleLabel
+        SELECT DISTINCT ?molecule ?moleculeLabel ?roleId ?roleLabel ?parentRoleLabel ?parentRoleId
         WHERE {{
-            VALUES ?molecule{{ chebidb:{chebi_id }}}                                        
+            VALUES ?molecule{{ chebidb:{chebi_id}}}                                        
             
             ?molecule rdfs:label ?moleculeLabel .
             
@@ -194,8 +197,10 @@ def extract_chebi_roles(chebi_ids: List[str], endpoint_url: str) \
             ?restriction owl:onProperty obo:RO_0000087 .
             ?restriction owl:someValuesFrom/(rdfs:subClassOf*) ?role .
             
+            ?role oboInOwl:id ?roleId .
             ?role rdfs:subClassOf ?parentRole .
             
+            ?parentRole oboInOwl:id ?parentRoleId .
             ?parentRole rdfs:label ?parentRoleLabel .
             ?role rdfs:label ?roleLabel .
         }}
@@ -204,13 +209,23 @@ def extract_chebi_roles(chebi_ids: List[str], endpoint_url: str) \
         results = sparql.query().convert()
         parent_roles = set()
         for result in results["results"]["bindings"]:
-            role = result['roleLabel']['value']
-            parent_role = result['parentRoleLabel']['value']
-            parent_roles.add(parent_role)
-            roles.add(result['roleLabel']['value'])
-            if role not in d_roles_ontology:
-                d_roles_ontology[role] = set()
-            d_roles_ontology[role].add(parent_role)
+            molecule_label = result['moleculeLabel']['value']
+            role_label = result['roleLabel']['value']
+            role_id = result['roleId']['value'].split(':')[1]
+            parent_role_label = result['parentRoleLabel']['value']
+            parent_role_id = result['parentRoleId']['value'].split(':')[1]
+            if role_id == root_id:
+                role_id = ROOTS[CHEBI]
+            if parent_role_id == root_id:
+                parent_role_id = ROOTS[CHEBI]
+            d_labels[role_id] = role_label
+            d_labels[parent_role_id] = parent_role_label
+            d_labels[chebi_id] = molecule_label
+            parent_roles.add(parent_role_id)
+            roles.add(role_id)
+            if role_id not in d_roles_ontology:
+                d_roles_ontology[role_id] = set()
+            d_roles_ontology[role_id].add(parent_role_id)
         if roles:
             chebi_ok += 1
             d_roles_ontology[chebi_id] = list(roles.difference(parent_roles))
@@ -221,9 +236,9 @@ def extract_chebi_roles(chebi_ids: List[str], endpoint_url: str) \
 
     for c, p in d_roles_ontology.items():
         d_roles_ontology[c] = list(p)
-
+    print(d_roles_ontology)
     print(f'{chebi_ok}/{total_nb} chebi id with roles associated.')
-    return all_roles, d_roles_ontology
+    return all_roles, d_roles_ontology, d_labels
 
 
 # For GO Ontology

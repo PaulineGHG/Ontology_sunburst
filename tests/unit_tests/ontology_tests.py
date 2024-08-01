@@ -182,8 +182,8 @@ class TestClassesExtraction(unittest.TestCase):
 
     @test_for(extract_classes)
     def test_extract_classes_metacyc(self):
-        mc_classes, d_classes_ontology = extract_classes(METACYC, MET_LST, ROOTS[METACYC], MC_ONTO,
-                                                         None)
+        mc_classes, d_classes_ontology, names = extract_classes(METACYC, MET_LST, ROOTS[METACYC],
+                                                                MC_ONTO, None)
         wanted_mc_classes = {'a': {'FRAMES', 'ab'}, 'b': {'FRAMES', 'ab'},
                              'c': {'cdeeg+', 'cde', 'cdeeg', 'FRAMES', 'cdecf', 'cf'}}
         self.assertEqual(mc_classes, wanted_mc_classes)
@@ -191,7 +191,8 @@ class TestClassesExtraction(unittest.TestCase):
 
     @test_for(extract_classes)
     def test_extract_classes_kegg(self):
-        kg_classes, d_classes_ontology = extract_classes(KEGG, MET_LST, ROOTS[KEGG], KG_ONTO, None)
+        kg_classes, d_classes_ontology, names = extract_classes(KEGG, MET_LST, ROOTS[KEGG], KG_ONTO,
+                                                                None)
         wanted_kg_classes = {'a': {'ab', 'kegg'}, 'b': {'ab', 'kegg'},
                              'c': {'cde', 'cdeeg+', 'kegg', 'cdecf', 'cdeeg', 'cf'}}
         self.assertEqual(kg_classes, wanted_kg_classes)
@@ -199,7 +200,8 @@ class TestClassesExtraction(unittest.TestCase):
 
     @test_for(extract_classes)
     def test_extract_classes_ec(self):
-        ec_classes, d_classes_ontology = extract_classes(EC, EC_LST, ROOTS[EC], EC_ONTO, None)
+        ec_classes, d_classes_ontology, names = extract_classes(EC, EC_LST, ROOTS[EC], EC_ONTO,
+                                                                None)
         wanted_ec_classes = {'1.4.5.6': {'1.4.5.-', '1.4.-.-', 'Enzyme', '1.-.-.-'},
                              '1.4.6.7': {'Enzyme', '1.4.-.-', '1.4.6.-', '1.-.-.-'},
                              '2.1.2.3': {'2.-.-.-', '2.1.-.-', '2.1.2.-', 'Enzyme'},

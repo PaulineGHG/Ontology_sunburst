@@ -137,7 +137,8 @@ class TestChEBIClassesExtraction(unittest.TestCase):
 
     @test_for(extract_classes)
     def test_extract_classes_chebi(self):
-        ch_classes, d_classes_ontology = extract_classes(CHEBI, CH_LST, ROOTS[CHEBI], None, CH_URL)
+        ch_classes, d_classes_ontology, names = extract_classes(CHEBI, CH_LST, ROOTS[CHEBI], None,
+                                                                CH_URL)
         wanted_ontology = {'xenobiotic': ['biological role'], 'biological role': ['role'],
                            '38028': ['xenobiotic'], 'algal metabolite': ['eukaryotic metabolite'],
                            'eukaryotic metabolite': ['metabolite'],
@@ -170,7 +171,7 @@ class TestChEBIClassesExtraction(unittest.TestCase):
     def test_ontosunburst_ch1(self):
         fig = ontosunburst(metabolic_objects=CH_LST, ontology=CHEBI, root='00',
                            abundances=None, reference_set=REF_CH, ref_abundances=None,
-                           analysis='topology', output='test_ch1', write_output=False,
+                           analysis='topology', output='test_ch1', write_output=True,
                            class_ontology=None, labels=None, endpoint_url=None,
                            ref_base=True, show_leaves=True)
         w_fig_file = os.path.join('test_files', 'test_ch1.json')
