@@ -72,24 +72,28 @@ class DataTable:
                 COUNT: self.count, REF_COUNT: self.ref_count, PROP: self.prop,
                 REF_PROP: self.ref_prop, RELAT_PROP: self.relative_prop, PVAL: self.p_val}
 
-    def fill_parameters(self, ref_abundance: Dict[str, int], parent_dict: Dict[str, List[str]],
-                        root_item: str, set_abundance: Dict[str, int],
+    def fill_parameters(self, set_abundance: Dict[str, float], ref_abundance: Dict[str, float],
+                        parent_dict: Dict[str, List[str]], root_item: str,
                         names: Dict[str, str] = None, ref_base: bool = True):
         """ Fill DataTable list attributes (self.ids, self.onto_ids, self.labels, self.parents,
         self.count, self.ref_count)
 
         Parameters
         ----------
-        ref_abundance: Dict[str, int]
+        set_abundance: Dict[str, float]
             Dictionary associating for each class the number of objects found belonging to the class
+            in the interest set
+        ref_abundance: Dict[str, float]
+            Dictionary associating for each class the number of objects found belonging to the class
+            in the reference set
         parent_dict: Dict[str, List[str]]
             Dictionary associating for each class, its parents classes
         root_item: str
             Name of the root item of the ontology
-        set_abundance: Dict[str, int]
         names: Dict[str, str]
             Dictionary associating metabolic object ID to its Name
-        ref_base
+        ref_base: bool
+            True to have the reference as base, False otherwise
         """
         if ref_base:
             for c_onto_id, c_ref_abundance in ref_abundance.items():

@@ -29,7 +29,8 @@ GO_ROOTS = ['cellular_component', 'biological_process', 'molecular_function']
 # Main class extraction function
 # --------------------------------------------------------------------------------------------------
 def extract_classes(ontology: str, concepts: List[str], root: str,
-                    d_classes_ontology: Dict[str, List[str]] = None, endpoint_url: str = None)\
+                    d_classes_ontology: Dict[str, List[str]] = None, endpoint_url: str = None,
+                    names: Dict[str, str] = None)\
         -> Tuple[Dict[str, Set[str]], Dict[str, List[str]], Dict[str, str] or None]:
     """ Extract all parent classes (until root) from a list of concepts.
 
@@ -45,6 +46,7 @@ def extract_classes(ontology: str, concepts: List[str], root: str,
         Dictionary of the classes ontology associating for each concept its +1 parent classes.
     endpoint_url: str, optional (default=None)
         URL for the SPARQL server (for GO and ChEBI ontologies)
+    names: Dict[str, str] (default=None)
 
     Returns
     -------
@@ -57,10 +59,10 @@ def extract_classes(ontology: str, concepts: List[str], root: str,
     """
     if ontology == METACYC or ontology == KEGG or ontology is None:
         leaf_classes = extract_met_classes(concepts, d_classes_ontology)
-        return get_all_classes(leaf_classes, d_classes_ontology, root), d_classes_ontology, None
+        return get_all_classes(leaf_classes, d_classes_ontology, root), d_classes_ontology, names
     if ontology == EC:
         leaf_classes, d_classes_ontology = extract_ec_classes(concepts, d_classes_ontology)
-        return get_all_classes(leaf_classes, d_classes_ontology, root), d_classes_ontology, None
+        return get_all_classes(leaf_classes, d_classes_ontology, root), d_classes_ontology, names
     if ontology == CHEBI:
         return extract_chebi_roles(concepts, endpoint_url)
     if ontology == GO:
