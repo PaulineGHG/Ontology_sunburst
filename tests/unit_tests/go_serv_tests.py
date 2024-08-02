@@ -99,53 +99,55 @@ class TestGOClassesExtraction(unittest.TestCase):
     @test_for(extract_go_classes)
     @patch('sys.stdout', new_callable=lambda: DualWriter(sys.stdout))
     def test_extract_go_classes(self, mock_stdout):
-        all_classes, d_classes_ontology = extract_go_classes(GO_LST, GO_URL)
+        all_classes, d_classes_ontology, names = extract_go_classes(GO_LST, GO_URL)
         output = mock_stdout.getvalue().strip()
-        wanted_ontology = {'membrane-bounded organelle': ['organelle'],
-                           'organelle': ['cellular anatomical entity'],
-                           'cellular_component': ['GO'],
-                           'cellular anatomical entity': ['cellular_component'],
-                           'go:0043227': ['membrane-bounded organelle'],
-                           'intracellular organelle': ['organelle'],
-                           'go:0043229': ['intracellular organelle'],
-                           'intracellular membrane-bounded organelle':
-                               ['membrane-bounded organelle', 'intracellular organelle'],
-                           'go:0043231': ['intracellular membrane-bounded organelle']}
-        wanted_classes = {'go:0043227': {'organelle', 'cellular anatomical entity',
-                                         'membrane-bounded organelle', 'cellular_component', 'GO'},
-                          'go:0043229': {'organelle', 'cellular anatomical entity',
-                                         'intracellular organelle', 'cellular_component', 'GO'},
-                          'go:0043231': {'organelle', 'cellular anatomical entity',
-                                         'intracellular organelle', 'membrane-bounded organelle',
-                                         'cellular_component',
-                                         'intracellular membrane-bounded organelle', 'GO'}}
+        wanted_ontology = {'go:0043227': ['go:0043226'],
+                           'go:0043226': ['go:0110165'],
+                           'go:0005575': ['GO'],
+                           'go:0110165': ['go:0005575'],
+                           'go:0043229': ['go:0043226'],
+                           'go:0043231': ['go:0043229', 'go:0043227']}
+        wanted_names = {'go:0043227': 'membrane-bounded organelle',
+                        'go:0043226': 'organelle',
+                        'go:0110165': 'cellular anatomical entity',
+                        'go:0005575': 'cellular_component',
+                        'go:0043229': 'intracellular organelle',
+                        'go:0043231': 'intracellular membrane-bounded organelle'}
+        wanted_classes = {'go:0043227': {'go:0043226', 'go:0110165', 'GO', 'go:0005575'},
+                          'go:0043229': {'go:0043226', 'go:0110165', 'GO', 'go:0005575'},
+                          'go:0043231': {'GO', 'go:0043227', 'go:0043226', 'go:0110165',
+                                         'go:0005575', 'go:0043229'}}
 
         self.assertEqual(output, 'No GO class found for : go:0044422')
         self.assertDictEqual(all_classes, wanted_classes)
+        self.assertDictEqual(names, wanted_names)
         self.assertTrue(dicts_with_sorted_lists_equal(d_classes_ontology, wanted_ontology))
 
     @test_for(extract_classes)
-    def test_extract_classes_go(self):
-        go_classes, d_classes_ontology = extract_classes(GO, GO_LST, ROOTS[GO], None, GO_URL)
-        wanted_ontology = {'membrane-bounded organelle': ['organelle'],
-                           'organelle': ['cellular anatomical entity'],
-                           'cellular_component': ['GO'],
-                           'cellular anatomical entity': ['cellular_component'],
-                           'go:0043227': ['membrane-bounded organelle'],
-                           'intracellular organelle': ['organelle'],
-                           'go:0043229': ['intracellular organelle'],
-                           'intracellular membrane-bounded organelle':
-                               ['membrane-bounded organelle', 'intracellular organelle'],
-                           'go:0043231': ['intracellular membrane-bounded organelle']}
-        wanted_classes = {'go:0043227': {'organelle', 'cellular anatomical entity',
-                                         'membrane-bounded organelle', 'cellular_component', 'GO'},
-                          'go:0043229': {'organelle', 'cellular anatomical entity',
-                                         'intracellular organelle', 'cellular_component', 'GO'},
-                          'go:0043231': {'organelle', 'cellular anatomical entity',
-                                         'intracellular organelle', 'membrane-bounded organelle',
-                                         'cellular_component',
-                                         'intracellular membrane-bounded organelle', 'GO'}}
-        self.assertEqual(go_classes, wanted_classes)
+    @patch('sys.stdout', new_callable=lambda: DualWriter(sys.stdout))
+    def test_extract_classes_go(self, mock_stdout):
+        go_classes, d_classes_ontology, names = extract_classes(GO, GO_LST, ROOTS[GO], None, GO_URL)
+        output = mock_stdout.getvalue().strip()
+        wanted_ontology = {'go:0043227': ['go:0043226'],
+                           'go:0043226': ['go:0110165'],
+                           'go:0005575': ['GO'],
+                           'go:0110165': ['go:0005575'],
+                           'go:0043229': ['go:0043226'],
+                           'go:0043231': ['go:0043229', 'go:0043227']}
+        wanted_names = {'go:0043227': 'membrane-bounded organelle',
+                        'go:0043226': 'organelle',
+                        'go:0110165': 'cellular anatomical entity',
+                        'go:0005575': 'cellular_component',
+                        'go:0043229': 'intracellular organelle',
+                        'go:0043231': 'intracellular membrane-bounded organelle'}
+        wanted_classes = {'go:0043227': {'go:0043226', 'go:0110165', 'GO', 'go:0005575'},
+                          'go:0043229': {'go:0043226', 'go:0110165', 'GO', 'go:0005575'},
+                          'go:0043231': {'GO', 'go:0043227', 'go:0043226', 'go:0110165',
+                                         'go:0005575', 'go:0043229'}}
+
+        self.assertEqual(output, 'No GO class found for : go:0044422')
+        self.assertDictEqual(go_classes, wanted_classes)
+        self.assertDictEqual(names, wanted_names)
         self.assertTrue(dicts_with_sorted_lists_equal(d_classes_ontology, wanted_ontology))
 
     @test_for(ontosunburst)

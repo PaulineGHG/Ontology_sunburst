@@ -296,7 +296,6 @@ def extract_go_classes(go_ids: List[str], endpoint_url: str) \
         """)
         sparql.setReturnFormat(JSON)
         results = sparql.query().convert()
-        parent_classes = set()
         for result in results["results"]["bindings"]:
             go_id = result['goId']['value'].lower()
             go_label = result['goLabel']['value']
@@ -304,8 +303,6 @@ def extract_go_classes(go_ids: List[str], endpoint_url: str) \
             parent_label = result['parentGoLabel']['value']
             d_labels[go_id] = go_label
             d_labels[parent_id] = parent_label
-
-            parent_classes.add(parent_id)
             go_classes.add(parent_id)
             if parent_label in GO_ROOTS:
                 d_classes_ontology[parent_id] = [ROOTS[GO]]
@@ -313,7 +310,6 @@ def extract_go_classes(go_ids: List[str], endpoint_url: str) \
                 d_classes_ontology[go_id] = []
             d_classes_ontology[go_id].append(parent_id)
         if go_classes:
-            d_classes_ontology[go] = list(go_classes.difference(parent_classes))
             go_classes.add(ROOTS[GO])
             all_classes[go] = go_classes
         else:
