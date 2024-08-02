@@ -294,7 +294,11 @@ class DataTable:
             if mode == ROOT_TOTAL_CUT:
                 self.parents = ['' if x in roots else x for x in self.parents]
 
-    def cut_nested_path(self, mode: str):
+    def cut_nested_path(self, mode: str, ref_base: bool):
+        if ref_base:
+            count = self.ref_count
+        else:
+            count = self.count
         if mode != PATH_UNCUT:
             nested_paths = []
             for p_i in range(self.len):
@@ -304,23 +308,23 @@ class DataTable:
                     p_p = self.parents[p_i]
                     p_p_children = [self.ids[i] for i in range(self.len) if self.parents[i] == p_p]
                     if len(p_p_children) != 1:
-                        p_count = self.count[p_i]
+                        p_count = count[p_i]
                         c_i = self.ids.index(p_children[0])
-                        c_count = self.count[c_i]
+                        c_count = count[c_i]
                         if p_count == c_count:
-                            nested_paths.append(self.get_full_nested_path(c_i, [p_i]))
+                            nested_paths.append(self.get_full_nested_path(c_i, [p_i], count))
             self.delete_nested_path(mode, nested_paths)
 
-    def get_full_nested_path(self, p_i, n_path):
+    def get_full_nested_path(self, p_i, n_path, count):
         n_path.append(p_i)
         p = self.ids[p_i]
         p_children = [self.ids[i] for i in range(self.len) if self.parents[i] == p]
         if len(p_children) == 1:
-            p_count = self.count[p_i]
+            p_count = count[p_i]
             c_i = self.ids.index(p_children[0])
-            c_count = self.count[c_i]
+            c_count = count[c_i]
             if p_count == c_count:
-                n_path = self.get_full_nested_path(c_i, n_path)
+                n_path = self.get_full_nested_path(c_i, n_path, count)
         return n_path
 
     def delete_nested_path(self, mode, nested_paths):

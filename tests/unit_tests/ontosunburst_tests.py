@@ -296,6 +296,28 @@ class TestOntosunburstMetaCyc(unittest.TestCase):
         w_fig_file = os.path.join('test_files', 'test_mc7.json')
         self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
 
+    @test_for(ontosunburst)
+    def test_ontosunburst_mc8(self):
+        fig = ontosunburst(metabolic_objects=MET_LST, ontology=METACYC,
+                           abundances=MET_LAB, reference_set=MET_REF, ref_abundances=MET_RAB,
+                           analysis=TOPOLOGY_A, output='mc8', write_output=False,
+                           class_ontology=None, labels=DEFAULT, endpoint_url=None,
+                           test=HYPERGEO_TEST, root_cut=ROOT_CUT, path_cut=PATH_BOUND,
+                           ref_base=False, show_leaves=True)
+        w_fig_file = os.path.join('test_files', 'test_mc8.json')
+        self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
+
+    @test_for(ontosunburst)
+    def test_ontosunburst_mc9(self):
+        fig = ontosunburst(metabolic_objects=MET_LST, ontology=METACYC,
+                           abundances=MET_LAB, reference_set=MET_REF, ref_abundances=MET_RAB,
+                           analysis=TOPOLOGY_A, output='mc9', write_output=False,
+                           class_ontology=None, labels=DEFAULT, endpoint_url=None,
+                           test=HYPERGEO_TEST, root_cut=ROOT_CUT, path_cut=PATH_HIGHER,
+                           ref_base=True, show_leaves=True)
+        w_fig_file = os.path.join('test_files', 'test_mc9.json')
+        self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
+
 
 # EC
 # --------------------------------------------------------------------------------------------------

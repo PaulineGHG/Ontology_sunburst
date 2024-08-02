@@ -69,8 +69,8 @@ def get_fig_kwargs(output: str, analysis: str, **kwargs):
 
 
 def generate_sunburst_fig(data: DataTable, output: str, analysis: str = TOPOLOGY_A,
-                          test=BINOMIAL_TEST, significant: Dict = None, ref_set: bool = True,
-                          write_fig: bool = True, **kwargs) -> go.Figure:
+                          test=BINOMIAL_TEST, significant: Dict[str, float] = None,
+                          ref_set: bool = True, write_fig: bool = True, **kwargs) -> go.Figure:
     """ Generate a Sunburst figure and save it to output path.
 
     Parameters
@@ -83,8 +83,7 @@ def generate_sunburst_fig(data: DataTable, output: str, analysis: str = TOPOLOGY
         Analysis mode : topology or enrichment
     test: str (optional, default=Binomial)
         Type of test for enrichment analysis : Binomial or Hypergeometric
-    root_cut: str (optional, default=ROOT_CUT)
-        mode for root cutting (uncut, cut, total)
+    significant: Dict[str, float]
     ref_set: bool (optional, default=True)
     write_fig: bool (optional, default=True)
         True to write the html figure, False to only return figure
