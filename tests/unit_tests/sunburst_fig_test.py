@@ -1,4 +1,3 @@
-import copy
 import json
 import os.path
 import unittest
@@ -34,7 +33,7 @@ MC_LABELS = {'FRAMES': 'Root', 'cdeeg+': 'CDEEG+', 'cdeeg': 'CDEEG', 'cdecf': 'C
              'eg': 'EG', 'cde': 'CDE', 'cf': 'CF', 'h': 'H', 'g': 'G', 'f': 'F', 'e': 'E', 'd': 'D',
              'c': 'C', 'ab': 'AB', 'b': 'B'}
 MC_DATA = DataTable()
-MC_DATA.fill_parameters(MC_REF_AB, MC_ONTO, ROOTS[METACYC], MC_AB, MC_LABELS)
+MC_DATA.fill_parameters(MC_AB, MC_REF_AB, MC_ONTO, ROOTS[METACYC], MC_LABELS)
 MC_DATA.calculate_proportions(True)
 
 # Enrichment
@@ -48,9 +47,9 @@ E_ONTO = {'01': ['00'], '02': ['00'], '03': ['00'], '04': ['00'], '05': ['01'],
           '06': ['01'], '07': ['01'], '08': ['02'], '09': ['02']}
 
 E_DATA = DataTable()
-E_DATA.fill_parameters(E_REF_AB, E_ONTO, '00', E_AB, E_LABElS)
+E_DATA.fill_parameters(E_AB, E_REF_AB, E_ONTO, '00', E_LABElS, True)
 E_DATA.calculate_proportions(True)
-E_DATA.make_enrichment_analysis(BINOMIAL_TEST)
+E_SIGN = E_DATA.make_enrichment_analysis(BINOMIAL_TEST)
 
 
 # ==================================================================================================
@@ -247,7 +246,7 @@ class TestSunburstFigure(unittest.TestCase):
     def test_generate_sunburst_fig_case1(self):
         data = copy.deepcopy(E_DATA)
         fig = generate_sunburst_fig(data, 'case1', analysis=ENRICHMENT_A, write_fig=False,
-                                    test=HYPERGEO_TEST)
+                                    test=HYPERGEO_TEST, ref_set=True, significant=E_SIGN)
         w_fig_file = os.path.join('test_files', 'fig_case1.json')
         self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
 
@@ -255,7 +254,7 @@ class TestSunburstFigure(unittest.TestCase):
     def test_generate_sunburst_fig_case2(self):
         data = copy.deepcopy(E_DATA)
         fig = generate_sunburst_fig(data, 'case2', analysis=ENRICHMENT_A, write_fig=False,
-                                    test=BINOMIAL_TEST)
+                                    test=BINOMIAL_TEST, significant=E_SIGN)
         w_fig_file = os.path.join('test_files', 'fig_case2.json')
         self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
 
@@ -263,7 +262,7 @@ class TestSunburstFigure(unittest.TestCase):
     def test_generate_sunburst_fig_case3(self):
         data = copy.deepcopy(E_DATA)
         fig = generate_sunburst_fig(data, 'case3', analysis=ENRICHMENT_A,
-                                    test=HYPERGEO_TEST,
+                                    test=HYPERGEO_TEST, significant=E_SIGN,
                                     root_cut=ROOT_UNCUT, write_fig=False,
                                     title='Another title', colorscale='PuOr_r',
                                     bg_color='#222222', font_color='#eeeeee', font_size=25,
