@@ -1,4 +1,5 @@
 import os.path
+import difflib
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -22,6 +23,11 @@ FONT_SIZE = 'font_size'
 TABLE_TITLE = 'table_title'
 TABLE_LEGEND = 'table_legend'
 TABLE_COLOR = 'table_color'
+KWARGS = [C_MIN, C_MAX, C_MID, MAX_DEPTH, COLORSCALE, TITLE, COLORBAR_LEGEND, BG_COLOR, FONT_COLOR,
+          FONT_SIZE, TABLE_TITLE, TABLE_LEGEND, TABLE_COLOR]
+KWARGS_TYPE = {C_MIN: float, C_MAX: float, C_MID: float, MAX_DEPTH: int, COLORSCALE: str,
+               TITLE: str, COLORBAR_LEGEND: str, BG_COLOR: str, FONT_COLOR: str, FONT_SIZE: int,
+               TABLE_TITLE: str, TABLE_LEGEND: str, TABLE_COLOR: str}
 
 
 # ==================================================================================================
@@ -40,6 +46,7 @@ def get_fig_kwargs(output: str, analysis: str, **kwargs):
         analysis: str (optional, default=topology)
             Analysis mode : topology or enrichment
         """
+    check_kwargs(**kwargs)
     def_colorscale = {TOPOLOGY_A: 'Viridis',
                       ENRICHMENT_A: 'RdBu'}
     def_titles = {TOPOLOGY_A: f'{os.path.basename(output)} : Proportion of classes',
@@ -68,6 +75,19 @@ def get_fig_kwargs(output: str, analysis: str, **kwargs):
         font_color, font_size, table_title, table_legend, table_color
 
 
+def check_kwargs(**kwargs):
+    close_matches = {x: difflib.get_close_matches(x, KWARGS, n=1, cutoff=0.5)[0] for x in kwargs
+                     if difflib.get_close_matches(x, KWARGS, n=1, cutoff=0.5) and x not in KWARGS}
+    for k in kwargs:
+        if k not in KWARGS:
+            if k in close_matches:
+                print(f'Unknown kwarg "{k}", did you mean "{close_matches[k]}" ?')
+            else:
+                print(f'Unknown kwarg "{k}"')
+        elif type(k) != KWARGS_TYPE[k]:
+            print(f'"{k}" must be of type "{KWARGS_TYPE[k]}" not "{type(k)}"')
+
+
 def generate_sunburst_fig(data: DataTable, output: str, analysis: str = TOPOLOGY_A,
                           test=BINOMIAL_TEST, significant: Dict[str, float] = None,
                           ref_set: bool = True, write_fig: bool = True, **kwargs) -> go.Figure:
@@ -76,22 +96,29 @@ def generate_sunburst_fig(data: DataTable, output: str, analysis: str = TOPOLOGY
     Parameters
     ----------
     data: DataTable
-
+        DataTable of figure parameters
+        (sectors id, label, parent, count, proportion, p-value, ...)
     output: str
         Path to output to save the figure without extension
     analysis: str (optional, default=topology)
         Analysis mode : topology or enrichment
     test: str (optional, default=Binomial)
-        Type of test for enrichment analysis : Binomial or Hypergeometric
+        Type of test for enrichment analysis : binomial or hypergeometric
     significant: Dict[str, float]
+        Dictionary of significant p-value {ontology-id: p-value}
     ref_set: bool (optional, default=True)
+        True if a reference set is present, False otherwise. If true will show reference set values
+        in the hover text of sectors.
     write_fig: bool (optional, default=True)
         True to write the html figure, False to only return figure
     **kwargs
+        Keyword args: c_min, c_max, c_mid, max_depth, colorscale, title, colorbar_legend, bg_color,
+        font_color, font_size, table_title, table_legend, table_color
 
     Returns
     -------
     go.Figure
+        Sunburst figure generated.
     """
     c_min, c_max, c_mid, max_depth, colorscale, title, colorbar_legend, background_color, \
         font_color, font_size, table_title, table_legend, table_color = \

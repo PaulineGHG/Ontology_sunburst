@@ -2,7 +2,9 @@ import json
 import os.path
 import unittest
 import io
+import sys
 from functools import wraps
+from unittest.mock import patch
 
 from ontosunburst.ontology import ROOTS, METACYC
 from ontosunburst.sunburst_fig import *
@@ -197,6 +199,20 @@ class TestSunburstFigure(unittest.TestCase):
         self.assertEqual(table_title, 'Significant classes')
         self.assertEqual(table_legend, 'Name')
         self.assertEqual(table_color, '#222222')
+
+    @test_for(check_kwargs)
+    @patch('sys.stdout', new_callable=lambda: DualWriter(sys.stdout))
+    def test_check_kwargs(self, mock_stdout):
+        check_kwargs(bg_color='black', cmin=2, max_detph=3, c_mif=10, framboise='fruit',
+                     c_max='blue', backgroung_color='white')
+        output = mock_stdout.getvalue().strip()
+        expected_msg = 'Unknown kwarg "cmin", did you mean "c_min" ?\n' \
+                       'Unknown kwarg "max_detph", did you mean "max_depth" ?\n' \
+                       'Unknown kwarg "c_mif", did you mean "c_min" ?\n' \
+                       'Unknown kwarg "framboise"\n' \
+                       '"c_max" must be of type "<class \'float\'>" not "<class \'str\'>"\n' \
+                       'Unknown kwarg "backgroung_color", did you mean "bg_color" ?'
+        self.assertEqual(output, expected_msg)
 
     @test_for(get_hover_fig_text)
     def test_get_hover_fig_text_enrich_ref(self):
