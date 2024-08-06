@@ -1,4 +1,3 @@
-import copy
 from typing import List, Dict, Set
 import numpy as np
 from numpy import nan
@@ -47,6 +46,34 @@ PATH_BOUND = 'bound'
 # CLASS
 # ==================================================================================================
 class DataTable:
+    """
+    DataTable class: stores figure parameters values.
+
+    Attributes
+    ----------
+    self.ids: List[str]
+        Unique ids of all sectors (id=path in the tree)
+    self.onto_ids: List[str]
+        Ontology ID of all sectors
+    self.labels: List[str]
+        Sectors labels
+    self.parents: List[str]
+        Sectors parents
+    self.count: List[float]
+        Sectors interest set count (0<count)
+    self.ref_count: List[float]
+        Sectors reference set count (0<count)
+    self.prop: List[float]
+        Sectors interest set proportion (0<prop<1)
+    self.ref_prop: List[float]
+        Sectors reference set proportion (0<prop<1)
+    self.relative_prop: List[int]
+        Sectors relative proportion (0<r_prop<1000000)
+    self.p_val: List[float]
+        Sectors p-value if enrichment analysis
+    self.len: int
+        Number of sectors
+    """
     def __init__(self):
         self.ids = list()
         self.onto_ids = list()
@@ -91,7 +118,7 @@ class DataTable:
         root_item: str
             Name of the root item of the ontology
         names: Dict[str, str]
-            Dictionary associating metabolic object ID to its Name
+            Dictionary associating for some or each ontology IDs, its label
         ref_base: bool
             True to have the reference as base, False otherwise
         """
@@ -109,6 +136,24 @@ class DataTable:
     def __fill_id_parameter(self, c_onto_id: str, root_item: str, names: Dict[str, str],
                             parent_dict: Dict[str, List[str]], c_abundance: float,
                             c_ref_abundance: float):
+        """ Fill DataTable list attributes (self.ids, self.onto_ids, self.labels, self.parents,
+        self.count, self.ref_count) for one concept.
+
+        Parameters
+        ----------
+        c_onto_id: str
+            Ontology id of the concept
+        root_item: str
+            Root of the ontology
+        names: Dict[str, str]
+            Dictionary associating for some or each ontology IDs, its label
+        parent_dict: Dict[str: List[str]]
+            Dictionary associating for each class, its parents classes
+        c_abundance: float
+            Abundance of the concept in the interest set
+        c_ref_abundance: float
+            Abundance of the concept in the reference set
+        """
         if c_onto_id != root_item:
             if names is not None:
                 try:
@@ -193,6 +238,8 @@ class DataTable:
         ----------
         p_id: str
             ID of the parent
+        ref_base: bool
+            True if reference base representation
         """
         if ref_base:
             base_count = self.ref_count
@@ -221,14 +268,17 @@ class DataTable:
             if c in self.parents:
                 self.__get_relative_prop(c, ref_base)
 
-    def make_enrichment_analysis(self, test: str, scores=None) -> Dict[str, float]:
+    def make_enrichment_analysis(self, test: str, scores: Dict[str, float] = None) \
+            -> Dict[str, float]:
         """ Performs statistical tests for enrichment analysis.
 
         Parameters
         ----------
         test: str
             Type of test : binomial or hypergeometric
-        scores: Dict
+        scores: Dict[str, float]
+            Dictionary associating for each ontology ID, its enrichment score. If None enrichment
+            will be calculated.
 
         Returns
         -------
@@ -295,6 +345,20 @@ class DataTable:
                 self.parents = ['' if x in roots else x for x in self.parents]
 
     def cut_nested_path(self, mode: str, ref_base: bool):
+        """ Cut nested path in the tree graph (path of nested sectors sharing the same value)
+
+        Parameters
+        ----------
+        mode: str
+            Mode of path cutting
+            - uncut: doesn't cut and keep all sectors
+            - deeper: cut nested path and only conserve the deepest sector in the tree
+            - higher: cut nested path and only conserve the highest sector in the tree
+            - bound: cut nested path and only conserve the highest AND the deepest sectors in the
+            tree
+        ref_base: bool
+            True if reference base representation
+        """
         if ref_base:
             count = self.ref_count
         else:
@@ -315,7 +379,23 @@ class DataTable:
                             nested_paths.append(self.get_full_nested_path(c_i, [p_i], count))
             self.delete_nested_path(mode, nested_paths)
 
-    def get_full_nested_path(self, p_i, n_path, count):
+    def get_full_nested_path(self, p_i: int, n_path: List[int], count: List[float]):
+        """ Get all index of a nested path sector from its parent sector index.
+
+        Parameters
+        ----------
+        p_i: int
+            Parent sector index of the nested path
+        n_path: List[int]
+            List of sector indexes of the nested path
+        count: List[float]
+            List of all sectors count value.
+
+        Returns
+        -------
+        List[int]
+            List of sector indexes of the nested path
+        """
         n_path.append(p_i)
         p = self.ids[p_i]
         p_children = [self.ids[i] for i in range(self.len) if self.parents[i] == p]
@@ -327,7 +407,22 @@ class DataTable:
                 n_path = self.get_full_nested_path(c_i, n_path, count)
         return n_path
 
-    def delete_nested_path(self, mode, nested_paths):
+    def delete_nested_path(self, mode: str, nested_paths: List[List[int]]):
+        """ Delete some sectors of the nested path to conserve only the deepest (deeper mode), only
+        the highest (higher mode) or both (bound mode)
+
+        Parameters
+        ----------
+        mode: str
+            Mode of path cutting
+            - uncut: doesn't cut and keep all sectors
+            - deeper: cut nested path and only conserve the deepest sector in the tree
+            - higher: cut nested path and only conserve the highest sector in the tree
+            - bound: cut nested path and only conserve the highest AND the deepest sectors in the
+            tree
+        nested_paths: List[List[int]]
+            List of lists of nested path sectors indexes
+        """
         to_del = []
         if mode == PATH_DEEPER:
             for path in nested_paths:
@@ -355,6 +450,13 @@ class DataTable:
         self.delete_value(to_del)
 
     def delete_value(self, v_index: int or List[int]):
+        """ Delete a sector of DataTable from its index or a list of sectors from a list of indexes
+
+        Parameters
+        ----------
+        v_index: int or List[int]
+            Index or list of indexes of the sectors to delete
+        """
         data = self.get_data_dict()
         if type(v_index) == int:
             v_index = [v_index]
@@ -364,6 +466,19 @@ class DataTable:
             self.len -= 1
 
     def get_col(self, index: int or List[int] = None) -> List or List[List]:
+        """ Get a DataTable column from its index or a list of columns from a list of indexes.
+        Column = all values associated with a sector.
+
+        Parameters
+        ----------
+        index: int or List[int]
+            Index or list of indexes of the sectors to get the column
+
+        Returns
+        -------
+        List or List[List]
+            Column or list of columns obtained from indexes
+        """
         if index is None:
             index = list(range(self.len))
         if type(index) == int:
