@@ -166,7 +166,7 @@ class TestChEBIClassesExtraction(unittest.TestCase):
 
     @test_for(ontosunburst)
     def test_ontosunburst_ch1(self):
-        fig = ontosunburst(metabolic_objects=CH_LST, ontology=CHEBI, root='00',
+        fig = ontosunburst(interest_set=CH_LST, ontology=CHEBI, root='00',
                            abundances=None, reference_set=REF_CH, ref_abundances=None,
                            analysis='topology', output='test_ch1', write_output=False,
                            class_ontology=None, labels=None, endpoint_url=None,

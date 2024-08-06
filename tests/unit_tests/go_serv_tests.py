@@ -152,7 +152,7 @@ class TestGOClassesExtraction(unittest.TestCase):
 
     @test_for(ontosunburst)
     def test_ontosunburst_go1(self):
-        fig = ontosunburst(metabolic_objects=GO_LST, ontology=GO, root='00',
+        fig = ontosunburst(interest_set=GO_LST, ontology=GO, root='00',
                            abundances=None, reference_set=None, ref_abundances=None,
                            analysis='topology', output='test_go1', write_output=False,
                            class_ontology=None, labels=None, endpoint_url=None, root_cut='uncut',

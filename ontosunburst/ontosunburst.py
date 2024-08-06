@@ -7,7 +7,7 @@ import plotly.graph_objects as go
 from ontosunburst.ontology import get_abundance_dict, get_classes_abundance, get_classes_scores, \
     extract_classes, reduce_d_ontology, METACYC, CHEBI, EC, GO, KEGG, ROOTS
 
-from ontosunburst.data_table_tree import DataTable, BINOMIAL_TEST, ROOT_CUT, PATH_UNCUT
+from ontosunburst.data_table_tree import DataTable, get_name, BINOMIAL_TEST, ROOT_CUT, PATH_UNCUT
 from ontosunburst.sunburst_fig import generate_sunburst_fig, TOPOLOGY_A, ENRICHMENT_A
 
 # ==================================================================================================
@@ -35,7 +35,7 @@ DEFAULT_URL = {CHEBI: 'http://localhost:3030/chebi/',
 #                                            WORKFLOW
 # ==================================================================================================
 
-def ontosunburst(metabolic_objects: List[str],
+def ontosunburst(interest_set: List[str],
                  ontology: str = None,
                  root: str = None,
                  abundances: List[float] = None,
@@ -58,30 +58,34 @@ def ontosunburst(metabolic_objects: List[str],
 
     Parameters
     ----------
-    metabolic_objects: List[str]
-        Set of metabolic objects to classify
+    interest_set: List[str]
+        Interest set of concepts to classify
     ontology: str (optional, default=None)
         Ontology to use, must be in : [metacyc, ec, chebi, kegg, go]
     root: str (optional, default=None)
         Root item of the ontology.
     abundances: List[str] (optional, default=None)
-        Abundance values associated to metabolic_objects list parameter
+        Abundance values associated to interest_set list parameter
     scores: Dict[str, float] (optional, default=None)
-
+        Dictionary associating for each ontology ID, its enrichment score. If None enrichment will
+        be calculated.
     reference_set: List[str] (optional, default=None)
-        Set of reference metabolic objects
+        Reference set of concepts
     ref_abundances: List[str] (optional, default=None)
         Abundance values associated to reference_set list parameter
     analysis: str (optional, default=topology)
         Analysis mode, must be in : [topology, enrichment]
     output: str (optional, default=None)
-        Path of the output to save figure
+        Path of the output to save figure, if None, outputs will be sunburst.html and sunburst.tsv
+        files
     write_output: bool (optional, default=True)
-        True to write the html figure and tsv class files, False to only return figure
+        True to write the html figure and tsv class files, False to only return plotly sunburst
+        figure
     class_ontology: str or Dict[str, str] (optional, default=None)
         Class ontology dictionary or json file.
     labels: str or Dict[str, str] (optional, default=default)
-        Path to ID-LABELS association json file or ID-LABELS association dictionary
+        Path to ID-LABELS association json file or ID-LABELS association dictionary or 'default' to
+        use default files. If None ontology IDs will be used as labels.
     endpoint_url: str (optional, default=None)
         URL of ChEBI or GO ontology for SPARQL requests
     test: str (optional, default=binomial)
@@ -140,7 +144,7 @@ def ontosunburst(metabolic_objects: List[str],
         root = ROOTS[ontology]
     # WORKFLOW -------------------------------------------------------------------------------------
     fig = _global_analysis(ontology=ontology, analysis=analysis,
-                           metabolic_objects=metabolic_objects, abundances=abundances,
+                           metabolic_objects=interest_set, abundances=abundances,
                            scores=scores,
                            reference_set=reference_set, ref_abundances=ref_abundances,
                            d_classes_ontology=class_ontology, endpoint_url=endpoint_url,
@@ -193,7 +197,7 @@ def _global_analysis(ontology, analysis, metabolic_objects, abundances, scores, 
     if not obj_all_classes:
         print('No object classified, passing.')
     if write_output:
-        write_met_classes(ontology, obj_all_classes, output)
+        write_met_classes(ontology, obj_all_classes, output, names)
 
     # ABUNDANCES
     # ----------------------------------------------------------------------------------------------
@@ -249,7 +253,8 @@ def _global_analysis(ontology, analysis, metabolic_objects, abundances, scores, 
                                  write_fig=write_output, **kwargs)
 
 
-def write_met_classes(ontology: str, all_classes: Dict[str, List[str]], output: str):
+def write_met_classes(ontology: str, all_classes: Dict[str, List[str]], output: str,
+                      names: Dict[str, str]):
     """ Writes, for each input class, all its ancestors in a .tsv file.
 
     Parameters
@@ -257,6 +262,7 @@ def write_met_classes(ontology: str, all_classes: Dict[str, List[str]], output: 
     ontology
     all_classes
     output
+    names
     """
     if ontology is None:
         ontology = ''
@@ -267,7 +273,10 @@ def write_met_classes(ontology: str, all_classes: Dict[str, List[str]], output: 
                   GO: 'https://amigo.geneontology.org/amigo/term/',
                   '': ''}
     with open(f'{output}.tsv', 'w') as f:
-        f.write('\t'.join(['ID', 'Classes', 'Link']) + '\n')
-        for met, classes, in all_classes.items():
-            link = links_dict[ontology] + met
-            f.write('\t'.join([met, ', '.join(classes), link]) + '\n')
+        f.write('\t'.join(['ID', 'Label', 'Classes ID', 'Classes Label', 'Link']) + '\n')
+        for met_id, classes_id, in all_classes.items():
+            link = links_dict[ontology] + met_id
+            met_lab = get_name(met_id, names)
+            classes_lab = [get_name(cl, names) for cl in classes_id]
+            f.write('\t'.join([met_id, met_lab, ', '.join(classes_id), ', '.join(classes_lab),
+                               link]) + '\n')

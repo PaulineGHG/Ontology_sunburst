@@ -155,13 +155,7 @@ class DataTable:
             Abundance of the concept in the reference set
         """
         if c_onto_id != root_item:
-            if names is not None:
-                try:
-                    c_label = names[c_onto_id]
-                except KeyError:
-                    c_label = c_onto_id
-            else:
-                c_label = c_onto_id
+            c_label = get_name(c_onto_id, names)
             all_c_ids = get_all_ids(c_onto_id, c_onto_id, parent_dict, root_item, set())
             for c_id in all_c_ids:
                 self.add_value(m_id=c_id, onto_id=c_onto_id, label=c_label,
@@ -546,3 +540,14 @@ def get_set2_abundance(set2_abundances: Dict[str, float] or None, c_label: str) 
     except KeyError:
         c_set2_abundance = np.nan
     return c_set2_abundance
+
+
+def get_name(c_onto_id, names):
+    if names is not None:
+        try:
+            c_label = names[c_onto_id]
+        except KeyError:
+            c_label = c_onto_id
+    else:
+        c_label = c_onto_id
+    return c_label

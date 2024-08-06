@@ -174,18 +174,18 @@ REF_MET = {'CPD-24674', 'CPD-24687', 'CPD-24688',
            'CPD-1282', 'CPD-12824', 'CPD-1283'}
 
 # TOPOLOGY
-fig = ontosunburst(ontology='metacyc', 
-                   metabolic_objects=MET_SET, 
+fig = ontosunburst(ontology='metacyc',
+                   interest_set=MET_SET,
                    reference_set=REF_MET,
-                   output='test_mc_cpd_prop', 
+                   output='test_mc_cpd_prop',
                    ref_base=True)
 
 # ENRICHMENT
-fig = ontosunburst(ontology='metacyc', 
-                   metabolic_objects=MET_SET, 
+fig = ontosunburst(ontology='metacyc',
+                   interest_set=MET_SET,
                    reference_set=REF_MET,
-                   analysis='enrichment', 
-                   output='test_mc_cpd_comp', 
+                   analysis='enrichment',
+                   output='test_mc_cpd_comp',
                    ref_base=True)
 ```
 
@@ -194,7 +194,7 @@ fig = ontosunburst(ontology='metacyc',
 #### Example
 
 ```python
-from  ontosunburst.ontosunburst import ontosunburst
+from ontosunburst.ontosunburst import ontosunburst
 
 EC_SET = {'2.6.1.45', '1.1.1.25', '1.1.1.140'}
 REF_EC = {'2.6.1.45', '1.1.1.25', '1.1.1.140',
@@ -203,19 +203,19 @@ REF_EC = {'2.6.1.45', '1.1.1.25', '1.1.1.140',
           '3.2.1.91', '6.3.4.2', '5.4.99.8'}
 
 # TOPOLOGY
-fig = ontosunburst(ontology='ec', 
-                   metabolic_objects=EC_SET, 
+fig = ontosunburst(ontology='ec',
+                   interest_set=EC_SET,
                    reference_set=REF_EC,
-                   output='test_ec_prop', 
-                   ref_base=True, 
+                   output='test_ec_prop',
+                   ref_base=True,
                    show_leaves=True)
 
 # ENRICHMENT
-fig = ontosunburst(ontology='ec', 
-                   metabolic_objects=EC_SET, 
+fig = ontosunburst(ontology='ec',
+                   interest_set=EC_SET,
                    reference_set=REF_EC,
-                   output='test_ec_comp', 
-                   analysis='enrichment', 
+                   output='test_ec_comp',
+                   analysis='enrichment',
                    ref_base=True)
 
 ```
@@ -225,7 +225,7 @@ fig = ontosunburst(ontology='ec',
 #### Example
 
 ```python
-from  ontosunburst.ontosunburst import ontosunburst
+from ontosunburst.ontosunburst import ontosunburst
 
 URL = 'http://localhost:3030/chebi/'
 CH_SET = {'38028', '28604', '85146'}
@@ -234,19 +234,19 @@ REF_CH = {'38028', '28604', '85146',
           '58215', '79983', '42639'}
 
 # TOPOLOGY
-fig = ontosunburst(ontology='chebi', 
-                   metabolic_objects=CH_SET, 
+fig = ontosunburst(ontology='chebi',
+                   interest_set=CH_SET,
                    reference_set=REF_CH,
-                   endpoint_url=URL, 
-                   output='test_chebi_prop', 
+                   endpoint_url=URL,
+                   output='test_chebi_prop',
                    ref_base=True)
 
 # ENRICHMENT
-fig = ontosunburst(ontology='chebi', 
-                   metabolic_objects=CH_SET, 
+fig = ontosunburst(ontology='chebi',
+                   interest_set=CH_SET,
                    reference_set=REF_CH,
-                   endpoint_url=URL, 
-                   output='test_chebi_comp', 
-                   analysis='enrichment', 
+                   endpoint_url=URL,
+                   output='test_chebi_comp',
+                   analysis='enrichment',
                    ref_base=True)
 ```
