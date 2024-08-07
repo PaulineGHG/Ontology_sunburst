@@ -1,4 +1,6 @@
 from typing import List, Set, Dict, Tuple
+
+import numpy
 from SPARQLWrapper import SPARQLWrapper, JSON
 
 
@@ -27,8 +29,9 @@ GO_ROOTS = ['cellular_component', 'biological_process', 'molecular_function']
 # Main class extraction function
 # --------------------------------------------------------------------------------------------------
 def extract_classes(ontology: str, concepts: List[str], root: str,
-                    d_classes_ontology: Dict[str, List[str]] = None, endpoint_url: str = None)\
-        -> Tuple[Dict[str, Set[str]], Dict[str, List[str]]]:
+                    d_classes_ontology: Dict[str, List[str]] = None, endpoint_url: str = None,
+                    names: Dict[str, str] = None)\
+        -> Tuple[Dict[str, Set[str]], Dict[str, List[str]], Dict[str, str] or None]:
     """ Extract all parent classes (until root) from a list of concepts.
 
     Parameters
@@ -43,6 +46,7 @@ def extract_classes(ontology: str, concepts: List[str], root: str,
         Dictionary of the classes ontology associating for each concept its +1 parent classes.
     endpoint_url: str, optional (default=None)
         URL for the SPARQL server (for GO and ChEBI ontologies)
+    names: Dict[str, str] (default=None)
 
     Returns
     -------
@@ -50,13 +54,15 @@ def extract_classes(ontology: str, concepts: List[str], root: str,
         Dictionary associating to each concept all its parent classes (until the root)
     Dict[str, List[str]]
         Dictionary of the classes ontology associating for each concept its +1 parent classes.
+    Dict[str, str]  or None
+        Dictionary of labels
     """
     if ontology == METACYC or ontology == KEGG or ontology is None:
         leaf_classes = extract_met_classes(concepts, d_classes_ontology)
-        return get_all_classes(leaf_classes, d_classes_ontology, root), d_classes_ontology
+        return get_all_classes(leaf_classes, d_classes_ontology, root), d_classes_ontology, names
     if ontology == EC:
         leaf_classes, d_classes_ontology = extract_ec_classes(concepts, d_classes_ontology)
-        return get_all_classes(leaf_classes, d_classes_ontology, root), d_classes_ontology
+        return get_all_classes(leaf_classes, d_classes_ontology, root), d_classes_ontology, names
     if ontology == CHEBI:
         return extract_chebi_roles(concepts, endpoint_url)
     if ontology == GO:
@@ -142,7 +148,7 @@ def extract_ec_classes(ec_list: List[str], d_classes_ontology: Dict[str, List[st
 # For ChEBI Ontology
 # --------------------------------------------------------------------------------------------------
 def extract_chebi_roles(chebi_ids: List[str], endpoint_url: str) \
-        -> Tuple[Dict[str, Set[str]], Dict[str, List[str]]]:
+        -> Tuple[Dict[str, Set[str]], Dict[str, List[str]], Dict[str, str]]:
     """ Extract all parent classes for each chebi ID + Generate ontology dictionary.
 
     Parameters
@@ -154,12 +160,15 @@ def extract_chebi_roles(chebi_ids: List[str], endpoint_url: str) \
 
     Returns
     -------
-    Tuple[Dict[str, Set[str]], Dict[str, List[str]]]
+    Tuple[Dict[str, Set[str]], Dict[str, List[str]], Dict[str, str]]
         Dictionary of all roles associated for each ChEBI ID
         Dictionary of roles ontology, associating for each role, its parent roles
+        Dictionary of labels
     """
+    root_id = '50906'
     d_roles_ontology = dict()
     all_roles = dict()
+    d_labels = dict()
     chebi_ok = 0
     total_nb = len(chebi_ids)
     for chebi_id in chebi_ids:
@@ -179,9 +188,9 @@ def extract_chebi_roles(chebi_ids: List[str], endpoint_url: str) \
         PREFIX oboInOwl: <http://www.geneontology.org/formats/oboInOwl#>
         PREFIX bp3: <http://www.biopax.org/release/biopax-level3.owl#>
     
-        SELECT DISTINCT ?molecule ?moleculeLabel ?role ?roleLabel ?parentRoleLabel
+        SELECT DISTINCT ?molecule ?moleculeLabel ?roleId ?roleLabel ?parentRoleLabel ?parentRoleId
         WHERE {{
-            VALUES ?molecule{{ chebidb:{chebi_id }}}                                        
+            VALUES ?molecule{{ chebidb:{chebi_id}}}                                        
             
             ?molecule rdfs:label ?moleculeLabel .
             
@@ -190,8 +199,10 @@ def extract_chebi_roles(chebi_ids: List[str], endpoint_url: str) \
             ?restriction owl:onProperty obo:RO_0000087 .
             ?restriction owl:someValuesFrom/(rdfs:subClassOf*) ?role .
             
+            ?role oboInOwl:id ?roleId .
             ?role rdfs:subClassOf ?parentRole .
             
+            ?parentRole oboInOwl:id ?parentRoleId .
             ?parentRole rdfs:label ?parentRoleLabel .
             ?role rdfs:label ?roleLabel .
         }}
@@ -200,13 +211,23 @@ def extract_chebi_roles(chebi_ids: List[str], endpoint_url: str) \
         results = sparql.query().convert()
         parent_roles = set()
         for result in results["results"]["bindings"]:
-            role = result['roleLabel']['value']
-            parent_role = result['parentRoleLabel']['value']
-            parent_roles.add(parent_role)
-            roles.add(result['roleLabel']['value'])
-            if role not in d_roles_ontology:
-                d_roles_ontology[role] = set()
-            d_roles_ontology[role].add(parent_role)
+            molecule_label = result['moleculeLabel']['value']
+            role_label = result['roleLabel']['value']
+            role_id = result['roleId']['value'].split(':')[1]
+            parent_role_label = result['parentRoleLabel']['value']
+            parent_role_id = result['parentRoleId']['value'].split(':')[1]
+            if role_id == root_id:
+                role_id = ROOTS[CHEBI]
+            if parent_role_id == root_id:
+                parent_role_id = ROOTS[CHEBI]
+            d_labels[role_id] = role_label
+            d_labels[parent_role_id] = parent_role_label
+            d_labels[chebi_id] = molecule_label
+            parent_roles.add(parent_role_id)
+            roles.add(role_id)
+            if role_id not in d_roles_ontology:
+                d_roles_ontology[role_id] = set()
+            d_roles_ontology[role_id].add(parent_role_id)
         if roles:
             chebi_ok += 1
             d_roles_ontology[chebi_id] = list(roles.difference(parent_roles))
@@ -217,15 +238,14 @@ def extract_chebi_roles(chebi_ids: List[str], endpoint_url: str) \
 
     for c, p in d_roles_ontology.items():
         d_roles_ontology[c] = list(p)
-
     print(f'{chebi_ok}/{total_nb} chebi id with roles associated.')
-    return all_roles, d_roles_ontology
+    return all_roles, d_roles_ontology, d_labels
 
 
 # For GO Ontology
 # --------------------------------------------------------------------------------------------------
 def extract_go_classes(go_ids: List[str], endpoint_url: str) \
-        -> Tuple[Dict[str, Set[str]], Dict[str, List[str]]]:
+        -> Tuple[Dict[str, Set[str]], Dict[str, List[str]], Dict[str, str]]:
     """ Extract all parent classes for each GO ID + Generate ontology dictionary.
 
     Parameters
@@ -237,12 +257,14 @@ def extract_go_classes(go_ids: List[str], endpoint_url: str) \
 
     Returns
     -------
-    Tuple[Dict[str, Set[str]], Dict[str, List[str]]]
+    Tuple[Dict[str, Set[str]], Dict[str, List[str]], Dict[str, str]]
         Dictionary of all roles associated for each ChEBI ID
         Dictionary of roles ontology, associating for each role, its parent roles
+        Dictionary of labels
     """
     d_classes_ontology = dict()
     all_classes = dict()
+    d_labels = dict()
     for go in go_ids:
         go_classes = set()
         sparql = SPARQLWrapper(endpoint_url)
@@ -260,40 +282,42 @@ def extract_go_classes(go_ids: List[str], endpoint_url: str) \
         PREFIX go: <http://purl.obolibrary.org/obo/GO_>
         PREFIX goavoc: <http://bio2rdf.org/goa_vocabulary:>
         
-        SELECT ?goLabel ?parentGoLabel
+        SELECT ?goLabel ?parentGoLabel ?goId ?parentGoId
         WHERE {{
            {go} rdfs:subClassOf* ?go .
+           ?go oboInOwl:id ?goId .
            ?go rdfs:label ?goLabel .
            ?go rdf:type owl:Class .
            ?go rdfs:subClassOf ?parentGo .
            ?parentGo rdfs:label ?parentGoLabel .
+           ?parentGo oboInOwl:id ?parentGoId .
            ?parentGo rdf:type owl:Class .
         }}
         """)
         sparql.setReturnFormat(JSON)
         results = sparql.query().convert()
-        parent_classes = set()
         for result in results["results"]["bindings"]:
-            go_class = result['goLabel']['value']
-            parent_class = result['parentGoLabel']['value']
-            parent_classes.add(parent_class)
-            go_classes.add(go_class)
-            go_classes.add(parent_class)
-            if parent_class in GO_ROOTS:
-                d_classes_ontology[parent_class] = [ROOTS[GO]]
-            if go_class not in d_classes_ontology:
-                d_classes_ontology[go_class] = set()
-            d_classes_ontology[go_class].add(parent_class)
+            go_id = result['goId']['value'].lower()
+            go_label = result['goLabel']['value']
+            parent_id = result['parentGoId']['value'].lower()
+            parent_label = result['parentGoLabel']['value']
+            d_labels[go_id] = go_label
+            d_labels[parent_id] = parent_label
+            go_classes.add(parent_id)
+            if parent_label in GO_ROOTS:
+                d_classes_ontology[parent_id] = [ROOTS[GO]]
+            if go_id not in d_classes_ontology:
+                d_classes_ontology[go_id] = []
+            d_classes_ontology[go_id].append(parent_id)
         if go_classes:
-            d_classes_ontology[go] = list(go_classes.difference(parent_classes))
             go_classes.add(ROOTS[GO])
             all_classes[go] = go_classes
         else:
             print(f'No GO class found for : {go}')
 
     for c, p in d_classes_ontology.items():
-        d_classes_ontology[c] = list(p)
-    return all_classes, d_classes_ontology
+        d_classes_ontology[c] = list(set(p))
+    return all_classes, d_classes_ontology, d_labels
 
 
 # Recursive class extraction function
@@ -415,8 +439,6 @@ def get_classes_abundance(all_classes: Dict[str, Set[str]], abundances_dict: Dic
     Dict[str, float]
         Dictionary associating for each class the weight of concepts found belonging to the class.
     """
-    print(all_classes)
-    print(abundances_dict)
     classes_abondance = dict()
     for met, classes in all_classes.items():
         if show_leaves:
@@ -430,6 +452,17 @@ def get_classes_abundance(all_classes: Dict[str, Set[str]], abundances_dict: Dic
             else:
                 classes_abondance[c] += abundances_dict[met]
     return dict(reversed(sorted(classes_abondance.items(), key=lambda item: item[1])))
+
+
+def get_classes_scores(all_classes, scores_dict, root):
+    classes_scores = dict()
+    for met, classes in all_classes.items():
+        if met in scores_dict.keys():
+            classes_scores[met] = scores_dict[met]
+        else:
+            classes_scores[met] = numpy.nan
+    classes_scores[root] = numpy.nan
+    return classes_scores
 
 
 # ==================================================================================================
