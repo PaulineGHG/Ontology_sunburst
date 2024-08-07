@@ -42,14 +42,13 @@ def main():
                 kwargs[key] = value
             else:
                 raise ValueError(f"Argument {arg} is not in the form key=value")
-
-    metabolic_objects, abundances = extract_input(args.input)
-    reference_set, ref_abundances = extract_input(args.ref)
+    reference_set, ref_abundances, scores = extract_input(args.ref)
+    metabolic_objects, abundances, scores = extract_input(args.input)
     ontosunburst(interest_set=metabolic_objects,
                  ontology=args.ontology,
                  root=args.root,
                  abundances=abundances,
-                 scores={},
+                 scores=scores,
                  reference_set=reference_set,
                  ref_abundances=ref_abundances,
                  analysis=args.analysis,
@@ -69,12 +68,17 @@ def main():
 def extract_input(input_file):
     id_lst = []
     ab_lst = []
+    sc_d = {}
     with open(input_file, 'r') as f:
         for l in f:
             l = l.strip().split('\t')
             id_lst.append(l[0])
-            if len(l) == 2:
+            if len(l) == 3:
+                sc_d[l[0]] = float(l[2])
+            if len(l) >= 2:
                 ab_lst.append(float(l[1]))
             else:
                 ab_lst.append(1)
-    return id_lst, ab_lst
+    if not sc_d:
+        sc_d = None
+    return id_lst, ab_lst, sc_d
