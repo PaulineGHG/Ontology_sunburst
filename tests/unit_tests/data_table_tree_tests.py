@@ -31,29 +31,29 @@ CT_LAB = {'FRAMES': 'Root', 'cdeeg+': 'CDEEG+', 'cdeeg': 'CDEEG', 'cdecf': 'CDEC
           'eg': 'EG', 'cde': 'CDE', 'cf': 'CF', 'h': 'H', 'g': 'G', 'f': 'F', 'e': 'E', 'd': 'D',
           'c': 'C', 'ab': 'AB', 'b': 'B'}
 
-W_PROP = [1.0, 0.5, 0.5, 0.5, nan, nan, nan, 0.5, 0.5, 0.5, nan, nan, nan, nan, nan, nan, nan, nan,
-          nan, nan, nan, 0.5, 0.5, 0.5, 0.5, 0.3333333333333333, 0.16666666666666666]
 
-W_REF_PROP = [1.0, 0.5277777777777778, 0.5277777777777778, 0.5, 0.4166666666666667,
-              0.3333333333333333, 0.3333333333333333, 0.3333333333333333, 0.3333333333333333, 0.25,
-              0.2222222222222222, 0.19444444444444445, 0.19444444444444445, 0.19444444444444445,
-              0.16666666666666666, 0.1388888888888889, 0.1388888888888889, 0.1388888888888889,
-              0.1388888888888889, 0.1111111111111111, 0.1111111111111111, 0.08333333333333333,
-              0.08333333333333333, 0.08333333333333333, 0.08333333333333333, 0.05555555555555555,
-              0.027777777777777776]
+W_PROP = {'1': 1.0, '2': 0.5, '3': 0.16666666666666666, '4': 0.3333333333333333, '5': nan,
+          '6': nan, '7': nan, '8': nan, '9': nan, '10': nan, '11': 0.5, '12': 0.5, '13': 0.5,
+          '14': nan, '15': nan, '16': 0.5, '17': 0.5, '18': nan, '19': 0.5, '20': 0.5, '21': 0.5,
+          '22': 0.5, '23': nan, '24': nan, '25': nan, '26': nan, '27': nan}
 
-W_REL_PROP = {'FRAMES': 1000000, 'cdeeg+__FRAMES': 283582, 'cdeeg__cdeeg+__FRAMES': 283582,
-              'cdecf__FRAMES': 268656, 'gh__FRAMES': 223880, 'eg__cdeeg__cdeeg+__FRAMES': 141791,
-              'eg__FRAMES': 179104, 'cde__cdeeg__cdeeg+__FRAMES': 141791,
-              'cde__cdecf__FRAMES': 153517, 'cf__cdecf__FRAMES': 115138, 'h__gh__FRAMES': 119402,
-              'g__eg__cdeeg__cdeeg+__FRAMES': 82711, 'g__eg__FRAMES': 104477,
-              'g__gh__FRAMES': 104477, 'f__cf__cdecf__FRAMES': 76758,
-              'e__eg__cdeeg__cdeeg+__FRAMES': 59079, 'e__cde__cdeeg__cdeeg+__FRAMES': 59079,
-              'e__eg__FRAMES': 74626, 'e__cde__cdecf__FRAMES': 63965,
-              'd__cde__cdecf__FRAMES': 51172, 'd__cde__cdeeg__cdeeg+__FRAMES': 47263,
-              'c__cde__cdecf__FRAMES': 38379, 'c__cf__cdecf__FRAMES': 38379,
-              'c__cde__cdeeg__cdeeg+__FRAMES': 35447, 'ab__FRAMES': 44776, 'b__ab__FRAMES': 29850,
-              'a__ab__FRAMES': 14925}
+
+W_REF_PROP = {'1': 1.0, '2': 0.08333333333333333, '3': 0.027777777777777776,
+              '4': 0.05555555555555555, '5': 0.3333333333333333, '6': 0.1388888888888889,
+              '7': 0.19444444444444445, '8': 0.4166666666666667, '9': 0.19444444444444445,
+              '10': 0.2222222222222222, '11': 0.5, '12': 0.3333333333333333,
+              '13': 0.08333333333333333, '14': 0.1111111111111111, '15': 0.1388888888888889,
+              '16': 0.25, '17': 0.08333333333333333, '18': 0.16666666666666666,
+              '19': 0.5277777777777778, '20': 0.5277777777777778, '21': 0.3333333333333333,
+              '22': 0.08333333333333333, '23': 0.1111111111111111, '24': 0.1388888888888889,
+              '25': 0.3333333333333333, '26': 0.1388888888888889, '27': 0.19444444444444445}
+
+
+W_REL_PROP = {'1': 1000000, '2': 44776, '3': 14925, '4': 29850, '5': 179104, '6': 74626,
+              '7': 104477, '8': 223880, '9': 104477, '10': 119402, '11': 268656, '12': 153517,
+              '13': 38379, '14': 51172, '15': 63965, '16': 115138, '17': 38379, '18': 76758,
+              '19': 283582, '20': 283582, '21': 141791, '22': 35447, '23': 47263, '24': 59079,
+              '25': 141791, '26': 59079, '27': 82711}
 
 
 # ==================================================================================================
@@ -174,54 +174,33 @@ class TestGenerateDataTable(unittest.TestCase):
         data.fill_parameters(ref_abundance=CT_REF_AB, parent_dict=CT_ONTO,
                              root_item=ROOTS[METACYC], set_abundance=CT_AB, names=None)
         lines = set(data.get_col())
-        w_lines = {('cde__cdeeg__cdeeg+__FRAMES', 'cde', 'cde', 'cdeeg__cdeeg+__FRAMES', 3, 12, nan,
-                    nan, nan, nan), (
-                       'd__cde__cdeeg__cdeeg+__FRAMES', 'd', 'd', 'cde__cdeeg__cdeeg+__FRAMES', nan,
-                       4,
-                       nan, nan, nan, nan),
-                   ('b__ab__FRAMES', 'b', 'b', 'ab__FRAMES', 2, 2, nan, nan, nan, nan),
-                   ('g__eg__FRAMES', 'g', 'g', 'eg__FRAMES', nan, 7, nan, nan, nan, nan),
-                   ('eg__FRAMES', 'eg', 'eg', 'FRAMES', nan, 12, nan, nan, nan, nan), (
-                       'c__cde__cdecf__FRAMES', 'c', 'c', 'cde__cdecf__FRAMES', 3, 3, nan, nan, nan,
-                       nan), (
-                       'g__eg__cdeeg__cdeeg+__FRAMES', 'g', 'g', 'eg__cdeeg__cdeeg+__FRAMES', nan,
-                       7,
-                       nan, nan, nan, nan), (
-                       'e__eg__cdeeg__cdeeg+__FRAMES', 'e', 'e', 'eg__cdeeg__cdeeg+__FRAMES', nan,
-                       5,
-                       nan, nan, nan, nan), (
-                       'cdeeg__cdeeg+__FRAMES', 'cdeeg', 'cdeeg', 'cdeeg+__FRAMES', 3, 19, nan, nan,
-                       nan, nan),
-                   ('cdecf__FRAMES', 'cdecf', 'cdecf', 'FRAMES', 3, 18, nan, nan, nan, nan),
-                   ('ab__FRAMES', 'ab', 'ab', 'FRAMES', 3, 3, nan, nan, nan, nan), (
-                       'e__cde__cdeeg__cdeeg+__FRAMES', 'e', 'e', 'cde__cdeeg__cdeeg+__FRAMES', nan,
-                       5,
-                       nan, nan, nan, nan), (
-                       'c__cde__cdeeg__cdeeg+__FRAMES', 'c', 'c', 'cde__cdeeg__cdeeg+__FRAMES', 3,
-                       3,
-                       nan, nan, nan, nan), (
-                       'c__cf__cdecf__FRAMES', 'c', 'c', 'cf__cdecf__FRAMES', 3, 3, nan, nan, nan,
-                       nan),
-                   ('cde__cdecf__FRAMES', 'cde', 'cde', 'cdecf__FRAMES', 3, 12, nan, nan, nan, nan),
-                   ('FRAMES', 'FRAMES', 'FRAMES', '', 6, 36, nan, nan, nan, nan), (
-                       'f__cf__cdecf__FRAMES', 'f', 'f', 'cf__cdecf__FRAMES', nan, 6, nan, nan, nan,
-                       nan), (
-                       'eg__cdeeg__cdeeg+__FRAMES', 'eg', 'eg', 'cdeeg__cdeeg+__FRAMES', nan, 12,
-                       nan,
-                       nan, nan, nan),
-                   ('e__eg__FRAMES', 'e', 'e', 'eg__FRAMES', nan, 5, nan, nan, nan, nan),
-                   ('g__gh__FRAMES', 'g', 'g', 'gh__FRAMES', nan, 7, nan, nan, nan, nan),
-                   ('h__gh__FRAMES', 'h', 'h', 'gh__FRAMES', nan, 8, nan, nan, nan, nan),
-                   ('cdeeg+__FRAMES', 'cdeeg+', 'cdeeg+', 'FRAMES', 3, 19, nan, nan, nan, nan),
-                   ('gh__FRAMES', 'gh', 'gh', 'FRAMES', nan, 15, nan, nan, nan, nan), (
-                       'e__cde__cdecf__FRAMES', 'e', 'e', 'cde__cdecf__FRAMES', nan, 5, nan, nan,
-                       nan,
-                       nan),
-                   ('cf__cdecf__FRAMES', 'cf', 'cf', 'cdecf__FRAMES', 3, 9, nan, nan, nan, nan),
-                   ('a__ab__FRAMES', 'a', 'a', 'ab__FRAMES', 1, 1, nan, nan, nan, nan), (
-                       'd__cde__cdecf__FRAMES', 'd', 'd', 'cde__cdecf__FRAMES', nan, 4, nan, nan,
-                       nan,
-                       nan)}
+        w_lines = {('27', 'g', 'g', '25', nan, 7, nan, nan, nan, nan),
+                   ('13', 'c', 'c', '12', 3, 3, nan, nan, nan, nan),
+                   ('25', 'eg', 'eg', '20', nan, 12, nan, nan, nan, nan),
+                   ('24', 'e', 'e', '21', nan, 5, nan, nan, nan, nan),
+                   ('12', 'cde', 'cde', '11', 3, 12, nan, nan, nan, nan),
+                   ('16', 'cf', 'cf', '11', 3, 9, nan, nan, nan, nan),
+                   ('20', 'cdeeg', 'cdeeg', '19', 3, 19, nan, nan, nan, nan),
+                   ('18', 'f', 'f', '16', nan, 6, nan, nan, nan, nan),
+                   ('15', 'e', 'e', '12', nan, 5, nan, nan, nan, nan),
+                   ('2', 'ab', 'ab', '1', 3, 3, nan, nan, nan, nan),
+                   ('1', 'FRAMES', 'FRAMES', '', 6, 36, nan, nan, nan, nan),
+                   ('8', 'gh', 'gh', '1', nan, 15, nan, nan, nan, nan),
+                   ('26', 'e', 'e', '25', nan, 5, nan, nan, nan, nan),
+                   ('19', 'cdeeg+', 'cdeeg+', '1', 3, 19, nan, nan, nan, nan),
+                   ('17', 'c', 'c', '16', 3, 3, nan, nan, nan, nan),
+                   ('23', 'd', 'd', '21', nan, 4, nan, nan, nan, nan),
+                   ('11', 'cdecf', 'cdecf', '1', 3, 18, nan, nan, nan, nan),
+                   ('7', 'g', 'g', '5', nan, 7, nan, nan, nan, nan),
+                   ('9', 'g', 'g', '8', nan, 7, nan, nan, nan, nan),
+                   ('4', 'b', 'b', '2', 2, 2, nan, nan, nan, nan),
+                   ('5', 'eg', 'eg', '1', nan, 12, nan, nan, nan, nan),
+                   ('3', 'a', 'a', '2', 1, 1, nan, nan, nan, nan),
+                   ('22', 'c', 'c', '21', 3, 3, nan, nan, nan, nan),
+                   ('21', 'cde', 'cde', '20', 3, 12, nan, nan, nan, nan),
+                   ('14', 'd', 'd', '12', nan, 4, nan, nan, nan, nan),
+                   ('10', 'h', 'h', '8', nan, 8, nan, nan, nan, nan),
+                   ('6', 'e', 'e', '5', nan, 5, nan, nan, nan, nan)}
         self.assertEqual(lines, w_lines)
 
     @test_for(DataTable.fill_parameters)
@@ -230,52 +209,33 @@ class TestGenerateDataTable(unittest.TestCase):
         data.fill_parameters(ref_abundance=CT_REF_AB, parent_dict=CT_ONTO,
                              root_item=ROOTS[METACYC], set_abundance=CT_AB, names=CT_LAB)
         lines = set(data.get_col())
-        w_lines = {('ab__FRAMES', 'ab', 'AB', 'FRAMES', 3, 3, nan, nan, nan, nan), (
-            'd__cde__cdecf__FRAMES', 'd', 'D', 'cde__cdecf__FRAMES', nan, 4, nan, nan, nan, nan),
-                   ('b__ab__FRAMES', 'b', 'B', 'ab__FRAMES', 2, 2, nan, nan, nan, nan),
-                   ('h__gh__FRAMES', 'h', 'H', 'gh__FRAMES', nan, 8, nan, nan, nan, nan), (
-                       'g__eg__cdeeg__cdeeg+__FRAMES', 'g', 'G', 'eg__cdeeg__cdeeg+__FRAMES', nan,
-                       7,
-                       nan, nan, nan, nan),
-                   ('cdeeg+__FRAMES', 'cdeeg+', 'CDEEG+', 'FRAMES', 3, 19, nan, nan, nan, nan),
-                   ('FRAMES', 'FRAMES', 'FRAMES', '', 6, 36, nan, nan, nan, nan),
-                   ('g__eg__FRAMES', 'g', 'G', 'eg__FRAMES', nan, 7, nan, nan, nan, nan), (
-                       'cde__cdeeg__cdeeg+__FRAMES', 'cde', 'CDE', 'cdeeg__cdeeg+__FRAMES', 3, 12,
-                       nan,
-                       nan, nan, nan), (
-                       'eg__cdeeg__cdeeg+__FRAMES', 'eg', 'EG', 'cdeeg__cdeeg+__FRAMES', nan, 12,
-                       nan,
-                       nan, nan, nan), (
-                       'c__cde__cdeeg__cdeeg+__FRAMES', 'c', 'C', 'cde__cdeeg__cdeeg+__FRAMES', 3,
-                       3,
-                       nan, nan, nan, nan),
-                   ('g__gh__FRAMES', 'g', 'G', 'gh__FRAMES', nan, 7, nan, nan, nan, nan),
-                   ('e__eg__FRAMES', 'e', 'E', 'eg__FRAMES', nan, 5, nan, nan, nan, nan),
-                   ('eg__FRAMES', 'eg', 'EG', 'FRAMES', nan, 12, nan, nan, nan, nan), (
-                       'e__eg__cdeeg__cdeeg+__FRAMES', 'e', 'E', 'eg__cdeeg__cdeeg+__FRAMES', nan,
-                       5,
-                       nan, nan, nan, nan), (
-                       'c__cf__cdecf__FRAMES', 'c', 'C', 'cf__cdecf__FRAMES', 3, 3, nan, nan, nan,
-                       nan),
-                   ('gh__FRAMES', 'gh', 'GH', 'FRAMES', nan, 15, nan, nan, nan, nan), (
-                       'cdeeg__cdeeg+__FRAMES', 'cdeeg', 'CDEEG', 'cdeeg+__FRAMES', 3, 19, nan, nan,
-                       nan, nan), (
-                       'e__cde__cdeeg__cdeeg+__FRAMES', 'e', 'E', 'cde__cdeeg__cdeeg+__FRAMES', nan,
-                       5,
-                       nan, nan, nan, nan), (
-                       'd__cde__cdeeg__cdeeg+__FRAMES', 'd', 'D', 'cde__cdeeg__cdeeg+__FRAMES', nan,
-                       4,
-                       nan, nan, nan, nan), (
-                       'c__cde__cdecf__FRAMES', 'c', 'C', 'cde__cdecf__FRAMES', 3, 3, nan, nan, nan,
-                       nan), ('a__ab__FRAMES', 'a', 'a', 'ab__FRAMES', 1, 1, nan, nan, nan, nan), (
-                       'e__cde__cdecf__FRAMES', 'e', 'E', 'cde__cdecf__FRAMES', nan, 5, nan, nan,
-                       nan,
-                       nan),
-                   ('cdecf__FRAMES', 'cdecf', 'CDECF', 'FRAMES', 3, 18, nan, nan, nan, nan),
-                   ('cde__cdecf__FRAMES', 'cde', 'CDE', 'cdecf__FRAMES', 3, 12, nan, nan, nan, nan),
-                   ('cf__cdecf__FRAMES', 'cf', 'CF', 'cdecf__FRAMES', 3, 9, nan, nan, nan, nan), (
-                       'f__cf__cdecf__FRAMES', 'f', 'F', 'cf__cdecf__FRAMES', nan, 6, nan, nan, nan,
-                       nan)}
+        w_lines = {('9', 'g', 'G', '8', nan, 7, nan, nan, nan, nan),
+                   ('19', 'cdeeg+', 'CDEEG+', '1', 3, 19, nan, nan, nan, nan),
+                   ('14', 'd', 'D', '12', nan, 4, nan, nan, nan, nan),
+                   ('23', 'd', 'D', '21', nan, 4, nan, nan, nan, nan),
+                   ('6', 'e', 'E', '5', nan, 5, nan, nan, nan, nan),
+                   ('25', 'eg', 'EG', '20', nan, 12, nan, nan, nan, nan),
+                   ('16', 'cf', 'CF', '11', 3, 9, nan, nan, nan, nan),
+                   ('10', 'h', 'H', '8', nan, 8, nan, nan, nan, nan),
+                   ('8', 'gh', 'GH', '1', nan, 15, nan, nan, nan, nan),
+                   ('1', 'FRAMES', 'Root', '', 6, 36, nan, nan, nan, nan),
+                   ('27', 'g', 'G', '25', nan, 7, nan, nan, nan, nan),
+                   ('17', 'c', 'C', '16', 3, 3, nan, nan, nan, nan),
+                   ('15', 'e', 'E', '12', nan, 5, nan, nan, nan, nan),
+                   ('4', 'b', 'B', '2', 2, 2, nan, nan, nan, nan),
+                   ('5', 'eg', 'EG', '1', nan, 12, nan, nan, nan, nan),
+                   ('24', 'e', 'E', '21', nan, 5, nan, nan, nan, nan),
+                   ('3', 'a', 'a', '2', 1, 1, nan, nan, nan, nan),
+                   ('26', 'e', 'E', '25', nan, 5, nan, nan, nan, nan),
+                   ('21', 'cde', 'CDE', '20', 3, 12, nan, nan, nan, nan),
+                   ('20', 'cdeeg', 'CDEEG', '19', 3, 19, nan, nan, nan, nan),
+                   ('13', 'c', 'C', '12', 3, 3, nan, nan, nan, nan),
+                   ('12', 'cde', 'CDE', '11', 3, 12, nan, nan, nan, nan),
+                   ('22', 'c', 'C', '21', 3, 3, nan, nan, nan, nan),
+                   ('18', 'f', 'F', '16', nan, 6, nan, nan, nan, nan),
+                   ('11', 'cdecf', 'CDECF', '1', 3, 18, nan, nan, nan, nan),
+                   ('2', 'ab', 'AB', '1', 3, 3, nan, nan, nan, nan),
+                   ('7', 'g', 'G', '5', nan, 7, nan, nan, nan, nan)}
         self.assertEqual(lines, w_lines)
 
     @test_for(DataTable.fill_parameters)
@@ -285,24 +245,19 @@ class TestGenerateDataTable(unittest.TestCase):
                              root_item=ROOTS[METACYC], set_abundance=CT_AB, names=None,
                              ref_base=False)
         lines = set(data.get_col())
-        w_lines = {('a__ab__FRAMES', 'a', 'a', 'ab__FRAMES', 1, 1, nan, nan, nan, nan),
-                   ('cde__cdecf__FRAMES', 'cde', 'cde', 'cdecf__FRAMES', 3, 12, nan, nan, nan, nan),
-                   ('c__cde__cdeeg__cdeeg+__FRAMES', 'c', 'c', 'cde__cdeeg__cdeeg+__FRAMES', 3, 3,
-                    nan, nan, nan, nan),
-                   ('c__cde__cdecf__FRAMES', 'c', 'c', 'cde__cdecf__FRAMES', 3, 3, nan, nan, nan,
-                    nan),
-                   ('cdeeg__cdeeg+__FRAMES', 'cdeeg', 'cdeeg', 'cdeeg+__FRAMES', 3, 19, nan, nan,
-                    nan, nan),
-                   ('FRAMES', 'FRAMES', 'FRAMES', '', 6, 36, nan, nan, nan, nan),
-                   ('b__ab__FRAMES', 'b', 'b', 'ab__FRAMES', 2, 2, nan, nan, nan, nan),
-                   ('cde__cdeeg__cdeeg+__FRAMES', 'cde', 'cde', 'cdeeg__cdeeg+__FRAMES', 3, 12, nan,
-                    nan, nan, nan),
-                   ('ab__FRAMES', 'ab', 'ab', 'FRAMES', 3, 3, nan, nan, nan, nan),
-                   ('c__cf__cdecf__FRAMES', 'c', 'c', 'cf__cdecf__FRAMES', 3, 3, nan, nan, nan,
-                    nan),
-                   ('cf__cdecf__FRAMES', 'cf', 'cf', 'cdecf__FRAMES', 3, 9, nan, nan, nan, nan),
-                   ('cdeeg+__FRAMES', 'cdeeg+', 'cdeeg+', 'FRAMES', 3, 19, nan, nan, nan, nan),
-                   ('cdecf__FRAMES', 'cdecf', 'cdecf', 'FRAMES', 3, 18, nan, nan, nan, nan)}
+        w_lines = {('4', 'b', 'b', '2', 2, 2, nan, nan, nan, nan),
+                   ('7', 'c', 'c', '6', 3, 3, nan, nan, nan, nan),
+                   ('13', 'c', 'c', '12', 3, 3, nan, nan, nan, nan),
+                   ('8', 'cf', 'cf', '5', 3, 9, nan, nan, nan, nan),
+                   ('3', 'a', 'a', '2', 1, 1, nan, nan, nan, nan),
+                   ('2', 'ab', 'ab', '1', 3, 3, nan, nan, nan, nan),
+                   ('9', 'c', 'c', '8', 3, 3, nan, nan, nan, nan),
+                   ('10', 'cdeeg+', 'cdeeg+', '1', 3, 19, nan, nan, nan, nan),
+                   ('12', 'cde', 'cde', '11', 3, 12, nan, nan, nan, nan),
+                   ('5', 'cdecf', 'cdecf', '1', 3, 18, nan, nan, nan, nan),
+                   ('6', 'cde', 'cde', '5', 3, 12, nan, nan, nan, nan),
+                   ('1', 'FRAMES', 'FRAMES', '', 6, 36, nan, nan, nan, nan),
+                   ('11', 'cdeeg', 'cdeeg', '10', 3, 19, nan, nan, nan, nan)}
         self.assertEqual(lines, w_lines)
 
     @test_for(DataTable.fill_parameters)
@@ -312,24 +267,19 @@ class TestGenerateDataTable(unittest.TestCase):
                              root_item=ROOTS[METACYC], set_abundance=CT_AB, names=None,
                              ref_base=False)
         lines = set(data.get_col())
-        w_lines = {('b__ab__FRAMES', 'b', 'b', 'ab__FRAMES', 2, 2, nan, nan, nan, nan),
-                   ('ab__FRAMES', 'ab', 'ab', 'FRAMES', 3, 3, nan, nan, nan, nan),
-                   ('cde__cdeeg__cdeeg+__FRAMES', 'cde', 'cde', 'cdeeg__cdeeg+__FRAMES', 3, 3, nan,
-                    nan, nan, nan),
-                   ('c__cde__cdecf__FRAMES', 'c', 'c', 'cde__cdecf__FRAMES', 3, 3, nan, nan, nan,
-                    nan),
-                   ('cf__cdecf__FRAMES', 'cf', 'cf', 'cdecf__FRAMES', 3, 3, nan, nan, nan, nan),
-                   ('cde__cdecf__FRAMES', 'cde', 'cde', 'cdecf__FRAMES', 3, 3, nan, nan, nan, nan),
-                   ('cdeeg+__FRAMES', 'cdeeg+', 'cdeeg+', 'FRAMES', 3, 3, nan, nan, nan, nan),
-                   ('cdecf__FRAMES', 'cdecf', 'cdecf', 'FRAMES', 3, 3, nan, nan, nan, nan),
-                   ('cdeeg__cdeeg+__FRAMES', 'cdeeg', 'cdeeg', 'cdeeg+__FRAMES', 3, 3, nan, nan,
-                    nan, nan),
-                   ('FRAMES', 'FRAMES', 'FRAMES', '', 6, 6, nan, nan, nan, nan),
-                   ('c__cf__cdecf__FRAMES', 'c', 'c', 'cf__cdecf__FRAMES', 3, 3, nan, nan, nan,
-                    nan),
-                   ('c__cde__cdeeg__cdeeg+__FRAMES', 'c', 'c', 'cde__cdeeg__cdeeg+__FRAMES', 3, 3,
-                    nan, nan, nan, nan),
-                   ('a__ab__FRAMES', 'a', 'a', 'ab__FRAMES', 1, 1, nan, nan, nan, nan)}
+        w_lines = {('1', 'FRAMES', 'FRAMES', '', 6, 6, nan, nan, nan, nan),
+                   ('8', 'cf', 'cf', '5', 3, 3, nan, nan, nan, nan),
+                   ('13', 'c', 'c', '12', 3, 3, nan, nan, nan, nan),
+                   ('9', 'c', 'c', '8', 3, 3, nan, nan, nan, nan),
+                   ('11', 'cdeeg', 'cdeeg', '10', 3, 3, nan, nan, nan, nan),
+                   ('7', 'c', 'c', '6', 3, 3, nan, nan, nan, nan),
+                   ('3', 'a', 'a', '2', 1, 1, nan, nan, nan, nan),
+                   ('12', 'cde', 'cde', '11', 3, 3, nan, nan, nan, nan),
+                   ('2', 'ab', 'ab', '1', 3, 3, nan, nan, nan, nan),
+                   ('10', 'cdeeg+', 'cdeeg+', '1', 3, 3, nan, nan, nan, nan),
+                   ('6', 'cde', 'cde', '5', 3, 3, nan, nan, nan, nan),
+                   ('5', 'cdecf', 'cdecf', '1', 3, 3, nan, nan, nan, nan),
+                   ('4', 'b', 'b', '2', 2, 2, nan, nan, nan, nan)}
         self.assertEqual(lines, w_lines)
 
 
@@ -343,9 +293,9 @@ class TestAddProportionDataTable(unittest.TestCase):
         data.calculate_proportions(True)
         for i in range(data.len):
             if np.isnan(data.prop[i]):
-                self.assertTrue(np.isnan(W_PROP[i]))
+                self.assertTrue(np.isnan(W_PROP[data.ids[i]]))
             else:
-                self.assertEqual(data.prop[i], W_PROP[i])
+                self.assertEqual(data.prop[i], W_PROP[data.ids[i]])
 
     @test_for(DataTable.calculate_proportions)
     def test_get_data_proportion_no_relative_ref(self):
@@ -354,7 +304,7 @@ class TestAddProportionDataTable(unittest.TestCase):
                              root_item=ROOTS[METACYC], set_abundance=CT_AB, names=CT_LAB)
         data.calculate_proportions(True)
         for i in range(data.len):
-            self.assertEqual(data.ref_prop[i], W_REF_PROP[i])
+            self.assertEqual(data.ref_prop[i], W_REF_PROP[data.ids[i]])
 
     @test_for(DataTable.calculate_proportions)
     def test_get_data_proportion_relative(self):
@@ -362,8 +312,8 @@ class TestAddProportionDataTable(unittest.TestCase):
         data.fill_parameters(ref_abundance=CT_REF_AB, parent_dict=CT_ONTO,
                              root_item=ROOTS[METACYC], set_abundance=CT_AB, names=CT_LAB)
         data.calculate_proportions(True)
-        for k, v in W_REL_PROP.items():
-            self.assertEqual(data.relative_prop[data.ids.index(k)], v)
+        for i in range(data.len):
+            self.assertEqual(data.relative_prop[i], W_REL_PROP[data.ids[i]])
 
 
 # ENRICHMENT TESTS
@@ -409,18 +359,17 @@ class TestEnrichmentAnalysis(unittest.TestCase):
         lines = set(data.get_col())
         exp_significant = {'01': 3.799562441228011e-06, '03': 0.001125114927936431,
                            '02': 0.003092409570144631}
-        exp_lines = {('01__00', '01', '1', '00', 5, 40, 0.1, 0.4, 400000, -5.420266413988895),
-                     ('02__00', '02', '2', '00', 25, 30, 0.5, 0.3, 300000, 2.509702991379166),
-                     ('03__00', '03', '3', '00', 20, 20, 0.4, 0.2, 200000, 2.948803113091024),
-                     ('05__01__00', '05', '5', '01__00', 5, 20, 0.1, 0.2, 200000,
-                      -1.103304935668835),
-                     ('00', '00', '00', '', 50, 100, 1.0, 1.0, 1000000, 0.0),
-                     ('04__00', '04', '4', '00', 1, 10, 0.02, 0.1, 100000, -1.2341542222355069),
-                     ('06__01__00', '06', '6', '01__00', nan, 5, nan, 0.05, 50000, nan),
-                     ('08__02__00', '08', '8', '02__00', 1, 1, 0.02, 0.01, 10000,
-                      0.4034095751193356),
-                     ('07__01__00', '07', '7', '01__00', nan, 1, nan, 0.01, 10000, nan),
-                     ('09__02__00', '09', '9', '02__00', 1, 3, 0.02, 0.03, 30000, 0.0)}
+        exp_lines = {('8', '09', '9', '6', 1, 3, 0.02, 0.03, 30000, 0.0),
+                     ('9', '03', '3', '1', 20, 20, 0.4, 0.2, 200000, 2.948803113091024),
+                     ('5', '07', '7', '2', nan, 1, nan, 0.01, 10000, nan),
+                     ('2', '01', '1', '1', 5, 40, 0.1, 0.4, 400000, -5.420266413988895),
+                     ('6', '02', '2', '1', 25, 30, 0.5, 0.3, 300000, 2.509702991379166),
+                     ('4', '06', '6', '2', nan, 5, nan, 0.05, 50000, nan),
+                     ('7', '08', '8', '6', 1, 1, 0.02, 0.01, 10000, 0.4034095751193356),
+                     ('10', '04', '4', '1', 1, 10, 0.02, 0.1, 100000, -1.2341542222355069),
+                     ('1', '00', '0', '', 50, 100, 1.0, 1.0, 1000000, 0.0),
+                     ('3', '05', '5', '2', 5, 20, 0.1, 0.2, 200000, -1.103304935668835)}
+
         for line in lines:
             line = tuple([nan if type(x) != str and np.isnan(x) else x for x in line])
             self.assertIn(line, exp_lines)
@@ -434,18 +383,16 @@ class TestEnrichmentAnalysis(unittest.TestCase):
         data.calculate_proportions(True)
         significant = data.make_enrichment_analysis(HYPERGEO_TEST)
         lines = set(data.get_col())
-        exp_lines = {('02__00', '02', '2', '00', 25, 30, 0.5, 0.3, 300000, 4.692610428021241),
-                     ('00', '00', '00', '', 50, 100, 1.0, 1.0, 1000000, 0.3010299956639812),
-                     ('08__02__00', '08', '8', '02__00', 1, 1, 0.02, 0.01, 10000, -0.0),
-                     ('03__00', '03', '3', '00', 20, 20, 0.4, 0.2, 200000, 6.754831139005899),
-                     ('05__01__00', '05', '5', '01__00', 5, 20, 0.1, 0.2, 200000,
-                      -1.6413993451973743),
-                     ('09__02__00', '09', '9', '02__00', 1, 3, 0.02, 0.03, 30000,
-                      -1.4464911998299308e-16),
-                     ('06__01__00', '06', '6', '01__00', nan, 5, nan, 0.05, 50000, nan),
-                     ('01__00', '01', '1', '00', 5, 40, 0.1, 0.4, 400000, -9.138873998573988),
-                     ('04__00', '04', '4', '00', 1, 10, 0.02, 0.1, 100000, -1.8051946563380086),
-                     ('07__01__00', '07', '7', '01__00', nan, 1, nan, 0.01, 10000, nan)}
+        exp_lines = {('6', '02', '2', '1', 25, 30, 0.5, 0.3, 300000, 4.692610428021241),
+                     ('2', '01', '1', '1', 5, 40, 0.1, 0.4, 400000, -9.138873998573988),
+                     ('1', '00', '0', '', 50, 100, 1.0, 1.0, 1000000, 0.3010299956639812),
+                     ('10', '04', '4', '1', 1, 10, 0.02, 0.1, 100000, -1.8051946563380086),
+                     ('3', '05', '5', '2', 5, 20, 0.1, 0.2, 200000, -1.6413993451973743),
+                     ('9', '03', '3', '1', 20, 20, 0.4, 0.2, 200000, 6.754831139005899),
+                     ('4', '06', '6', '2', nan, 5, nan, 0.05, 50000, nan),
+                     ('8', '09', '9', '6', 1, 3, 0.02, 0.03, 30000, -1.4464911998299308e-16),
+                     ('5', '07', '7', '2', nan, 1, nan, 0.01, 10000, nan),
+                     ('7', '08', '8', '6', 1, 1, 0.02, 0.01, 10000, -0.0)}
         exp_significant = {'01': 7.263166523971598e-10, '03': 1.7586072571039978e-07,
                            '02': 2.0295024128400847e-05}
         for line in lines:
@@ -463,18 +410,17 @@ class TestEnrichmentAnalysis(unittest.TestCase):
         data.calculate_proportions(True)
         significant = data.make_enrichment_analysis(HYPERGEO_TEST, scores)
         lines = set(data.get_col())
-        exp_lines = {('05__01__00', '05', '5', '01__00', 5, 20, 0.1, 0.2, 200000,
-                      0.045757490560675115),
-                     ('02__00', '02', '2', '00', 25, 30, 0.5, 0.3, 300000, 3.3979400086720375),
-                     ('01__00', '01', '1', '00', 5, 40, 0.1, 0.4, 400000, 0.6989700043360187),
-                     ('04__00', '04', '4', '00', 1, 10, 0.02, 0.1, 100000, 5.096910013008056),
-                     ('07__01__00', '07', '7', '01__00', nan, 1, nan, 0.01, 10000, nan),
-                     ('00', '00', '00', '', 50, 100, 1.0, 1.0, 1000000, 1.3010299956639813),
-                     ('09__02__00', '09', '9', '02__00', 1, 3, 0.02, 0.03, 30000,
-                      4.638272163982407),
-                     ('03__00', '03', '3', '00', 20, 20, 0.4, 0.2, 200000, 0.3010299956639812),
-                     ('06__01__00', '06', '6', '01__00', nan, 5, nan, 0.05, 50000, 2.0),
-                     ('08__02__00', '08', '8', '02__00', 1, 1, 0.02, 0.01, 10000, nan)}
+        print(lines)
+        exp_lines = {('9', '03', '3', '1', 20, 20, 0.4, 0.2, 200000, 0.3010299956639812),
+                     ('8', '09', '9', '6', 1, 3, 0.02, 0.03, 30000, 4.638272163982407),
+                     ('2', '01', '1', '1', 5, 40, 0.1, 0.4, 400000, 0.6989700043360187),
+                     ('3', '05', '5', '2', 5, 20, 0.1, 0.2, 200000, 0.045757490560675115),
+                     ('4', '06', '6', '2', nan, 5, nan, 0.05, 50000, 2.0),
+                     ('6', '02', '2', '1', 25, 30, 0.5, 0.3, 300000, 3.3979400086720375),
+                     ('5', '07', '7', '2', nan, 1, nan, 0.01, 10000, nan),
+                     ('7', '08', '8', '6', 1, 1, 0.02, 0.01, 10000, nan),
+                     ('1', '00', '0', '', 50, 100, 1.0, 1.0, 1000000, 1.3010299956639813),
+                     ('10', '04', '4', '1', 1, 10, 0.02, 0.1, 100000, 5.096910013008056)}
         exp_significant = {'04': 8e-06, '09': 2.3e-05, '02': 0.0004}
         for line in lines:
             line = tuple([nan if type(x) != str and np.isnan(x) else x for x in line])
@@ -496,13 +442,13 @@ ROOT_ONTO = {'01': ['00'], '02': ['00'], '03': ['00'], '04': ['00'], '05': ['01'
              '06': ['01'], '07': ['01'], '08': ['02'], '09': ['02'], 'R-1': ['R'], 'R-2': ['R-1']}
 
 
-PATH_ONTO = {'a': ['ab', 'cdeeg++++'], 'b': ['ab'], 'c': ['cde', 'cf'], 'd': ['cde'], 'e': ['cde', 'eg'],
-             'f': ['cf'], 'g': ['gh', 'eg'], 'h': ['gh'], 'ab': [ROOTS[METACYC]],
-             'cde': ['cde+'], 'cde+': ['cde++'], 'cde++': ['cde+++'], 'cde+++': ['cdecf', 'cdeeg'],
-             'cf': ['cdecf'], 'eg': ['cdeeg', ROOTS[METACYC]], 'gh': [ROOTS[METACYC]],
-             'cdecf': [ROOTS[METACYC]],
-             'cdeeg': ['cdeeg+'], 'cdeeg+': ['cdeeg++'], 'cdeeg++': ['cdeeg+++'],
-             'cdeeg+++': ['cdeeg++++'], 'cdeeg++++': [ROOTS[METACYC]]}
+PATH_ONTO = {'a': ['ab', 'cdeeg++++'], 'b': ['ab'], 'c': ['cde', 'cf'], 'd': ['cde'],
+             'e': ['cde', 'eg'], 'f': ['cf'], 'g': ['gh', 'eg'], 'h': ['gh'],
+             'ab': [ROOTS[METACYC]], 'cde': ['cde+'], 'cde+': ['cde++'], 'cde++': ['cde+++'],
+             'cde+++': ['cdecf', 'cdeeg'], 'cf': ['cdecf'], 'eg': ['cdeeg', ROOTS[METACYC]],
+             'gh': [ROOTS[METACYC]], 'cdecf': [ROOTS[METACYC]], 'cdeeg': ['cdeeg+'],
+             'cdeeg+': ['cdeeg++'], 'cdeeg++': ['cdeeg+++'], 'cdeeg+++': ['cdeeg++++'],
+             'cdeeg++++': [ROOTS[METACYC]]}
 PATH_AB = {'FRAMES': 6, 'cde': 3, 'cde+': 3, 'cde++': 3, 'cde+++': 3, 'cf': 3, 'cdecf': 3,
            'cdeeg++++': 3, 'cdeeg+++': 3, 'cdeeg++': 3, 'cdeeg+': 3, 'cdeeg': 3, 'c': 3, 'ab': 3,
            'b': 2, 'a': 1}
@@ -533,24 +479,15 @@ class TestTopologyManagement(unittest.TestCase):
         data.calculate_proportions(True)
         data.cut_root(ROOT_CUT)
         lines = set(data.get_col())
-        exp_lines = {('01__00__R-2__R-1__R', '01', '1', '00', 5, 40, 0.1, 0.4, 400000, nan),
-                     (
-                         '06__01__00__R-2__R-1__R', '06', '6', '01__00__R-2__R-1__R', nan, 5, nan,
-                         0.05,
-                         50000, nan),
-                     (
-                         '07__01__00__R-2__R-1__R', '07', '7', '01__00__R-2__R-1__R', nan, 1, nan,
-                         0.01,
-                         10000, nan),
-                     ('05__01__00__R-2__R-1__R', '05', '5', '01__00__R-2__R-1__R', 5, 20, 0.1, 0.2,
-                      200000, nan),
-                     ('03__00__R-2__R-1__R', '03', '3', '00', 20, 20, 0.4, 0.2, 200000, nan),
-                     ('04__00__R-2__R-1__R', '04', '4', '00', 1, 10, 0.02, 0.1, 100000, nan),
-                     ('09__02__00__R-2__R-1__R', '09', '9', '02__00__R-2__R-1__R', 1, 3, 0.02, 0.03,
-                      30000, nan),
-                     ('02__00__R-2__R-1__R', '02', '2', '00', 25, 30, 0.5, 0.3, 300000, nan),
-                     ('08__02__00__R-2__R-1__R', '08', '8', '02__00__R-2__R-1__R', 1, 1, 0.02, 0.01,
-                      10000, nan)}
+        exp_lines = {('12', '03', '3', '4', 20, 20, 0.4, 0.2, 200000, nan),
+                     ('13', '04', '4', '4', 1, 10, 0.02, 0.1, 100000, nan),
+                     ('11', '09', '9', '9', 1, 3, 0.02, 0.03, 30000, nan),
+                     ('9', '02', '2', '4', 25, 30, 0.5, 0.3, 300000, nan),
+                     ('10', '08', '8', '9', 1, 1, 0.02, 0.01, 10000, nan),
+                     ('8', '07', '7', '5', nan, 1, nan, 0.01, 10000, nan),
+                     ('6', '05', '5', '5', 5, 20, 0.1, 0.2, 200000, nan),
+                     ('5', '01', '1', '4', 5, 40, 0.1, 0.4, 400000, nan),
+                     ('7', '06', '6', '5', nan, 5, nan, 0.05, 50000, nan)}
         self.assertEqual(data.len, 9)
         self.assertEqual(len(lines), len(exp_lines))
         for line in lines:
@@ -564,24 +501,15 @@ class TestTopologyManagement(unittest.TestCase):
         data.calculate_proportions(True)
         data.cut_root(ROOT_TOTAL_CUT)
         lines = set(data.get_col())
-        exp_lines = {('01__00__R-2__R-1__R', '01', '1', '', 5, 40, 0.1, 0.4, 400000, nan),
-                     (
-                         '06__01__00__R-2__R-1__R', '06', '6', '01__00__R-2__R-1__R', nan, 5, nan,
-                         0.05,
-                         50000, nan),
-                     (
-                         '07__01__00__R-2__R-1__R', '07', '7', '01__00__R-2__R-1__R', nan, 1, nan,
-                         0.01,
-                         10000, nan),
-                     ('05__01__00__R-2__R-1__R', '05', '5', '01__00__R-2__R-1__R', 5, 20, 0.1, 0.2,
-                      200000, nan),
-                     ('03__00__R-2__R-1__R', '03', '3', '', 20, 20, 0.4, 0.2, 200000, nan),
-                     ('04__00__R-2__R-1__R', '04', '4', '', 1, 10, 0.02, 0.1, 100000, nan),
-                     ('09__02__00__R-2__R-1__R', '09', '9', '02__00__R-2__R-1__R', 1, 3, 0.02, 0.03,
-                      30000, nan),
-                     ('02__00__R-2__R-1__R', '02', '2', '', 25, 30, 0.5, 0.3, 300000, nan),
-                     ('08__02__00__R-2__R-1__R', '08', '8', '02__00__R-2__R-1__R', 1, 1, 0.02, 0.01,
-                      10000, nan)}
+        exp_lines = {('9', '02', '2', '', 25, 30, 0.5, 0.3, 300000, nan),
+                     ('6', '05', '5', '5', 5, 20, 0.1, 0.2, 200000, nan),
+                     ('10', '08', '8', '9', 1, 1, 0.02, 0.01, 10000, nan),
+                     ('13', '04', '4', '', 1, 10, 0.02, 0.1, 100000, nan),
+                     ('5', '01', '1', '', 5, 40, 0.1, 0.4, 400000, nan),
+                     ('11', '09', '9', '9', 1, 3, 0.02, 0.03, 30000, nan),
+                     ('7', '06', '6', '5', nan, 5, nan, 0.05, 50000, nan),
+                     ('12', '03', '3', '', 20, 20, 0.4, 0.2, 200000, nan),
+                     ('8', '07', '7', '5', nan, 1, nan, 0.01, 10000, nan)}
         self.assertEqual(data.len, 9)
         self.assertEqual(len(lines), len(exp_lines))
         for line in lines:
