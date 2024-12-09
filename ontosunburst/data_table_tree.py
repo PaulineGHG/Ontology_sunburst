@@ -46,6 +46,7 @@ PATH_BOUND = 'bound'
 # CLASS
 # ==================================================================================================
 class DataTable:
+    C_ID = 0
     """
     DataTable class: stores figure parameters values.
 
@@ -74,6 +75,7 @@ class DataTable:
     self.len: int
         Number of sectors
     """
+
     def __init__(self):
         self.ids = list()
         self.onto_ids = list()
@@ -91,7 +93,7 @@ class DataTable:
         string = ''
         data = self.get_data_dict()
         for k, v in data.items():
-            string += f'{k}\n{"-"*len(k)}\n{v}\n'
+            string += f'{k}\n{"-" * len(k)}\n{v}\n'
         return string
 
     def get_data_dict(self):
@@ -122,48 +124,114 @@ class DataTable:
         ref_base: bool
             True to have the reference as base, False otherwise
         """
-        if ref_base:
-            for c_onto_id, c_ref_abundance in ref_abundance.items():
-                c_abundance = get_set2_abundance(set_abundance, c_onto_id)
-                self.__fill_id_parameter(c_onto_id, root_item, names, parent_dict, c_abundance,
-                                         c_ref_abundance)
-        else:
-            for c_onto_id, c_abundance in set_abundance.items():
-                c_ref_abundance = get_set2_abundance(ref_abundance, c_onto_id)
-                self.__fill_id_parameter(c_onto_id, root_item, names, parent_dict, c_abundance,
-                                         c_ref_abundance)
+        children_dict = get_children_dict(parent_dict)
+        self.dag_traversal_rec(root_item, children_dict, names, ref_abundance, set_abundance,
+                               ref_base, '')
 
-    def __fill_id_parameter(self, c_onto_id: str, root_item: str, names: Dict[str, str],
-                            parent_dict: Dict[str, List[str]], c_abundance: float,
-                            c_ref_abundance: float):
-        """ Fill DataTable list attributes (self.ids, self.onto_ids, self.labels, self.parents,
-        self.count, self.ref_count) for one concept.
+    def dag_traversal_rec(self, c_onto_id: str, children_dict: Dict[str, List[str]],
+                          names: Dict[str, str], ref_abundance: Dict[str, float],
+                          set_abundance: Dict[str, float], ref_base: bool, p_id: str):
+        """ Fill parameters recursively from the root. Perform a traversing of the DAG and create a
+        vertex of a tree for each visited node (even if already visited, in this case vertex are
+        duplicated with the same label but a different ID)
 
         Parameters
         ----------
         c_onto_id: str
-            Ontology id of the concept
-        root_item: str
-            Root of the ontology
+            Ontology ID of the current concept visited
+        children_dict: Dict[str, List[str]]
+            Dictionary associating for each concept, the list of its -1 children concepts
         names: Dict[str, str]
             Dictionary associating for some or each ontology IDs, its label
-        parent_dict: Dict[str: List[str]]
-            Dictionary associating for each class, its parents classes
-        c_abundance: float
-            Abundance of the concept in the interest set
-        c_ref_abundance: float
-            Abundance of the concept in the reference set
+        ref_abundance: Dict[str, float]
+            Dictionary associating for each class the number of objects found belonging to the class
+            in the reference set
+        set_abundance: Dict[str, float]
+            Dictionary associating for each class the number of objects found belonging to the class
+            in the interest set
+        ref_base: bool
+            True to have the reference as base, False otherwise
+        p_id: str
+            ID (not ontology ID) of the parent concept
         """
-        if c_onto_id != root_item:
+        if (ref_base and c_onto_id in ref_abundance) or \
+                (not ref_base and c_onto_id in set_abundance):
+            self.C_ID += 1
+            c_id = str(self.C_ID)
             c_label = get_name(c_onto_id, names)
-            all_c_ids = get_all_ids(c_onto_id, c_onto_id, parent_dict, root_item, set())
-            for c_id in all_c_ids:
-                self.add_value(m_id=c_id, onto_id=c_onto_id, label=c_label,
-                               count=c_abundance, ref_count=c_ref_abundance,
-                               parent=c_id[len(c_onto_id) + 2:])  # Remove c_label__ prefix
-        else:
-            self.add_value(m_id=c_onto_id, onto_id=c_onto_id, label=c_onto_id,
-                           count=c_abundance, ref_count=c_ref_abundance, parent='')
+            c_ref_abundance = ref_abundance[c_onto_id]
+            c_abundance = get_set2_abundance(set_abundance, c_onto_id)
+            self.add_value(m_id=c_id, onto_id=c_onto_id, label=c_label, count=c_abundance,
+                           ref_count=c_ref_abundance, parent=p_id)
+            for child in children_dict[c_onto_id]:
+                self.dag_traversal_rec(child, children_dict, names, ref_abundance, set_abundance,
+                                       ref_base, c_id)
+
+    # def fill_parameters(self, set_abundance: Dict[str, float], ref_abundance: Dict[str, float],
+    #                     parent_dict: Dict[str, List[str]], root_item: str,
+    #                     names: Dict[str, str] = None, ref_base: bool = True):
+    #     """ Fill DataTable list attributes (self.ids, self.onto_ids, self.labels, self.parents,
+    #     self.count, self.ref_count)
+    #
+    #     Parameters
+    #     ----------
+    #     set_abundance: Dict[str, float]
+    #         Dictionary associating for each class the number of objects found belonging to the class
+    #         in the interest set
+    #     ref_abundance: Dict[str, float]
+    #         Dictionary associating for each class the number of objects found belonging to the class
+    #         in the reference set
+    #     parent_dict: Dict[str, List[str]]
+    #         Dictionary associating for each class, its parents classes
+    #     root_item: str
+    #         Name of the root item of the ontology
+    #     names: Dict[str, str]
+    #         Dictionary associating for some or each ontology IDs, its label
+    #     ref_base: bool
+    #         True to have the reference as base, False otherwise
+    #     """
+    #     if ref_base:
+    #         for c_onto_id, c_ref_abundance in ref_abundance.items():
+    #             c_abundance = get_set2_abundance(set_abundance, c_onto_id)
+    #             self.__fill_id_parameter(c_onto_id, root_item, names, parent_dict, c_abundance,
+    #                                      c_ref_abundance)
+    #     else:
+    #         for c_onto_id, c_abundance in set_abundance.items():
+    #             c_ref_abundance = get_set2_abundance(ref_abundance, c_onto_id)
+    #             self.__fill_id_parameter(c_onto_id, root_item, names, parent_dict, c_abundance,
+    #                                      c_ref_abundance)
+
+    # def __fill_id_parameter(self, c_onto_id: str, root_item: str, names: Dict[str, str],
+    #                         parent_dict: Dict[str, List[str]], c_abundance: float,
+    #                         c_ref_abundance: float):
+    #     """ Fill DataTable list attributes (self.ids, self.onto_ids, self.labels, self.parents,
+    #     self.count, self.ref_count) for one concept.
+    #
+    #     Parameters
+    #     ----------
+    #     c_onto_id: str
+    #         Ontology id of the concept
+    #     root_item: str
+    #         Root of the ontology
+    #     names: Dict[str, str]
+    #         Dictionary associating for some or each ontology IDs, its label
+    #     parent_dict: Dict[str: List[str]]
+    #         Dictionary associating for each class, its parents classes
+    #     c_abundance: float
+    #         Abundance of the concept in the interest set
+    #     c_ref_abundance: float
+    #         Abundance of the concept in the reference set
+    #     """
+    #     if c_onto_id != root_item:
+    #         c_label = get_name(c_onto_id, names)
+    #         all_c_ids = get_all_ids(c_onto_id, c_onto_id, parent_dict, root_item, set())
+    #         for c_id in all_c_ids:
+    #             self.add_value(m_id=c_id, onto_id=c_onto_id, label=c_label,
+    #                            count=c_abundance, ref_count=c_ref_abundance,
+    #                            parent=c_id[len(c_onto_id) + 2:])  # Remove c_label__ prefix
+    #     else:
+    #         self.add_value(m_id=c_onto_id, onto_id=c_onto_id, label=c_onto_id,
+    #                        count=c_abundance, ref_count=c_ref_abundance, parent='')
 
     def add_value(self, m_id: str, onto_id: str, label: str, count: float, ref_count: float,
                   parent: str):
@@ -552,3 +620,25 @@ def get_name(c_onto_id, names):
     else:
         c_label = c_onto_id
     return c_label
+
+
+def get_children_dict(parent_dict: Dict[str, List[str]]) -> Dict[str, List[str]]:
+    """ Create the children dictionary from the parents dictionary.
+    Parameters
+    ----------
+    parent_dict: Dict[str, List[str]]
+        Dictionary associating for each class, its parents classes
+    Returns
+    -------
+    Dict[str, List[str]]
+        Dictionary associating for each class, its children classes
+    """
+    children_dict = dict()
+    for c, ps in parent_dict.items():
+        for p in ps:
+            if p not in children_dict.keys():
+                children_dict[p] = list()
+            if c not in children_dict.keys():
+                children_dict[c] = list()
+            children_dict[p].append(c)
+    return children_dict

@@ -226,20 +226,23 @@ def _global_analysis(ontology, analysis, metabolic_objects, abundances, scores, 
 
     # DATA TABLE
     # ----------------------------------------------------------------------------------------------
+    start_time = time()
     data = DataTable()
     if ref_classes_abundance is not None:
-        d_classes_ontology = reduce_d_ontology(d_classes_ontology,
-                                               {**ref_classes_abundance, **classes_abundance})
         ref_set = True
-        data.fill_parameters(set_abundance=classes_abundance, ref_abundance=ref_classes_abundance,
-                             parent_dict=d_classes_ontology, root_item=root, names=names,
-                             ref_base=ref_base)
     else:
         ref_set = False
+        ref_classes_abundance = classes_abundance
+    if ref_base:
+        d_classes_ontology = reduce_d_ontology(d_classes_ontology, ref_classes_abundance)
+    else:
         d_classes_ontology = reduce_d_ontology(d_classes_ontology, classes_abundance)
-        data.fill_parameters(set_abundance=classes_abundance, ref_abundance=classes_abundance,
-                             parent_dict=d_classes_ontology,  root_item=root, names=names,
-                             ref_base=ref_base)
+
+    data.fill_parameters(set_abundance=classes_abundance, ref_abundance=ref_classes_abundance,
+                         parent_dict=d_classes_ontology, root_item=root, names=names,
+                         ref_base=ref_base)
+    end_time = time()
+    print(f'Execution time STEP: {end_time - start_time} seconds')
     data.calculate_proportions(ref_base)
     significant = None
     if analysis == ENRICHMENT_A:

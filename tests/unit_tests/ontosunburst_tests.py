@@ -38,6 +38,21 @@ E_ONTO = {'01': ['00'], '02': ['00'], '03': ['00'], '04': ['00'], '05': ['01'],
 E_LABElS = {'00': '0', '01': '1', '02': '2', '03': '3', '04': '4',
             '05': '5', '06': '6', '07': '7', '08': '8', '09': '9'}
 
+# GLOBAL VALUES
+G_LST = ['a', 'b', 'c']
+G_REF = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i']
+G_LAB = [23, 20, 5]
+G_RAB = [14, 26, 20, 10, 20, 5, 4, 3, 1]
+G_ONTO = {'a': ['i'], 'b': ['i'], 'c': ['j', 'k'], 'd': ['j'], 'e': ['j', 'l'],
+          'f': ['k'], 'g': ['m', 'l'], 'h': ['m'],
+          'i': ['x'], 'j': ['n', 'o'], 'k': ['n'],
+          'l': ['x', 'o'], 'm': ['x'],
+          'n': ['x'], 'o': ['v'], 'v': ['w'], 'w': ['x'], 'x': ['r'],
+          'p': ['i'], 'q': ['p'], 's': ['q'], 't': ['p'], 'u': ['t']}
+G_LABELS = {'r': 'Root', 'v': 'V', 'o': 'O', 'n': 'N', 'm': 'M',
+            'l': 'L', 'j': 'J', 'k': 'K', 'h': 'H', 'g': 'G', 'f': 'F', 'e': 'E', 'd': 'D',
+            'c': 'C', 'i': 'I', 'b': 'B'}
+
 
 # ==================================================================================================
 # FUNCTIONS UTILS
@@ -117,6 +132,12 @@ class DualWriter(io.StringIO):
 
 class TestOntosunburstCustomOnto(unittest.TestCase):
 
+    def test_art(self):
+        ontosunburst(interest_set=G_LST, root='r', class_ontology=G_ONTO, reference_set=None,
+                     abundances=None, ref_abundances=None, labels=None, write_output=True,
+                     output='test_art', show_leaves=True, root_cut='uncut', bg_color='white',
+                     ref_base=False, analysis=TOPOLOGY_A, path_cut=PATH_UNCUT)
+
     # TOPOLOGY : CUSTOM ONTO
     @test_for(ontosunburst)
     def test_ontosunburst_1(self):
@@ -133,7 +154,7 @@ class TestOntosunburstCustomOnto(unittest.TestCase):
     def test_ontosunburst_2(self):
         fig = ontosunburst(interest_set=C_REF, ontology=None, root='FRAMES',
                            abundances=C_RAB, reference_set=None, ref_abundances=None,
-                           analysis='topology', output='test2', write_output=False,
+                           analysis='topology', output='test2', write_output=True,
                            class_ontology=C_ONTO, labels=DEFAULT, endpoint_url=None,
                            test=BINOMIAL_TEST, root_cut=ROOT_CUT,
                            ref_base=False, show_leaves=True)
