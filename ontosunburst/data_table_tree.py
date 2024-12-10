@@ -167,72 +167,6 @@ class DataTable:
                 self.dag_traversal_rec(child, children_dict, names, ref_abundance, set_abundance,
                                        ref_base, c_id)
 
-    # def fill_parameters(self, set_abundance: Dict[str, float], ref_abundance: Dict[str, float],
-    #                     parent_dict: Dict[str, List[str]], root_item: str,
-    #                     names: Dict[str, str] = None, ref_base: bool = True):
-    #     """ Fill DataTable list attributes (self.ids, self.onto_ids, self.labels, self.parents,
-    #     self.count, self.ref_count)
-    #
-    #     Parameters
-    #     ----------
-    #     set_abundance: Dict[str, float]
-    #         Dictionary associating for each class the number of objects found belonging to the class
-    #         in the interest set
-    #     ref_abundance: Dict[str, float]
-    #         Dictionary associating for each class the number of objects found belonging to the class
-    #         in the reference set
-    #     parent_dict: Dict[str, List[str]]
-    #         Dictionary associating for each class, its parents classes
-    #     root_item: str
-    #         Name of the root item of the ontology
-    #     names: Dict[str, str]
-    #         Dictionary associating for some or each ontology IDs, its label
-    #     ref_base: bool
-    #         True to have the reference as base, False otherwise
-    #     """
-    #     if ref_base:
-    #         for c_onto_id, c_ref_abundance in ref_abundance.items():
-    #             c_abundance = get_set2_abundance(set_abundance, c_onto_id)
-    #             self.__fill_id_parameter(c_onto_id, root_item, names, parent_dict, c_abundance,
-    #                                      c_ref_abundance)
-    #     else:
-    #         for c_onto_id, c_abundance in set_abundance.items():
-    #             c_ref_abundance = get_set2_abundance(ref_abundance, c_onto_id)
-    #             self.__fill_id_parameter(c_onto_id, root_item, names, parent_dict, c_abundance,
-    #                                      c_ref_abundance)
-
-    # def __fill_id_parameter(self, c_onto_id: str, root_item: str, names: Dict[str, str],
-    #                         parent_dict: Dict[str, List[str]], c_abundance: float,
-    #                         c_ref_abundance: float):
-    #     """ Fill DataTable list attributes (self.ids, self.onto_ids, self.labels, self.parents,
-    #     self.count, self.ref_count) for one concept.
-    #
-    #     Parameters
-    #     ----------
-    #     c_onto_id: str
-    #         Ontology id of the concept
-    #     root_item: str
-    #         Root of the ontology
-    #     names: Dict[str, str]
-    #         Dictionary associating for some or each ontology IDs, its label
-    #     parent_dict: Dict[str: List[str]]
-    #         Dictionary associating for each class, its parents classes
-    #     c_abundance: float
-    #         Abundance of the concept in the interest set
-    #     c_ref_abundance: float
-    #         Abundance of the concept in the reference set
-    #     """
-    #     if c_onto_id != root_item:
-    #         c_label = get_name(c_onto_id, names)
-    #         all_c_ids = get_all_ids(c_onto_id, c_onto_id, parent_dict, root_item, set())
-    #         for c_id in all_c_ids:
-    #             self.add_value(m_id=c_id, onto_id=c_onto_id, label=c_label,
-    #                            count=c_abundance, ref_count=c_ref_abundance,
-    #                            parent=c_id[len(c_onto_id) + 2:])  # Remove c_label__ prefix
-    #     else:
-    #         self.add_value(m_id=c_onto_id, onto_id=c_onto_id, label=c_onto_id,
-    #                        count=c_abundance, ref_count=c_ref_abundance, parent='')
-
     def add_value(self, m_id: str, onto_id: str, label: str, count: float, ref_count: float,
                   parent: str):
         """ Fill the data attributes for an object class.
@@ -400,9 +334,12 @@ class DataTable:
         if mode == ROOT_CUT or mode == ROOT_TOTAL_CUT:
             roots_ind = [i for i in range(self.len) if self.relative_prop[i] == MAX_RELATIVE_NB]
             roots = [self.ids[i] for i in roots_ind]
+            roots_lab = [self.labels[i] if self.labels[i] not in self.ids
+                         else self.labels[i] + '_' for i in roots_ind]
+            lab = {roots[i]: roots_lab[i] for i in range(len(roots))}
             self.delete_value(roots_ind)
             if mode == ROOT_CUT:
-                self.parents = [str(x).split('__')[0] if x in roots else x for x in self.parents]
+                self.parents = [lab[x] if x in roots else x for x in self.parents]
             if mode == ROOT_TOTAL_CUT:
                 self.parents = ['' if x in roots else x for x in self.parents]
 
@@ -557,38 +494,6 @@ class DataTable:
 # ==================================================================================================
 # FUNCTIONS
 # ==================================================================================================
-def get_all_ids(m_id: str, n_id: str, parent_dict: Dict[str, List[str]], root: str,
-                all_ids: Set[str]) -> Set[str]:
-    """ Return recursively all unique IDs associated with a label. The IDs correspond to the path
-    in the tree from the label to the root.
-
-    Parameters
-    ----------
-    m_id: str
-        Input ID
-    n_id
-        New ID
-    parent_dict: Dict[str, List[str]]
-        Dictionary associating for each class, its parents classes
-    root: str
-        Name of the root item of the ontology
-    all_ids: Set[str]
-        Set of unique IDs associated with a concept label.
-
-    Returns
-    -------
-    Set[str]
-        Set of all unique IDs associated with a concept label.
-    """
-    parents = parent_dict[m_id]
-    for p in parents:
-        nn_id = n_id + '__' + p
-        if p == root:
-            all_ids.add(nn_id)
-        else:
-            all_ids = get_all_ids(p, nn_id, parent_dict, root, all_ids)
-    return all_ids
-
 
 def get_set2_abundance(set2_abundances: Dict[str, float] or None, c_label: str) -> float:
     """ Get the set2 abundance of a set1 concept.

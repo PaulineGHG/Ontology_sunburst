@@ -134,7 +134,7 @@ class TestOntosunburstCustomOnto(unittest.TestCase):
 
     def test_art(self):
         ontosunburst(interest_set=G_LST, root='r', class_ontology=G_ONTO, reference_set=None,
-                     abundances=None, ref_abundances=None, labels=None, write_output=True,
+                     abundances=None, ref_abundances=None, labels=None, write_output=False,
                      output='test_art', show_leaves=True, root_cut='uncut', bg_color='white',
                      ref_base=False, analysis=TOPOLOGY_A, path_cut=PATH_UNCUT)
 
@@ -158,6 +158,7 @@ class TestOntosunburstCustomOnto(unittest.TestCase):
                            class_ontology=C_ONTO, labels=DEFAULT, endpoint_url=None,
                            test=BINOMIAL_TEST, root_cut=ROOT_CUT,
                            ref_base=False, show_leaves=True)
+        # save_fig_json(fig, os.path.join('test_files', 'test2.json'))
         w_fig_file = os.path.join('test_files', 'test2.json')
         self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
 
