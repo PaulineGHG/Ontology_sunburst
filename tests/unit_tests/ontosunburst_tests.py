@@ -201,7 +201,7 @@ class TestOntosunburstCustomOnto(unittest.TestCase):
         scores = {'01': 0.002, '02': 0.00007, '03': 0.9, '05': 0.004, '08': 0.2, '09': 0.0000012}
         fig = ontosunburst(interest_set=E_LST, ontology=None, root='00', scores=scores,
                            abundances=E_LAB, reference_set=E_REF, ref_abundances=E_RAB,
-                           analysis='enrichment', output='test6', write_output=True,
+                           analysis='enrichment', output='test6', write_output=False,
                            class_ontology=E_ONTO, labels=E_LABElS, endpoint_url=None,
                            root_cut=ROOT_UNCUT, ref_base=False, show_leaves=True)
         w_fig_file = os.path.join('test_files', 'test6.json')
@@ -280,7 +280,7 @@ class TestOntosunburstMetaCyc(unittest.TestCase):
                            test=HYPERGEO_TEST, root_cut=ROOT_CUT,
                            ref_base=False, show_leaves=False)
         w_fig_file = os.path.join('test_files', 'test_mc4.json')
-        # self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
+        self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
 
     @test_for(ontosunburst)
     def test_ontosunburst_mc5(self):
@@ -291,7 +291,7 @@ class TestOntosunburstMetaCyc(unittest.TestCase):
                            test=BINOMIAL_TEST, root_cut=ROOT_CUT,
                            ref_base=True, show_leaves=True)
         w_fig_file = os.path.join('test_files', 'test_mc5.json')
-        # self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
+        self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
 
     # Pathways
     @test_for(ontosunburst)
