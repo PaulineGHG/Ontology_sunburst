@@ -154,11 +154,10 @@ class TestOntosunburstCustomOnto(unittest.TestCase):
     def test_ontosunburst_2(self):
         fig = ontosunburst(interest_set=C_REF, ontology=None, root='FRAMES',
                            abundances=C_RAB, reference_set=None, ref_abundances=None,
-                           analysis='topology', output='test2', write_output=True,
+                           analysis='topology', output='test2', write_output=False,
                            class_ontology=C_ONTO, labels=DEFAULT, endpoint_url=None,
                            test=BINOMIAL_TEST, root_cut=ROOT_CUT,
                            ref_base=False, show_leaves=True)
-        # save_fig_json(fig, os.path.join('test_files', 'test2.json'))
         w_fig_file = os.path.join('test_files', 'test2.json')
         self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
 
@@ -169,7 +168,7 @@ class TestOntosunburstCustomOnto(unittest.TestCase):
                            analysis='topology', output='test3', write_output=False,
                            class_ontology=C_ONTO, labels=C_LABELS, endpoint_url=None,
                            test=BINOMIAL_TEST, root_cut=ROOT_UNCUT,
-                           ref_base=False, show_leaves=False, bg_color='#eeeeee')
+                           ref_base=False, show_leaves=False, bg_color='#ddddcc')
         w_fig_file = os.path.join('test_files', 'test3.json')
         self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
 
@@ -202,7 +201,7 @@ class TestOntosunburstCustomOnto(unittest.TestCase):
         scores = {'01': 0.002, '02': 0.00007, '03': 0.9, '05': 0.004, '08': 0.2, '09': 0.0000012}
         fig = ontosunburst(interest_set=E_LST, ontology=None, root='00', scores=scores,
                            abundances=E_LAB, reference_set=E_REF, ref_abundances=E_RAB,
-                           analysis='enrichment', output='test6', write_output=False,
+                           analysis='enrichment', output='test6', write_output=True,
                            class_ontology=E_ONTO, labels=E_LABElS, endpoint_url=None,
                            root_cut=ROOT_UNCUT, ref_base=False, show_leaves=True)
         w_fig_file = os.path.join('test_files', 'test6.json')
