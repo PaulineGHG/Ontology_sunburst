@@ -31,12 +31,10 @@ CT_LAB = {'FRAMES': 'Root', 'cdeeg+': 'CDEEG+', 'cdeeg': 'CDEEG', 'cdecf': 'CDEC
           'eg': 'EG', 'cde': 'CDE', 'cf': 'CF', 'h': 'H', 'g': 'G', 'f': 'F', 'e': 'E', 'd': 'D',
           'c': 'C', 'ab': 'AB', 'b': 'B'}
 
-
 W_PROP = {'1': 1.0, '2': 0.5, '3': 0.16666666666666666, '4': 0.3333333333333333, '5': nan,
           '6': nan, '7': nan, '8': nan, '9': nan, '10': nan, '11': 0.5, '12': 0.5, '13': 0.5,
           '14': nan, '15': nan, '16': 0.5, '17': 0.5, '18': nan, '19': 0.5, '20': 0.5, '21': 0.5,
           '22': 0.5, '23': nan, '24': nan, '25': nan, '26': nan, '27': nan}
-
 
 W_REF_PROP = {'1': 1.0, '2': 0.08333333333333333, '3': 0.027777777777777776,
               '4': 0.05555555555555555, '5': 0.3333333333333333, '6': 0.1388888888888889,
@@ -47,7 +45,6 @@ W_REF_PROP = {'1': 1.0, '2': 0.08333333333333333, '3': 0.027777777777777776,
               '19': 0.5277777777777778, '20': 0.5277777777777778, '21': 0.3333333333333333,
               '22': 0.08333333333333333, '23': 0.1111111111111111, '24': 0.1388888888888889,
               '25': 0.3333333333333333, '26': 0.1388888888888889, '27': 0.19444444444444445}
-
 
 W_REL_PROP = {'1': 1000000, '2': 44776, '3': 14925, '4': 29850, '5': 179104, '6': 74626,
               '7': 104477, '8': 223880, '9': 104477, '10': 119402, '11': 268656, '12': 153517,
@@ -410,7 +407,6 @@ class TestEnrichmentAnalysis(unittest.TestCase):
         data.calculate_proportions(True)
         significant = data.make_enrichment_analysis(HYPERGEO_TEST, scores)
         lines = set(data.get_col())
-        print(lines)
         exp_lines = {('9', '03', '3', '1', 20, 20, 0.4, 0.2, 200000, 0.3010299956639812),
                      ('8', '09', '9', '6', 1, 3, 0.02, 0.03, 30000, 4.638272163982407),
                      ('2', '01', '1', '1', 5, 40, 0.1, 0.4, 400000, 0.6989700043360187),
@@ -440,7 +436,6 @@ ROOT_LABElS = {'R': 'r', '00': '0', '01': '1', '02': '2', '03': '3',
                '04': '4', '05': '5', '06': '6', '07': '7', '08': '8', '09': '9'}
 ROOT_ONTO = {'01': ['00'], '02': ['00'], '03': ['00'], '04': ['00'], '05': ['01'], '00': ['R-2'],
              '06': ['01'], '07': ['01'], '08': ['02'], '09': ['02'], 'R-1': ['R'], 'R-2': ['R-1']}
-
 
 PATH_ONTO = {'a': ['ab', 'cdeeg++++'], 'b': ['ab'], 'c': ['cde', 'cf'], 'd': ['cde'],
              'e': ['cde', 'eg'], 'f': ['cf'], 'g': ['gh', 'eg'], 'h': ['gh'],
@@ -522,12 +517,48 @@ class TestTopologyManagement(unittest.TestCase):
         data.fill_parameters(PATH_AB, PATH_REF_AB, PATH_ONTO, ROOTS[METACYC], PATH_LAB)
         data.calculate_proportions(True)
         data.cut_nested_path(PATH_UNCUT, False)
-        exp_lines = {('f__cf__cdecf__FRAMES', 'f', 'F', 'cf__cdecf__FRAMES', nan, 6, nan, 0.16666666666666666, 76758, nan), ('cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 'cdeeg', 'CDEEG', 'cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 3, 19, 0.5, 0.5277777777777778, 269402, nan), ('cde__cde+__cde++__cde+++__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 'cde', 'CDE', 'cde+__cde++__cde+++__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 3, 12, 0.5, 0.3333333333333333, 134701, nan), ('ab__FRAMES', 'ab', 'AB', 'FRAMES', 3, 3, 0.5, 0.08333333333333333, 44776, nan), ('a__ab__FRAMES', 'a', 'a', 'ab__FRAMES', 1, 1, 0.16666666666666666, 0.027777777777777776, 14925, nan), ('cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 'cdeeg+', 'CDEEG+', 'cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 3, 19, 0.5, 0.5277777777777778, 269402, nan), ('g__gh__FRAMES', 'g', 'G', 'gh__FRAMES', nan, 7, nan, 0.19444444444444445, 104477, nan), ('cdecf__FRAMES', 'cdecf', 'CDECF', 'FRAMES', 3, 18, 0.5, 0.5, 268656, nan), ('e__cde__cde+__cde++__cde+++__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 'e', 'E', 'cde__cde+__cde++__cde+++__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', nan, 5, nan, 0.1388888888888889, 56125, nan), ('cde__cde+__cde++__cde+++__cdecf__FRAMES', 'cde', 'CDE', 'cde+__cde++__cde+++__cdecf__FRAMES', 3, 12, 0.5, 0.3333333333333333, 153517, nan), ('cde+++__cdecf__FRAMES', 'cde+++', 'cde+++', 'cdecf__FRAMES', 3, 12, 0.5, 0.3333333333333333, 153517, nan), ('b__ab__FRAMES', 'b', 'B', 'ab__FRAMES', 2, 2, 0.3333333333333333, 0.05555555555555555, 29850, nan), ('h__gh__FRAMES', 'h', 'H', 'gh__FRAMES', nan, 8, nan, 0.2222222222222222, 119402, nan), ('g__eg__FRAMES', 'g', 'G', 'eg__FRAMES', nan, 7, nan, 0.19444444444444445, 104477, nan), ('cde+__cde++__cde+++__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 'cde+', 'cde+', 'cde++__cde+++__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 3, 12, 0.5, 0.3333333333333333, 134701, nan), ('cdeeg+++__cdeeg++++__FRAMES', 'cdeeg+++', 'cdeeg+++', 'cdeeg++++__FRAMES', 3, 19, 0.5, 0.5277777777777778, 269402, nan), ('cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 'cdeeg++', 'cdeeg++', 'cdeeg+++__cdeeg++++__FRAMES', 3, 19, 0.5, 0.5277777777777778, 269402, nan), ('FRAMES', 'FRAMES', 'FRAMES', '', 6, 36, 1.0, 1.0, 1000000, nan), ('d__cde__cde+__cde++__cde+++__cdecf__FRAMES', 'd', 'D', 'cde__cde+__cde++__cde+++__cdecf__FRAMES', nan, 4, nan, 0.1111111111111111, 51172, nan), ('d__cde__cde+__cde++__cde+++__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 'd', 'D', 'cde__cde+__cde++__cde+++__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', nan, 4, nan, 0.1111111111111111, 44900, nan), ('e__eg__FRAMES', 'e', 'E', 'eg__FRAMES', nan, 5, nan, 0.1388888888888889, 74626, nan), ('e__eg__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 'e', 'E', 'eg__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', nan, 5, nan, 0.1388888888888889, 56125, nan), ('cde+__cde++__cde+++__cdecf__FRAMES', 'cde+', 'cde+', 'cde++__cde+++__cdecf__FRAMES', 3, 12, 0.5, 0.3333333333333333, 153517, nan), ('a__cdeeg++++__FRAMES', 'a', 'a', 'cdeeg++++__FRAMES', 1, 1, 0.16666666666666666, 0.027777777777777776, 14179, nan), ('eg__FRAMES', 'eg', 'EG', 'FRAMES', nan, 12, nan, 0.3333333333333333, 179104, nan), ('c__cde__cde+__cde++__cde+++__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 'c', 'C', 'cde__cde+__cde++__cde+++__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 3, 3, 0.5, 0.08333333333333333, 33675, nan), ('c__cf__cdecf__FRAMES', 'c', 'C', 'cf__cdecf__FRAMES', 3, 3, 0.5, 0.08333333333333333, 38379, nan), ('gh__FRAMES', 'gh', 'GH', 'FRAMES', nan, 15, nan, 0.4166666666666667, 223880, nan), ('e__cde__cde+__cde++__cde+++__cdecf__FRAMES', 'e', 'E', 'cde__cde+__cde++__cde+++__cdecf__FRAMES', nan, 5, nan, 0.1388888888888889, 63965, nan), ('eg__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 'eg', 'EG', 'cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', nan, 12, nan, 0.3333333333333333, 134701, nan), ('cdeeg++++__FRAMES', 'cdeeg++++', 'cdeeg++++', 'FRAMES', 3, 19, 0.5, 0.5277777777777778, 283582, nan), ('cde++__cde+++__cdecf__FRAMES', 'cde++', 'cde++', 'cde+++__cdecf__FRAMES', 3, 12, 0.5, 0.3333333333333333, 153517, nan), ('cde++__cde+++__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 'cde++', 'cde++', 'cde+++__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 3, 12, 0.5, 0.3333333333333333, 134701, nan), ('g__eg__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 'g', 'G', 'eg__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', nan, 7, nan, 0.19444444444444445, 78575, nan), ('c__cde__cde+__cde++__cde+++__cdecf__FRAMES', 'c', 'C', 'cde__cde+__cde++__cde+++__cdecf__FRAMES', 3, 3, 0.5, 0.08333333333333333, 38379, nan), ('cde+++__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 'cde+++', 'cde+++', 'cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 3, 12, 0.5, 0.3333333333333333, 134701, nan), ('cf__cdecf__FRAMES', 'cf', 'CF', 'cdecf__FRAMES', 3, 9, 0.5, 0.25, 115138, nan)}
+        exp_l = {('27', 'cdeeg', 'CDEEG', '26', 3, 19, 0.5, 0.5277777777777778, 269402, nan),
+                 ('21', 'f', 'F', '19', nan, 6, nan, 0.16666666666666666, 76758, nan),
+                 ('4', 'b', 'B', '2', 2, 2, 0.3333333333333333, 0.05555555555555555, 29850, nan),
+                 ('24', 'cdeeg+++', 'cdeeg+++', '22', 3, 19, 0.5, 0.5277777777777778, 269402, nan),
+                 ('6', 'e', 'E', '5', nan, 5, nan, 0.1388888888888889, 74626, nan),
+                 ('9', 'g', 'G', '8', nan, 7, nan, 0.19444444444444445, 104477, nan),
+                 ('22', 'cdeeg++++', 'cdeeg++++', '1', 3, 19, 0.5, 0.5277777777777778, 283582, nan),
+                 ('1', 'FRAMES', 'Root', '', 6, 36, 1.0, 1.0, 1000000, nan),
+                 ('20', 'c', 'C', '19', 3, 3, 0.5, 0.08333333333333333, 38379, nan),
+                 ('8', 'gh', 'GH', '1', nan, 15, nan, 0.4166666666666667, 223880, nan),
+                 ('23', 'a', 'a', '22', 1, 1, 0.16666666666666666, 0.027777777777777776, 14179, nan),
+                 ('16', 'c', 'C', '15', 3, 3, 0.5, 0.08333333333333333, 38379, nan),
+                 ('36', 'e', 'E', '35', nan, 5, nan, 0.1388888888888889, 56125, nan),
+                 ('14', 'cde+', 'cde+', '13', 3, 12, 0.5, 0.3333333333333333, 153517, nan),
+                 ('15', 'cde', 'CDE', '14', 3, 12, 0.5, 0.3333333333333333, 153517, nan),
+                 ('32', 'c', 'C', '31', 3, 3, 0.5, 0.08333333333333333, 33675, nan),
+                 ('34', 'e', 'E', '31', nan, 5, nan, 0.1388888888888889, 56125, nan),
+                 ('2', 'ab', 'AB', '1', 3, 3, 0.5, 0.08333333333333333, 44776, nan),
+                 ('7', 'g', 'G', '5', nan, 7, nan, 0.19444444444444445, 104477, nan),
+                 ('30', 'cde+', 'cde+', '29', 3, 12, 0.5, 0.3333333333333333, 134701, nan),
+                 ('17', 'd', 'D', '15', nan, 4, nan, 0.1111111111111111, 51172, nan),
+                 ('18', 'e', 'E', '15', nan, 5, nan, 0.1388888888888889, 63965, nan),
+                 ('19', 'cf', 'CF', '11', 3, 9, 0.5, 0.25, 115138, nan),
+                 ('33', 'd', 'D', '31', nan, 4, nan, 0.1111111111111111, 44900, nan),
+                 ('37', 'g', 'G', '35', nan, 7, nan, 0.19444444444444445, 78575, nan),
+                 ('13', 'cde++', 'cde++', '12', 3, 12, 0.5, 0.3333333333333333, 153517, nan),
+                 ('25', 'cdeeg++', 'cdeeg++', '24', 3, 19, 0.5, 0.5277777777777778, 269402, nan),
+                 ('3', 'a', 'a', '2', 1, 1, 0.16666666666666666, 0.027777777777777776, 14925, nan),
+                 ('11', 'cdecf', 'CDECF', '1', 3, 18, 0.5, 0.5, 268656, nan),
+                 ('10', 'h', 'H', '8', nan, 8, nan, 0.2222222222222222, 119402, nan),
+                 ('28', 'cde+++', 'cde+++', '27', 3, 12, 0.5, 0.3333333333333333, 134701, nan),
+                 ('31', 'cde', 'CDE', '30', 3, 12, 0.5, 0.3333333333333333, 134701, nan),
+                 ('29', 'cde++', 'cde++', '28', 3, 12, 0.5, 0.3333333333333333, 134701, nan),
+                 ('35', 'eg', 'EG', '27', nan, 12, nan, 0.3333333333333333, 134701, nan),
+                 ('26', 'cdeeg+', 'CDEEG+', '25', 3, 19, 0.5, 0.5277777777777778, 269402, nan),
+                 ('5', 'eg', 'EG', '1', nan, 12, nan, 0.3333333333333333, 179104, nan),
+                 ('12', 'cde+++', 'cde+++', '11', 3, 12, 0.5, 0.3333333333333333, 153517, nan)}
         lines = set(data.get_col())
-        self.assertEqual(len(lines), len(exp_lines))
+        self.assertEqual(len(lines), len(exp_l))
         for line in lines:
             line = tuple([nan if type(x) != str and np.isnan(x) else x for x in line])
-            self.assertIn(line, exp_lines)
+            self.assertIn(line, exp_l)
         # from ontosunburst.sunburst_fig import generate_sunburst_fig
         # generate_sunburst_fig(data, 'test', bg_color='black', font_color='white')
 
@@ -539,12 +570,39 @@ class TestTopologyManagement(unittest.TestCase):
         data.cut_nested_path(PATH_DEEPER, False)
         # from ontosunburst.sunburst_fig import generate_sunburst_fig
         # generate_sunburst_fig(data, 'test')
-        exp_lines = {('e__cde__cde+__cde++__cde+++__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 'e', 'E', 'cde__cde+__cde++__cde+++__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', nan, 5, nan, 0.1388888888888889, 56125, nan), ('eg__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 'eg', 'EG', 'cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', nan, 12, nan, 0.3333333333333333, 134701, nan), ('d__cde__cde+__cde++__cde+++__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 'd', 'D', 'cde__cde+__cde++__cde+++__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', nan, 4, nan, 0.1111111111111111, 44900, nan), ('cf__cdecf__FRAMES', 'cf', 'CF', 'cdecf__FRAMES', 3, 9, 0.5, 0.25, 115138, nan), ('g__eg__FRAMES', 'g', 'G', 'eg__FRAMES', nan, 7, nan, 0.19444444444444445, 104477, nan), ('a__cdeeg++++__FRAMES', 'a', 'a', 'cdeeg++++__FRAMES', 1, 1, 0.16666666666666666, 0.027777777777777776, 14179, nan), ('b__ab__FRAMES', 'b', 'B', 'ab__FRAMES', 2, 2, 0.3333333333333333, 0.05555555555555555, 29850, nan), ('e__cde__cde+__cde++__cde+++__cdecf__FRAMES', 'e', 'E', 'cde__cde+__cde++__cde+++__cdecf__FRAMES', nan, 5, nan, 0.1388888888888889, 63965, nan), ('gh__FRAMES', 'gh', 'GH', 'FRAMES', nan, 15, nan, 0.4166666666666667, 223880, nan), ('cde__cde+__cde++__cde+++__cdecf__FRAMES', 'cde', '... CDE', 'cdecf__FRAMES', 3, 12, 0.5, 0.3333333333333333, 153517, nan), ('a__ab__FRAMES', 'a', 'a', 'ab__FRAMES', 1, 1, 0.16666666666666666, 0.027777777777777776, 14925, nan), ('g__eg__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 'g', 'G', 'eg__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', nan, 7, nan, 0.19444444444444445, 78575, nan), ('FRAMES', 'FRAMES', 'FRAMES', '', 6, 36, 1.0, 1.0, 1000000, nan), ('f__cf__cdecf__FRAMES', 'f', 'F', 'cf__cdecf__FRAMES', nan, 6, nan, 0.16666666666666666, 76758, nan), ('e__eg__FRAMES', 'e', 'E', 'eg__FRAMES', nan, 5, nan, 0.1388888888888889, 74626, nan), ('c__cde__cde+__cde++__cde+++__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 'c', 'C', 'cde__cde+__cde++__cde+++__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 3, 3, 0.5, 0.08333333333333333, 33675, nan), ('cdecf__FRAMES', 'cdecf', 'CDECF', 'FRAMES', 3, 18, 0.5, 0.5, 268656, nan), ('cde__cde+__cde++__cde+++__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 'cde', '... CDE', 'cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 3, 12, 0.5, 0.3333333333333333, 134701, nan), ('e__eg__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 'e', 'E', 'eg__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', nan, 5, nan, 0.1388888888888889, 56125, nan), ('g__gh__FRAMES', 'g', 'G', 'gh__FRAMES', nan, 7, nan, 0.19444444444444445, 104477, nan), ('cdeeg++++__FRAMES', 'cdeeg++++', 'cdeeg++++', 'FRAMES', 3, 19, 0.5, 0.5277777777777778, 283582, nan), ('c__cde__cde+__cde++__cde+++__cdecf__FRAMES', 'c', 'C', 'cde__cde+__cde++__cde+++__cdecf__FRAMES', 3, 3, 0.5, 0.08333333333333333, 38379, nan), ('d__cde__cde+__cde++__cde+++__cdecf__FRAMES', 'd', 'D', 'cde__cde+__cde++__cde+++__cdecf__FRAMES', nan, 4, nan, 0.1111111111111111, 51172, nan), ('cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 'cdeeg', '... CDEEG', 'cdeeg++++__FRAMES', 3, 19, 0.5, 0.5277777777777778, 269402, nan), ('ab__FRAMES', 'ab', 'AB', 'FRAMES', 3, 3, 0.5, 0.08333333333333333, 44776, nan), ('eg__FRAMES', 'eg', 'EG', 'FRAMES', nan, 12, nan, 0.3333333333333333, 179104, nan), ('c__cf__cdecf__FRAMES', 'c', 'C', 'cf__cdecf__FRAMES', 3, 3, 0.5, 0.08333333333333333, 38379, nan), ('h__gh__FRAMES', 'h', 'H', 'gh__FRAMES', nan, 8, nan, 0.2222222222222222, 119402, nan)}
+        exp_l = {('34', 'e', 'E', '31', nan, 5, nan, 0.1388888888888889, 56125, nan),
+                 ('1', 'FRAMES', 'Root', '', 6, 36, 1.0, 1.0, 1000000, nan),
+                 ('8', 'gh', 'GH', '1', nan, 15, nan, 0.4166666666666667, 223880, nan),
+                 ('19', 'cf', 'CF', '11', 3, 9, 0.5, 0.25, 115138, nan),
+                 ('27', 'cdeeg', '... CDEEG', '22', 3, 19, 0.5, 0.5277777777777778, 269402, nan),
+                 ('2', 'ab', 'AB', '1', 3, 3, 0.5, 0.08333333333333333, 44776, nan),
+                 ('32', 'c', 'C', '31', 3, 3, 0.5, 0.08333333333333333, 33675, nan),
+                 ('11', 'cdecf', 'CDECF', '1', 3, 18, 0.5, 0.5, 268656, nan),
+                 ('22', 'cdeeg++++', 'cdeeg++++', '1', 3, 19, 0.5, 0.5277777777777778, 283582, nan),
+                 ('15', 'cde', '... CDE', '11', 3, 12, 0.5, 0.3333333333333333, 153517, nan),
+                 ('5', 'eg', 'EG', '1', nan, 12, nan, 0.3333333333333333, 179104, nan),
+                 ('37', 'g', 'G', '35', nan, 7, nan, 0.19444444444444445, 78575, nan),
+                 ('16', 'c', 'C', '15', 3, 3, 0.5, 0.08333333333333333, 38379, nan),
+                 ('33', 'd', 'D', '31', nan, 4, nan, 0.1111111111111111, 44900, nan),
+                 ('36', 'e', 'E', '35', nan, 5, nan, 0.1388888888888889, 56125, nan),
+                 ('35', 'eg', 'EG', '27', nan, 12, nan, 0.3333333333333333, 134701, nan),
+                 ('7', 'g', 'G', '5', nan, 7, nan, 0.19444444444444445, 104477, nan),
+                 ('9', 'g', 'G', '8', nan, 7, nan, 0.19444444444444445, 104477, nan),
+                 ('4', 'b', 'B', '2', 2, 2, 0.3333333333333333, 0.05555555555555555, 29850, nan),
+                 ('3', 'a', 'a', '2', 1, 1, 0.16666666666666666, 0.027777777777777776, 14925, nan),
+                 ('23', 'a', 'a', '22', 1, 1, 0.16666666666666666, 0.027777777777777776, 14179, nan),
+                 ('6', 'e', 'E', '5', nan, 5, nan, 0.1388888888888889, 74626, nan),
+                 ('20', 'c', 'C', '19', 3, 3, 0.5, 0.08333333333333333, 38379, nan),
+                 ('10', 'h', 'H', '8', nan, 8, nan, 0.2222222222222222, 119402, nan),
+                 ('31', 'cde', '... CDE', '27', 3, 12, 0.5, 0.3333333333333333, 134701, nan),
+                 ('18', 'e', 'E', '15', nan, 5, nan, 0.1388888888888889, 63965, nan),
+                 ('17', 'd', 'D', '15', nan, 4, nan, 0.1111111111111111, 51172, nan),
+                 ('21', 'f', 'F', '19', nan, 6, nan, 0.16666666666666666, 76758, nan)}
         lines = set(data.get_col())
-        self.assertEqual(len(lines), len(exp_lines))
+        self.assertEqual(len(lines), len(exp_l))
         for line in lines:
             line = tuple([nan if type(x) != str and np.isnan(x) else x for x in line])
-            self.assertIn(line, exp_lines)
+            self.assertIn(line, exp_l)
 
     @test_for(DataTable.cut_nested_path)
     def test_cut_path_cut_higher(self):
@@ -553,12 +611,40 @@ class TestTopologyManagement(unittest.TestCase):
         data.calculate_proportions(True)
         data.cut_root(ROOT_CUT)
         data.cut_nested_path(PATH_HIGHER, False)
-        exp_lines = {('eg__FRAMES', 'eg', 'EG', 'FRAMES', nan, 12, nan, 0.3333333333333333, 179104, nan), ('d__cde__cde+__cde++__cde+++__cdecf__FRAMES', 'd', 'D', 'cde+++__cdecf__FRAMES', nan, 4, nan, 0.1111111111111111, 51172, nan), ('cdecf__FRAMES', 'cdecf', 'CDECF', 'FRAMES', 3, 18, 0.5, 0.5, 268656, nan), ('d__cde__cde+__cde++__cde+++__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 'd', 'D', 'cde+++__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', nan, 4, nan, 0.1111111111111111, 44900, nan), ('c__cde__cde+__cde++__cde+++__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 'c', 'C', 'cde+++__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 3, 3, 0.5, 0.08333333333333333, 33675, nan), ('cde+++__cdecf__FRAMES', 'cde+++', 'cde+++ ...', 'cdecf__FRAMES', 3, 12, 0.5, 0.3333333333333333, 153517, nan), ('cdeeg+++__cdeeg++++__FRAMES', 'cdeeg+++', 'cdeeg+++ ...', 'cdeeg++++__FRAMES', 3, 19, 0.5, 0.5277777777777778, 269402, nan), ('gh__FRAMES', 'gh', 'GH', 'FRAMES', nan, 15, nan, 0.4166666666666667, 223880, nan), ('cdeeg++++__FRAMES', 'cdeeg++++', 'cdeeg++++', 'FRAMES', 3, 19, 0.5, 0.5277777777777778, 283582, nan), ('cde+++__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 'cde+++', 'cde+++ ...', 'cdeeg+++__cdeeg++++__FRAMES', 3, 12, 0.5, 0.3333333333333333, 134701, nan), ('g__eg__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 'g', 'G', 'eg__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', nan, 7, nan, 0.19444444444444445, 78575, nan), ('a__ab__FRAMES', 'a', 'a', 'ab__FRAMES', 1, 1, 0.16666666666666666, 0.027777777777777776, 14925, nan), ('ab__FRAMES', 'ab', 'AB', 'FRAMES', 3, 3, 0.5, 0.08333333333333333, 44776, nan), ('c__cf__cdecf__FRAMES', 'c', 'C', 'cf__cdecf__FRAMES', 3, 3, 0.5, 0.08333333333333333, 38379, nan), ('c__cde__cde+__cde++__cde+++__cdecf__FRAMES', 'c', 'C', 'cde+++__cdecf__FRAMES', 3, 3, 0.5, 0.08333333333333333, 38379, nan), ('e__eg__FRAMES', 'e', 'E', 'eg__FRAMES', nan, 5, nan, 0.1388888888888889, 74626, nan), ('b__ab__FRAMES', 'b', 'B', 'ab__FRAMES', 2, 2, 0.3333333333333333, 0.05555555555555555, 29850, nan), ('e__cde__cde+__cde++__cde+++__cdecf__FRAMES', 'e', 'E', 'cde+++__cdecf__FRAMES', nan, 5, nan, 0.1388888888888889, 63965, nan), ('g__eg__FRAMES', 'g', 'G', 'eg__FRAMES', nan, 7, nan, 0.19444444444444445, 104477, nan), ('eg__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 'eg', 'EG', 'cdeeg+++__cdeeg++++__FRAMES', nan, 12, nan, 0.3333333333333333, 134701, nan), ('a__cdeeg++++__FRAMES', 'a', 'a', 'cdeeg++++__FRAMES', 1, 1, 0.16666666666666666, 0.027777777777777776, 14179, nan), ('g__gh__FRAMES', 'g', 'G', 'gh__FRAMES', nan, 7, nan, 0.19444444444444445, 104477, nan), ('f__cf__cdecf__FRAMES', 'f', 'F', 'cf__cdecf__FRAMES', nan, 6, nan, 0.16666666666666666, 76758, nan), ('cf__cdecf__FRAMES', 'cf', 'CF', 'cdecf__FRAMES', 3, 9, 0.5, 0.25, 115138, nan), ('e__cde__cde+__cde++__cde+++__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 'e', 'E', 'cde+++__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', nan, 5, nan, 0.1388888888888889, 56125, nan), ('h__gh__FRAMES', 'h', 'H', 'gh__FRAMES', nan, 8, nan, 0.2222222222222222, 119402, nan), ('e__eg__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 'e', 'E', 'eg__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', nan, 5, nan, 0.1388888888888889, 56125, nan)}
+        exp_l = {('28', 'cde+++', 'cde+++ ...', '24', 3, 12, 0.5, 0.3333333333333333, 134701, nan),
+                 ('3', 'a', 'a', '2', 1, 1, 0.16666666666666666, 0.027777777777777776, 14925, nan),
+                 ('11', 'cdecf', 'CDECF', '1', 3, 18, 0.5, 0.5, 268656, nan),
+                 ('32', 'c', 'C', '28', 3, 3, 0.5, 0.08333333333333333, 33675, nan),
+                 ('37', 'g', 'G', '35', nan, 7, nan, 0.19444444444444445, 78575, nan),
+                 ('16', 'c', 'C', '12', 3, 3, 0.5, 0.08333333333333333, 38379, nan),
+                 ('10', 'h', 'H', '8', nan, 8, nan, 0.2222222222222222, 119402, nan),
+                 ('18', 'e', 'E', '12', nan, 5, nan, 0.1388888888888889, 63965, nan),
+                 ('6', 'e', 'E', '5', nan, 5, nan, 0.1388888888888889, 74626, nan),
+                 ('20', 'c', 'C', '19', 3, 3, 0.5, 0.08333333333333333, 38379, nan),
+                 ('12', 'cde+++', 'cde+++ ...', '11', 3, 12, 0.5, 0.3333333333333333, 153517, nan),
+                 ('4', 'b', 'B', '2', 2, 2, 0.3333333333333333, 0.05555555555555555, 29850, nan),
+                 ('33', 'd', 'D', '28', nan, 4, nan, 0.1111111111111111, 44900, nan),
+                 ('21', 'f', 'F', '19', nan, 6, nan, 0.16666666666666666, 76758, nan),
+                 ('19', 'cf', 'CF', '11', 3, 9, 0.5, 0.25, 115138, nan),
+                 ('7', 'g', 'G', '5', nan, 7, nan, 0.19444444444444445, 104477, nan),
+                 ('36', 'e', 'E', '35', nan, 5, nan, 0.1388888888888889, 56125, nan),
+                 ('8', 'gh', 'GH', '1', nan, 15, nan, 0.4166666666666667, 223880, nan),
+                 ('5', 'eg', 'EG', '1', nan, 12, nan, 0.3333333333333333, 179104, nan),
+                 ('22', 'cdeeg++++', 'cdeeg++++', '1', 3, 19, 0.5, 0.5277777777777778, 283582, nan),
+                 ('35', 'eg', 'EG', '24', nan, 12, nan, 0.3333333333333333, 134701, nan),
+                 ('34', 'e', 'E', '28', nan, 5, nan, 0.1388888888888889, 56125, nan),
+                 ('17', 'd', 'D', '12', nan, 4, nan, 0.1111111111111111, 51172, nan),
+                 ('2', 'ab', 'AB', '1', 3, 3, 0.5, 0.08333333333333333, 44776, nan),
+                 ('9', 'g', 'G', '8', nan, 7, nan, 0.19444444444444445, 104477, nan),
+                 ('24', 'cdeeg+++', 'cdeeg+++ ...', '22', 3, 19, 0.5, 0.5277777777777778, 269402, nan),
+                 ('23', 'a', 'a', '22', 1, 1, 0.16666666666666666, 0.027777777777777776, 14179, nan)}
         lines = set(data.get_col())
-        self.assertEqual(len(lines), len(exp_lines))
+        # from ontosunburst.sunburst_fig import generate_sunburst_fig
+        # generate_sunburst_fig(data, 'test')
+        self.assertEqual(len(lines), len(exp_l))
         for line in lines:
             line = tuple([nan if type(x) != str and np.isnan(x) else x for x in line])
-            self.assertIn(line, exp_lines)
+            self.assertIn(line, exp_l)
 
     @test_for(DataTable.cut_nested_path)
     def test_cut_path_cut_bound(self):
@@ -566,11 +652,41 @@ class TestTopologyManagement(unittest.TestCase):
         data.fill_parameters(PATH_AB, PATH_REF_AB, PATH_ONTO, ROOTS[METACYC], PATH_LAB)
         data.calculate_proportions(True)
         data.cut_nested_path(PATH_BOUND, False)
-        exp_lines = {('g__eg__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 'g', 'G', 'eg__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', nan, 7, nan, 0.19444444444444445, 78575, nan), ('cf__cdecf__FRAMES', 'cf', 'CF', 'cdecf__FRAMES', 3, 9, 0.5, 0.25, 115138, nan), ('d__cde__cde+__cde++__cde+++__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 'd', 'D', 'cde__cde+__cde++__cde+++__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', nan, 4, nan, 0.1111111111111111, 44900, nan), ('gh__FRAMES', 'gh', 'GH', 'FRAMES', nan, 15, nan, 0.4166666666666667, 223880, nan), ('h__gh__FRAMES', 'h', 'H', 'gh__FRAMES', nan, 8, nan, 0.2222222222222222, 119402, nan), ('c__cf__cdecf__FRAMES', 'c', 'C', 'cf__cdecf__FRAMES', 3, 3, 0.5, 0.08333333333333333, 38379, nan), ('cdeeg++++__FRAMES', 'cdeeg++++', 'cdeeg++++', 'FRAMES', 3, 19, 0.5, 0.5277777777777778, 283582, nan), ('eg__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 'eg', 'EG', 'cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', nan, 12, nan, 0.3333333333333333, 134701, nan), ('c__cde__cde+__cde++__cde+++__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 'c', 'C', 'cde__cde+__cde++__cde+++__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 3, 3, 0.5, 0.08333333333333333, 33675, nan), ('eg__FRAMES', 'eg', 'EG', 'FRAMES', nan, 12, nan, 0.3333333333333333, 179104, nan), ('cde+++__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 'cde+++', 'cde+++ ...', 'cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 3, 12, 0.5, 0.3333333333333333, 134701, nan), ('b__ab__FRAMES', 'b', 'B', 'ab__FRAMES', 2, 2, 0.3333333333333333, 0.05555555555555555, 29850, nan), ('cde+++__cdecf__FRAMES', 'cde+++', 'cde+++ ...', 'cdecf__FRAMES', 3, 12, 0.5, 0.3333333333333333, 153517, nan), ('a__ab__FRAMES', 'a', 'a', 'ab__FRAMES', 1, 1, 0.16666666666666666, 0.027777777777777776, 14925, nan), ('ab__FRAMES', 'ab', 'AB', 'FRAMES', 3, 3, 0.5, 0.08333333333333333, 44776, nan), ('e__eg__FRAMES', 'e', 'E', 'eg__FRAMES', nan, 5, nan, 0.1388888888888889, 74626, nan), ('cde__cde+__cde++__cde+++__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 'cde', '... CDE', 'cde+++__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 3, 12, 0.5, 0.3333333333333333, 134701, nan), ('e__cde__cde+__cde++__cde+++__cdecf__FRAMES', 'e', 'E', 'cde__cde+__cde++__cde+++__cdecf__FRAMES', nan, 5, nan, 0.1388888888888889, 63965, nan), ('FRAMES', 'FRAMES', 'FRAMES', '', 6, 36, 1.0, 1.0, 1000000, nan), ('cde__cde+__cde++__cde+++__cdecf__FRAMES', 'cde', '... CDE', 'cde+++__cdecf__FRAMES', 3, 12, 0.5, 0.3333333333333333, 153517, nan), ('cdecf__FRAMES', 'cdecf', 'CDECF', 'FRAMES', 3, 18, 0.5, 0.5, 268656, nan), ('e__cde__cde+__cde++__cde+++__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 'e', 'E', 'cde__cde+__cde++__cde+++__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', nan, 5, nan, 0.1388888888888889, 56125, nan), ('f__cf__cdecf__FRAMES', 'f', 'F', 'cf__cdecf__FRAMES', nan, 6, nan, 0.16666666666666666, 76758, nan), ('a__cdeeg++++__FRAMES', 'a', 'a', 'cdeeg++++__FRAMES', 1, 1, 0.16666666666666666, 0.027777777777777776, 14179, nan), ('cdeeg+++__cdeeg++++__FRAMES', 'cdeeg+++', 'cdeeg+++ ...', 'cdeeg++++__FRAMES', 3, 19, 0.5, 0.5277777777777778, 269402, nan), ('e__eg__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 'e', 'E', 'eg__cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', nan, 5, nan, 0.1388888888888889, 56125, nan), ('cdeeg__cdeeg+__cdeeg++__cdeeg+++__cdeeg++++__FRAMES', 'cdeeg', '... CDEEG', 'cdeeg+++__cdeeg++++__FRAMES', 3, 19, 0.5, 0.5277777777777778, 269402, nan), ('c__cde__cde+__cde++__cde+++__cdecf__FRAMES', 'c', 'C', 'cde__cde+__cde++__cde+++__cdecf__FRAMES', 3, 3, 0.5, 0.08333333333333333, 38379, nan), ('g__gh__FRAMES', 'g', 'G', 'gh__FRAMES', nan, 7, nan, 0.19444444444444445, 104477, nan), ('d__cde__cde+__cde++__cde+++__cdecf__FRAMES', 'd', 'D', 'cde__cde+__cde++__cde+++__cdecf__FRAMES', nan, 4, nan, 0.1111111111111111, 51172, nan), ('g__eg__FRAMES', 'g', 'G', 'eg__FRAMES', nan, 7, nan, 0.19444444444444445, 104477, nan)}
+        exp_l = {('16', 'c', 'C', '15', 3, 3, 0.5, 0.08333333333333333, 38379, nan),
+                 ('20', 'c', 'C', '19', 3, 3, 0.5, 0.08333333333333333, 38379, nan),
+                 ('8', 'gh', 'GH', '1', nan, 15, nan, 0.4166666666666667, 223880, nan),
+                 ('23', 'a', 'a', '22', 1, 1, 0.16666666666666666, 0.027777777777777776, 14179, nan),
+                 ('18', 'e', 'E', '15', nan, 5, nan, 0.1388888888888889, 63965, nan),
+                 ('27', 'cdeeg', '... CDEEG', '24', 3, 19, 0.5, 0.5277777777777778, 269402, nan),
+                 ('34', 'e', 'E', '31', nan, 5, nan, 0.1388888888888889, 56125, nan),
+                 ('15', 'cde', '... CDE', '12', 3, 12, 0.5, 0.3333333333333333, 153517, nan),
+                 ('6', 'e', 'E', '5', nan, 5, nan, 0.1388888888888889, 74626, nan),
+                 ('32', 'c', 'C', '31', 3, 3, 0.5, 0.08333333333333333, 33675, nan),
+                 ('21', 'f', 'F', '19', nan, 6, nan, 0.16666666666666666, 76758, nan),
+                 ('7', 'g', 'G', '5', nan, 7, nan, 0.19444444444444445, 104477, nan),
+                 ('36', 'e', 'E', '35', nan, 5, nan, 0.1388888888888889, 56125, nan),
+                 ('11', 'cdecf', 'CDECF', '1', 3, 18, 0.5, 0.5, 268656, nan),
+                 ('22', 'cdeeg++++', 'cdeeg++++', '1', 3, 19, 0.5, 0.5277777777777778, 283582, nan),
+                 ('10', 'h', 'H', '8', nan, 8, nan, 0.2222222222222222, 119402, nan),
+                 ('9', 'g', 'G', '8', nan, 7, nan, 0.19444444444444445, 104477, nan),
+                 ('3', 'a', 'a', '2', 1, 1, 0.16666666666666666, 0.027777777777777776, 14925, nan),
+                 ('12', 'cde+++', 'cde+++ ...', '11', 3, 12, 0.5, 0.3333333333333333, 153517, nan),
+                 ('5', 'eg', 'EG', '1', nan, 12, nan, 0.3333333333333333, 179104, nan),
+                 ('1', 'FRAMES', 'Root', '', 6, 36, 1.0, 1.0, 1000000, nan),
+                 ('37', 'g', 'G', '35', nan, 7, nan, 0.19444444444444445, 78575, nan),
+                 ('33', 'd', 'D', '31', nan, 4, nan, 0.1111111111111111, 44900, nan),
+                 ('31', 'cde', '... CDE', '28', 3, 12, 0.5, 0.3333333333333333, 134701, nan),
+                 ('19', 'cf', 'CF', '11', 3, 9, 0.5, 0.25, 115138, nan),
+                 ('28', 'cde+++', 'cde+++ ...', '27', 3, 12, 0.5, 0.3333333333333333, 134701, nan),
+                 ('35', 'eg', 'EG', '27', nan, 12, nan, 0.3333333333333333, 134701, nan),
+                 ('17', 'd', 'D', '15', nan, 4, nan, 0.1111111111111111, 51172, nan),
+                 ('2', 'ab', 'AB', '1', 3, 3, 0.5, 0.08333333333333333, 44776, nan),
+                 ('24', 'cdeeg+++', 'cdeeg+++ ...', '22', 3, 19, 0.5, 0.5277777777777778, 269402, nan),
+                 ('4', 'b', 'B', '2', 2, 2, 0.3333333333333333, 0.05555555555555555, 29850, nan)}
         lines = set(data.get_col())
-        self.assertEqual(len(lines), len(exp_lines))
+        # from ontosunburst.sunburst_fig import generate_sunburst_fig
+        # generate_sunburst_fig(data, 'test')
+        self.assertEqual(len(lines), len(exp_l))
         for line in lines:
             line = tuple([nan if type(x) != str and np.isnan(x) else x for x in line])
-            self.assertIn(line, exp_lines)
-
-
+            self.assertIn(line, exp_l)
