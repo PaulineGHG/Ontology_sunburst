@@ -223,7 +223,7 @@ class TestSunburstFigure(unittest.TestCase):
         self.assertEqual(text_list[0], 'P value: 1.0<br>Count: <b>50</b>'
                                        '<br>Reference count: 100<br>Proportion: <b>100.0%</b>'
                                        '<br>Reference proportion: 100.0%<br>ID: 00')
-        self.assertEqual(text_list[5], 'P value: 0.07883064215278136<br>Count: <b>5</b>'
+        self.assertEqual(text_list[2], 'P value: 0.07883064215278136<br>Count: <b>5</b>'
                                        '<br>Reference count: 20<br>Proportion: <b>10.0%</b>'
                                        '<br>Reference proportion: 20.0%<br>ID: 05')
 
@@ -235,7 +235,7 @@ class TestSunburstFigure(unittest.TestCase):
         self.assertEqual(text_list[0], 'P value: 1.0<br>Count: <b>50</b><br>'
                                        'Reference count: 100<br>Proportion: <b>100.0%</b><br>'
                                        'Reference proportion: 100.0%<br>ID: 00')
-        self.assertEqual(text_list[5], 'P value: 0.07883064215278136<br>Count: <b>5</b><br>'
+        self.assertEqual(text_list[2], 'P value: 0.07883064215278136<br>Count: <b>5</b><br>'
                                        'Reference count: 20<br>Proportion: <b>10.0%</b><br>'
                                        'Reference proportion: 20.0%<br>ID: 05')
 
@@ -247,7 +247,7 @@ class TestSunburstFigure(unittest.TestCase):
         self.assertEqual(text_list[0], 'Count: <b>50</b><br>Reference count: 100'
                                        '<br>Proportion: <b>100.0%</b>'
                                        '<br>Reference proportion: 100.0%<br>ID: 00')
-        self.assertEqual(text_list[5], 'Count: <b>5</b><br>Reference count: 20'
+        self.assertEqual(text_list[2], 'Count: <b>5</b><br>Reference count: 20'
                                        '<br>Proportion: <b>10.0%</b>'
                                        '<br>Reference proportion: 20.0%<br>ID: 05')
 
@@ -257,7 +257,7 @@ class TestSunburstFigure(unittest.TestCase):
         text_list = get_hover_fig_text(data, TOPOLOGY_A, False)
         self.assertEqual(len(text_list), 10)
         self.assertEqual(text_list[0], 'Count: <b>50</b><br>Proportion: <b>100.0%</b><br>ID: 00')
-        self.assertEqual(text_list[5], 'Count: <b>5</b><br>Proportion: <b>10.0%</b><br>ID: 05')
+        self.assertEqual(text_list[2], 'Count: <b>5</b><br>Proportion: <b>10.0%</b><br>ID: 05')
 
     @test_for(generate_sunburst_fig)
     def test_generate_sunburst_fig_case1(self):
