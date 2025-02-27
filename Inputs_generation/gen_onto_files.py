@@ -1,6 +1,7 @@
 import json
 import os.path
 from padmet.classes.padmetRef import PadmetRef
+import kegg2bipartitegraph.reference as keggr
 
 CLASSES_SUFFIX = '_classes.json'
 NAMES_SUFFIX = '_names.json'
@@ -63,5 +64,45 @@ def get_ec_parent(ec: str) -> str:
         ec_lst[-(ec_lvl+1)] = '-'
         return '.'.join(ec_lst)
 
+
 # KEGG
 # ==================================================================================================
+def get_kegg_input(output='kegg'):
+    k2b_output = 'k2b.json'
+    keggr.create_reference_base()
+    print('base created')
+    keggr.get_kegg_hierarchy(k2b_output)
+    with open(k2b_output, 'r') as open_json_file:
+        k2b_dict = json.load(open_json_file)
+    version = keggr.get_kegg_database_version().split('+')[0].replace('.', '_')
+    sunburst_dict = get_parents(k2b_dict)
+    root = 'kegg'
+    for sub_root in k2b_dict.keys():
+        sunburst_dict[sub_root] = [root]
+    output = output + version + CLASSES_SUFFIX
+    with open(output, 'w') as f:
+        json.dump(fp=f, obj=sunburst_dict, indent=1)
+
+
+def get_parents(data_dict):
+    parent_child = {}
+    for key, values in data_dict.items():
+        for value in values:
+            if value not in parent_child:
+                parent_child[value] = [key]
+            else:
+                parent_child[value].append(key)
+        if isinstance(values, dict):
+            parent_child = update_dict(parent_child, get_parents(values))
+    return parent_child
+
+
+def update_dict(dict_1, dict_2):
+    for key, value in dict_2.items():
+        if key not in dict_1:
+            dict_1[key] = value
+        else:
+            dict_1[key].extend(value)
+    return dict_1
+
+get_kegg_input()
