@@ -284,7 +284,7 @@ def extract_go_classes(go_ids: List[str], endpoint_url: str) \
         
         SELECT ?goLabel ?parentGoLabel ?goId ?parentGoId
         WHERE {{
-           {go} rdfs:subClassOf* ?go .
+           {go.lower()} rdfs:subClassOf* ?go .
            ?go oboInOwl:id ?goId .
            ?go rdfs:label ?goLabel .
            ?go rdf:type owl:Class .
