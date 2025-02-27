@@ -2,11 +2,15 @@ import json
 import os.path
 from padmet.classes.padmetRef import PadmetRef
 
-METACYC_PADMET = os.path.join('Data/metacyc_26.0_prot70.padmet')
+CLASSES_SUFFIX = '_classes.json'
+NAMES_SUFFIX = '_names.json'
+EC_ROOT = 'Enzyme'
 
 
-def metacyc_file(input_padmet=METACYC_PADMET, output_name='MetaCyc', version='26_0'):
-    output = output_name + version + '_classes.json'
+# METACYC
+# ==================================================================================================
+def generate_metacyc_input(input_padmet, version, output_name='MetaCyc'):
+    output = output_name + version + CLASSES_SUFFIX
     pref = PadmetRef(input_padmet)
     rels = pref.getAllRelation()
     classes = dict()
@@ -18,7 +22,46 @@ def metacyc_file(input_padmet=METACYC_PADMET, output_name='MetaCyc', version='26
     for c, p in classes.items():
         classes[c] = list(p)
     with open(output, 'w') as o:
-        json.dump(fp=o, obj=classes)
+        json.dump(fp=o, obj=classes, indent=1)
 
 
-metacyc_file()
+# EC
+# ==================================================================================================
+def generate_ec_input(enzclass_txt, enzyme_dat, version, output='enzyme'):
+    output_name = output + version + NAMES_SUFFIX
+    output_class = output + version + CLASSES_SUFFIX
+    names = dict()
+    classes = dict()
+    with open(enzclass_txt, 'r') as f:
+        for l in f:
+            ec_id = l[:9].replace(' ', '')
+            if ec_id.count('.') == 3:
+                ec_name = l[10:].strip()
+                names[ec_id] = ec_name
+                ec_parent = get_ec_parent(ec_id)
+                classes[ec_id] = [ec_parent]
+    with open(enzyme_dat, 'r') as f:
+        for l in f:
+            if l.startswith('ID'):
+                ec_id = l[3:].strip()
+            if l.startswith('DE'):
+                ec_name = l[3:].strip()
+                names[ec_id] = ec_name
+                ec_parent = get_ec_parent(ec_id)
+                classes[ec_id] = [ec_parent]
+    with open(output_name, 'w') as on, open(output_class, 'w') as oc:
+        json.dump(fp=on, obj=names, indent=1)
+        json.dump(fp=oc, obj=classes, indent=1)
+
+
+def get_ec_parent(ec: str) -> str:
+    ec_lvl = ec.count('-')
+    if ec_lvl == 3:
+        return EC_ROOT
+    else:
+        ec_lst = ec.split('.')
+        ec_lst[-(ec_lvl+1)] = '-'
+        return '.'.join(ec_lst)
+
+# KEGG
+# ==================================================================================================
