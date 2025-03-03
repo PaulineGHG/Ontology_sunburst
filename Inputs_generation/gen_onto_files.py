@@ -1,5 +1,4 @@
 import json
-import os.path
 from padmet.classes.padmetRef import PadmetRef
 import kegg2bipartitegraph.reference as keggr
 
@@ -89,5 +88,3 @@ def get_sub_roots(dict_kegg):
                 sub_roots.add(c)
     return sub_roots
 
-
-get_kegg_input()
