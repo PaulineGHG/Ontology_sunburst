@@ -68,41 +68,26 @@ def get_ec_parent(ec: str) -> str:
 # KEGG
 # ==================================================================================================
 def get_kegg_input(output='kegg'):
-    k2b_output = 'k2b.json'
     keggr.create_reference_base()
     print('base created')
-    keggr.get_kegg_hierarchy(k2b_output)
-    with open(k2b_output, 'r') as open_json_file:
-        k2b_dict = json.load(open_json_file)
+    _, k2b_dict = keggr.get_kegg_hierarchy()
     version = keggr.get_kegg_database_version().split('+')[0].replace('.', '_')
-    sunburst_dict = get_parents(k2b_dict)
     root = 'kegg'
-    for sub_root in k2b_dict.keys():
-        sunburst_dict[sub_root] = [root]
+    sub_roots = get_sub_roots(k2b_dict)
+    for sub_root in sub_roots:
+        k2b_dict[sub_root] = [root]
     output = output + version + CLASSES_SUFFIX
     with open(output, 'w') as f:
-        json.dump(fp=f, obj=sunburst_dict, indent=1)
+        json.dump(fp=f, obj=k2b_dict, indent=1)
 
 
-def get_parents(data_dict):
-    parent_child = {}
-    for key, values in data_dict.items():
-        for value in values:
-            if value not in parent_child:
-                parent_child[value] = [key]
-            else:
-                parent_child[value].append(key)
-        if isinstance(values, dict):
-            parent_child = update_dict(parent_child, get_parents(values))
-    return parent_child
+def get_sub_roots(dict_kegg):
+    sub_roots = set()
+    for v in dict_kegg.values():
+        for c in v:
+            if c not in dict_kegg:
+                sub_roots.add(c)
+    return sub_roots
 
-
-def update_dict(dict_1, dict_2):
-    for key, value in dict_2.items():
-        if key not in dict_1:
-            dict_1[key] = value
-        else:
-            dict_1[key].extend(value)
-    return dict_1
 
 get_kegg_input()

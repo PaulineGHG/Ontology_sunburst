@@ -18,11 +18,11 @@ CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 # Dictionary json files
 # ---------------------
 DEFAULT_FILE = {METACYC: os.path.join(CURRENT_DIR, 'Inputs', 'MetaCyc26_0_classes.json'),
-                EC: os.path.join(CURRENT_DIR, 'Inputs', 'enzymes_ontology.json'),
-                KEGG: os.path.join(CURRENT_DIR, 'Inputs', 'kegg_onto.json')}
+                EC: os.path.join(CURRENT_DIR, 'Inputs', 'enzyme05feb25_classes.json'),
+                KEGG: os.path.join(CURRENT_DIR, 'Inputs', 'kegg113_0_classes.json')}
 # Names json files
 # ----------------
-DEFAULT_NAMES = {EC: os.path.join(CURRENT_DIR, 'Inputs', 'enzymes_class_names.json'),
+DEFAULT_NAMES = {EC: os.path.join(CURRENT_DIR, 'Inputs', 'enzyme05feb25_names.json'),
                  METACYC: None, KEGG: None, CHEBI: None, GO: None}
 DEFAULT = 'default'
 # Sparql URL
