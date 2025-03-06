@@ -121,7 +121,7 @@ def ontosunburst(interest_set: List[str],
     else:
         names = None
     # DICTIONARY / JSON INPUT ----------------------------------------------------------------------
-    if ontology == METACYC or ontology == EC or ontology == KEGG or ontology is None:
+    if ontology in {METACYC, EC, KEGG, None}:
         if ontology is None:
             if class_ontology is None:
                 raise ValueError('If no default ontology, must fill class_ontology parameter')
@@ -134,7 +134,7 @@ def ontosunburst(interest_set: List[str],
             with open(class_ontology, 'r') as f:
                 class_ontology = json.load(f)
     # SPARQL URL INPUT -----------------------------------------------------------------------------
-    elif ontology == CHEBI or ontology == GO:
+    elif ontology in {CHEBI, GO}:
         if endpoint_url is None:
             endpoint_url = DEFAULT_URL[ontology]
     # ELSE -----------------------------------------------------------------------------------------

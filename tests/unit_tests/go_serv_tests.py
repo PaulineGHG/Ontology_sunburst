@@ -1,3 +1,6 @@
+"""
+Tests with GO release : 2024-11-03
+"""
 import unittest
 from unittest.mock import patch
 import io
@@ -109,7 +112,7 @@ class TestGOClassesExtraction(unittest.TestCase):
                            'go:0043231': ['go:0043229', 'go:0043227']}
         wanted_names = {'go:0043227': 'membrane-bounded organelle',
                         'go:0043226': 'organelle',
-                        'go:0110165': 'cellular anatomical entity',
+                        'go:0110165': 'cellular anatomical structure',
                         'go:0005575': 'cellular_component',
                         'go:0043229': 'intracellular organelle',
                         'go:0043231': 'intracellular membrane-bounded organelle'}
@@ -136,7 +139,7 @@ class TestGOClassesExtraction(unittest.TestCase):
                            'go:0043231': ['go:0043229', 'go:0043227']}
         wanted_names = {'go:0043227': 'membrane-bounded organelle',
                         'go:0043226': 'organelle',
-                        'go:0110165': 'cellular anatomical entity',
+                        'go:0110165': 'cellular anatomical structure',
                         'go:0005575': 'cellular_component',
                         'go:0043229': 'intracellular organelle',
                         'go:0043231': 'intracellular membrane-bounded organelle'}
