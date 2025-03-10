@@ -4,11 +4,11 @@ from typing import List, Dict, Set
 from time import time
 import plotly.graph_objects as go
 
-from ontosunburst.ontology import get_abundance_dict, get_classes_abundance, get_classes_scores, \
+from ontosunburst.onto2dag import get_abundance_dict, get_classes_abundance, get_classes_scores, \
     extract_classes, reduce_d_ontology
 
-from ontosunburst.data_table_tree import DataTable, get_name, BINOMIAL_TEST, ROOT_CUT, PATH_UNCUT
-from ontosunburst.sunburst_fig import generate_sunburst_fig, TOPOLOGY_A, ENRICHMENT_A
+from ontosunburst.dag2tree import DataTable, get_name, BINOMIAL_TEST, ROOT_CUT, PATH_UNCUT
+from ontosunburst.tree2sunburst import generate_sunburst_fig, TOPOLOGY_A, ENRICHMENT_A
 
 # ==================================================================================================
 #                                           CONSTANTS

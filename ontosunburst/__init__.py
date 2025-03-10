@@ -1,3 +1,3 @@
-from ontosunburst import ontosunburst, ontology, data_table_tree, sunburst_fig, Inputs
+from ontosunburst import ontosunburst, onto2dag, dag2tree, tree2sunburst, Inputs
 
 __version__ = '0.1.0'

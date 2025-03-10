@@ -3,7 +3,7 @@ from unittest.mock import patch
 import io
 import sys
 from functools import wraps
-from ontosunburst.ontology import *
+from ontosunburst.onto2dag import *
 
 """
 Tests manually good file creation.

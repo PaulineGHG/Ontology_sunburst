@@ -2,8 +2,8 @@ import unittest
 import io
 
 from functools import wraps
-from ontosunburst.data_table_tree import *
-from ontosunburst.ontology import *
+from ontosunburst.dag2tree import *
+from ontosunburst.onto2dag import *
 
 """
 Tests manually good file creation.

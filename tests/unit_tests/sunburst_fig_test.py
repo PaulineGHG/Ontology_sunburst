@@ -7,8 +7,8 @@ import copy
 from functools import wraps
 from unittest.mock import patch
 
-from ontosunburst.ontology import ROOTS, METACYC
-from ontosunburst.sunburst_fig import *
+from ontosunburst.onto2dag import ROOTS, METACYC
+from ontosunburst.tree2sunburst import *
 
 """
 Tests manually good file creation.

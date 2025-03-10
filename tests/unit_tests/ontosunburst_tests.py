@@ -3,7 +3,7 @@ import io
 from functools import wraps
 
 from ontosunburst.ontosunburst import *
-from ontosunburst.data_table_tree import *
+from ontosunburst.dag2tree import *
 
 """
 Tests manually good file creation.
