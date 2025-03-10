@@ -15,20 +15,10 @@ from ontosunburst.sunburst_fig import generate_sunburst_fig, TOPOLOGY_A, ENRICHM
 # ==================================================================================================
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
-# Dictionary json files
-# ---------------------
-DEFAULT_FILE = {METACYC: os.path.join(CURRENT_DIR, 'Inputs', 'MetaCyc26_0_classes.json'),
-                EC: os.path.join(CURRENT_DIR, 'Inputs', 'enzyme05feb25_classes.json'),
-                KEGG: os.path.join(CURRENT_DIR, 'Inputs', 'kegg113_0_classes.json')}
-# Names json files
-# ----------------
-DEFAULT_NAMES = {EC: os.path.join(CURRENT_DIR, 'Inputs', 'enzyme05feb25_names.json'),
-                 METACYC: None, KEGG: None, CHEBI: None, GO: None}
+DEFAULT_PATH = os.path.join(CURRENT_DIR, 'Inputs')
 DEFAULT = 'default'
-# Sparql URL
-# ----------
-DEFAULT_URL = {CHEBI: 'http://localhost:3030/chebi/',
-               GO: 'http://localhost:3030/go/'}
+CLASSES_SUFFIX = 'classes.json'
+LABELS_SUFFIX = 'labels.json'
 
 
 # ==================================================================================================
@@ -47,7 +37,6 @@ def ontosunburst(interest_set: List[str],
                  write_output: bool = True,
                  class_ontology: str or Dict[str, str] = None,
                  labels: str or Dict[str, str] = DEFAULT,
-                 endpoint_url: str = None,
                  test: str = BINOMIAL_TEST,
                  root_cut: str = ROOT_CUT,
                  path_cut: str = PATH_UNCUT,
@@ -86,8 +75,6 @@ def ontosunburst(interest_set: List[str],
     labels: str or Dict[str, str] (optional, default='default')
         Path to ID-LABELS association json file or ID-LABELS association dictionary or 'default'
         to use default files. If None ontology IDs will be used as labels.
-    endpoint_url: str (optional, default=None)
-        URL of ChEBI or GO ontology for SPARQL requests
     test: str (optional, default='binomial', values in ['binomial', 'hypergeometric'])
         Type of test if analysis=enrichment, binomial or hypergeometric test.
     root_cut: str (optional, default='cut', values in ['uncut', 'cut', 'total'])
@@ -109,7 +96,7 @@ def ontosunburst(interest_set: List[str],
     # LOAD NAMES -----------------------------------------------------------------------------------
     if labels == DEFAULT:
         if ontology is not None:
-            labels = DEFAULT_NAMES[ontology]
+            labels = get_file(ontology, LABELS_SUFFIX)
         else:
             labels = None
     if labels is not None:
@@ -121,25 +108,17 @@ def ontosunburst(interest_set: List[str],
     else:
         names = None
     # DICTIONARY / JSON INPUT ----------------------------------------------------------------------
-    if ontology in {METACYC, EC, KEGG, None}:
-        if ontology is None:
-            if class_ontology is None:
-                raise ValueError('If no default ontology, must fill class_ontology parameter')
-            if root is None:
-                raise ValueError('If no default ontology, must fill root parameter')
-        else:
-            if class_ontology is None:
-                class_ontology = DEFAULT_FILE[ontology]
-        if type(class_ontology) == str:
-            with open(class_ontology, 'r') as f:
-                class_ontology = json.load(f)
-    # SPARQL URL INPUT -----------------------------------------------------------------------------
-    elif ontology in {CHEBI, GO}:
-        if endpoint_url is None:
-            endpoint_url = DEFAULT_URL[ontology]
-    # ELSE -----------------------------------------------------------------------------------------
+    if ontology is None:
+        if class_ontology is None:
+            raise ValueError('If no default ontology, must fill class_ontology parameter')
+        if root is None:
+            raise ValueError('If no default ontology, must fill root parameter')
     else:
-        raise ValueError(f'ontology parameter must be in {[METACYC, EC, KEGG, GO, CHEBI, None]}')
+        if class_ontology is None:
+            class_ontology = get_file(ontology, CLASSES_SUFFIX)
+    if type(class_ontology) == str:
+        with open(class_ontology, 'r') as f:
+            class_ontology = json.load(f)
     # GET ROOT -------------------------------------------------------------------------------------
     if ontology is not None:
         root = ROOTS[ontology]
@@ -148,7 +127,7 @@ def ontosunburst(interest_set: List[str],
                            metabolic_objects=interest_set, abundances=abundances,
                            scores=scores,
                            reference_set=reference_set, ref_abundances=ref_abundances,
-                           d_classes_ontology=class_ontology, endpoint_url=endpoint_url,
+                           d_classes_ontology=class_ontology,
                            output=output, write_output=write_output, names=names,
                            test=test, root=root, root_cut=root_cut, path_cut=path_cut,
                            ref_base=ref_base, show_leaves=show_leaves, **kwargs)
@@ -161,7 +140,7 @@ def ontosunburst(interest_set: List[str],
 #                                             FUNCTIONS
 # ==================================================================================================
 def _global_analysis(ontology, analysis, metabolic_objects, abundances, scores, reference_set,
-                     ref_abundances, d_classes_ontology, endpoint_url, output, write_output, names,
+                     ref_abundances, d_classes_ontology, output, write_output, names,
                      test, root, root_cut, path_cut, ref_base, show_leaves, **kwargs):
     """
 
@@ -174,7 +153,6 @@ def _global_analysis(ontology, analysis, metabolic_objects, abundances, scores, 
     reference_set
     ref_abundances
     d_classes_ontology
-    endpoint_url
     output
     write_output
     names
@@ -193,8 +171,7 @@ def _global_analysis(ontology, analysis, metabolic_objects, abundances, scores, 
     # EXTRACT CLASSES
     # ----------------------------------------------------------------------------------------------
     obj_all_classes, d_classes_ontology, names = extract_classes(ontology, metabolic_objects, root,
-                                                                 d_classes_ontology, endpoint_url,
-                                                                 names)
+                                                                 d_classes_ontology, names)
     if not obj_all_classes:
         print('No object classified, passing.')
     if write_output:
@@ -213,8 +190,7 @@ def _global_analysis(ontology, analysis, metabolic_objects, abundances, scores, 
                                                  metabolic_objects=reference_set,
                                                  ref=True)
         ref_all_classes, d_classes_ontology, names = extract_classes(ontology, reference_set, root,
-                                                                     d_classes_ontology,
-                                                                     endpoint_url, names)
+                                                                     d_classes_ontology, names)
         ref_classes_abundance = get_classes_abundance(ref_all_classes, ref_abundances_dict,
                                                       show_leaves)
     else:
@@ -241,8 +217,7 @@ def _global_analysis(ontology, analysis, metabolic_objects, abundances, scores, 
     data.fill_parameters(set_abundance=classes_abundance, ref_abundance=ref_classes_abundance,
                          parent_dict=d_classes_ontology, root_item=root, names=names,
                          ref_base=ref_base)
-    end_time = time()
-    print(f'Execution time STEP: {end_time - start_time} seconds')
+
     data.calculate_proportions(ref_base)
     significant = None
     if analysis == ENRICHMENT_A:
@@ -250,6 +225,8 @@ def _global_analysis(ontology, analysis, metabolic_objects, abundances, scores, 
     data.cut_root(root_cut)
     data.cut_nested_path(path_cut, ref_base)
 
+    end_time = time()
+    print(f'Execution time : {end_time - start_time} seconds')
     # FIGURE
     # ----------------------------------------------------------------------------------------------
     return generate_sunburst_fig(data=data, output=output, analysis=analysis, test=test,
@@ -284,3 +261,9 @@ def write_met_classes(ontology: str, all_classes: Dict[str, List[str]], output: 
             classes_lab = [get_name(cl, names) for cl in classes_id]
             f.write('\t'.join([met_id, met_lab, ', '.join(classes_id), ', '.join(classes_lab),
                                link]) + '\n')
+
+
+def get_file(ontology, suffix):
+    for file in os.listdir(DEFAULT_PATH):
+        if file.startswith(ontology + '__') and file.endswith('__' + suffix):
+            return os.path.join(DEFAULT_PATH, file)

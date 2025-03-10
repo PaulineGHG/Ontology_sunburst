@@ -18,8 +18,8 @@ ROOTS = {METACYC: 'FRAMES',
          GO: 'GO',
          KEGG: 'kegg'}
 
-CLASSES_SUFFIX = '_classes.json'
-NAMES_SUFFIX = '_names.json'
+CLASSES_SUFFIX = 'classes.json'
+LABELS_SUFFIX = 'labels.json'
 
 URL = {CHEBI: 'http://localhost:3030/chebi/',
        GO: 'http://localhost:3030/go/'}
@@ -29,10 +29,14 @@ GO_ROOTS = {'GO:0005575': 'cc',
             'GO:0003674': 'mf'}
 
 
+def get_output_path(prefix, suffix, version):
+    return prefix + '__' + version + '__' + suffix
+
+
 # METACYC
 # ==================================================================================================
 def generate_metacyc_input(input_padmet, version=''):
-    output = METACYC + '_' + version + CLASSES_SUFFIX
+    output = get_output_path(METACYC, version, CLASSES_SUFFIX)
     pref = PadmetRef(input_padmet)
     rels = pref.getAllRelation()
     classes = dict()
@@ -50,8 +54,8 @@ def generate_metacyc_input(input_padmet, version=''):
 # EC
 # ==================================================================================================
 def generate_ec_input(enzclass_txt, enzyme_dat, version=''):
-    output_name = EC + '_' + version + NAMES_SUFFIX
-    output_class = EC + '_' + version + CLASSES_SUFFIX
+    output_name = get_output_path(EC, version, NAMES_SUFFIX)
+    output_class = get_output_path(EC, version, CLASSES_SUFFIX)
     names = dict()
     classes = dict()
     with open(enzclass_txt, 'r') as f:
@@ -92,11 +96,11 @@ def generate_kegg_input():
     keggr.create_reference_base()
     print('base created')
     _, k2b_dict = keggr.get_kegg_hierarchy()
-    version = keggr.get_kegg_database_version().split('+')[0].replace('.', '_')
+    version = keggr.get_kegg_database_version().split('+')[0].replace('.', '-')
     sub_roots = get_sub_roots(k2b_dict)
     for sub_root in sub_roots:
         k2b_dict[sub_root] = [ROOTS[KEGG]]
-    output = KEGG + '_' + version + CLASSES_SUFFIX
+    output = get_output_path(KEGG, version, CLASSES_SUFFIX)
     with open(output, 'w') as f:
         json.dump(fp=f, obj=k2b_dict, indent=1)
 
@@ -168,8 +172,8 @@ def generate_chebi_input(url_endpoint=URL[CHEBI], version=''):
         d_labels[parent_id] = parent_label
         d_labels[child_id] = child_label
 
-    output_classes = CHEBI + '_' + version + CLASSES_SUFFIX
-    output_labels = CHEBI + '_' + version + NAMES_SUFFIX
+    output_classes = get_output_path(CHEBI, version, CLASSES_SUFFIX)
+    output_labels = get_output_path(CHEBI, version, NAMES_SUFFIX)
     with open(output_classes, 'w') as oc, open(output_labels, 'w') as ol:
         json.dump(d_ontology, oc, indent=1)
         json.dump(d_labels, ol, indent=1)
@@ -284,8 +288,8 @@ def generate_chebi_roles_input(url_endpoint=URL[CHEBI], version=''):
         d_roles_ontology[chem_id].append(role_id)
         d_labels[chem_id] = chem_label
 
-    output_classes = CHEBI_R + '_' + version + CLASSES_SUFFIX
-    output_labels = CHEBI_R + '_' + version + NAMES_SUFFIX
+    output_classes = get_output_path(CHEBI_R, version, CLASSES_SUFFIX)
+    output_labels = get_output_path(CHEBI_R, version, NAMES_SUFFIX)
     with open(output_classes, 'w') as oc, open(output_labels, 'w') as ol:
         json.dump(d_roles_ontology, oc, indent=1)
         json.dump(d_labels, ol, indent=1)
@@ -358,8 +362,8 @@ def generate_go_input(url_endpoint=URL[GO], version=''):
             d_labels[parent_id] = parent_label
             d_labels[child_id] = child_label
 
-        output_classes = GO + '_' + root_name + '_' + version + CLASSES_SUFFIX
-        output_labels = GO + '_' + root_name + '_' + version + NAMES_SUFFIX
+        output_classes = get_output_path(GO + '_' + root_name, version, CLASSES_SUFFIX)
+        output_labels = get_output_path(GO + '_' + root_name, version, NAMES_SUFFIX)
         with open(output_classes, 'w') as oc, open(output_labels, 'w') as ol:
             json.dump(d_ontology, oc, indent=1)
             json.dump(d_labels, ol, indent=1)
