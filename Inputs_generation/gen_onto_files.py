@@ -1,10 +1,26 @@
 import json
+from typing import List, Set, Dict, Tuple
+from SPARQLWrapper import SPARQLWrapper, JSON
 from padmet.classes.padmetRef import PadmetRef
 import kegg2bipartitegraph.reference as keggr
 
+METACYC = 'metacyc'
+EC = 'ec'
+CHEBI = 'chebi'
+GO = 'go'
+KEGG = 'kegg'
+
+ROOTS = {METACYC: 'FRAMES',
+         CHEBI: 'CHEBI:50906',
+         EC: 'Enzyme',
+         GO: 'GO',
+         KEGG: 'kegg'}
+
 CLASSES_SUFFIX = '_classes.json'
 NAMES_SUFFIX = '_names.json'
-EC_ROOT = 'Enzyme'
+
+URL = {CHEBI: 'http://localhost:3030/chebi/',
+       GO: 'http://localhost:3030/go/'}
 
 
 # METACYC
@@ -57,7 +73,7 @@ def generate_ec_input(enzclass_txt, enzyme_dat, version, output='enzyme'):
 def get_ec_parent(ec: str) -> str:
     ec_lvl = ec.count('-')
     if ec_lvl == 3:
-        return EC_ROOT
+        return ROOTS[EC]
     else:
         ec_lst = ec.split('.')
         ec_lst[-(ec_lvl+1)] = '-'
@@ -87,4 +103,186 @@ def get_sub_roots(dict_kegg):
             if c not in dict_kegg:
                 sub_roots.add(c)
     return sub_roots
+
+
+# CHEBI CLASS
+# ==================================================================================================
+
+def chebi_onto_query(endpoint_url: str) -> dict:
+    """ Returns the query results to get the chebi classes ontology tree from the role root
+    (Root_id = 24431)
+
+    Parameters
+    ----------
+    endpoint_url: str
+        Endpoint URL of Jena Fuseki server
+
+    Returns
+    -------
+    dict
+        Dictionary of query results
+    """
+    query = f"""
+            PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX chebidb: <http://purl.obolibrary.org/obo/CHEBI_>
+            PREFIX oboInOwl: <http://www.geneontology.org/formats/oboInOwl#>
+
+            SELECT DISTINCT ?childLabel ?parentLabel ?childId ?parentId
+            WHERE {{
+                VALUES ?root{{chebidb:24431}}                                        
+                ?root rdfs:label ?rootLabel .
+
+                ?child rdfs:subClassOf* ?root .
+                ?child oboInOwl:id ?childId .  
+                ?child rdfs:label ?childLabel .
+
+                ?child rdfs:subClassOf ?parent .
+                ?parent rdfs:label ?parentLabel .
+                ?parent oboInOwl:id ?parentId . 
+            }}
+            """
+    sparql = SPARQLWrapper(endpoint_url)
+    sparql.setQuery(query)
+    sparql.setReturnFormat(JSON)
+    results = sparql.query().convert()
+    return results
+
+
+def extract_chebi_classes(url_endpoint=URL[CHEBI], output='chebi', version=''):
+    d_ontology = dict()
+    d_labels = dict()
+    results = chebi_onto_query(url_endpoint)
+    for result in results['results']['bindings']:
+        child_label = result['childLabel']['value']
+        parent_label = result['parentLabel']['value']
+        child_id = result['childId']['value']
+        parent_id = result['parentId']['value']
+        if child_id not in d_ontology:
+            d_ontology[child_id] = []
+        d_ontology[child_id].append(parent_id)
+        d_labels[parent_id] = parent_label
+        d_labels[child_id] = child_label
+
+    output_classes = output + version + CLASSES_SUFFIX
+    output_labels = output + version + NAMES_SUFFIX
+    with open(output_classes, 'w') as oc, open(output_labels, 'w') as ol:
+        json.dump(d_ontology, oc, indent=1)
+        json.dump(d_labels, ol, indent=1)
+
+
+# CHEBI ROLES
+# ==================================================================================================
+def chebi_role_onto_query(endpoint_url: str) -> dict:
+    """ Returns the query results to get the chebi roles ontology tree from the role root
+    (Root_id = 50906)
+
+    Parameters
+    ----------
+    endpoint_url: str
+        Endpoint URL of Jena Fuseki server
+
+    Returns
+    -------
+    dict
+        Dictionary of query results
+    """
+    query = f"""
+            PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX chebidb: <http://purl.obolibrary.org/obo/CHEBI_>
+            PREFIX oboInOwl: <http://www.geneontology.org/formats/oboInOwl#>
+
+            SELECT DISTINCT ?childRoleLabel ?parentRoleLabel ?childRoleId ?parentRoleId
+            WHERE {{
+                VALUES ?rootRole{{chebidb:50906}}                                        
+                ?rootRole rdfs:label ?rootRoleLabel .
+                
+                ?childRole rdfs:subClassOf* ?rootRole .
+                ?childRole oboInOwl:id ?childRoleId .  
+                ?childRole rdfs:label ?childRoleLabel .
+                
+                ?childRole rdfs:subClassOf ?parentRole .
+                ?parentRole rdfs:label ?parentRoleLabel .
+                ?parentRole oboInOwl:id ?parentRoleId . 
+            }}
+            """
+    sparql = SPARQLWrapper(endpoint_url)
+    sparql.setQuery(query)
+    sparql.setReturnFormat(JSON)
+    results = sparql.query().convert()
+    return results
+
+
+def chebi_chem_roles_query(endpoint_url: str) -> dict:
+    """ Returns the query results to get the chebi roles associated to each chemical having a role.
+
+    Parameters
+    ----------
+    endpoint_url: str
+        Endpoint URL of Jena Fuseki server
+
+    Returns
+    -------
+    dict
+        Dictionary of query results
+    """
+    query = f"""
+            PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX owl: <http://www.w3.org/2002/07/owl#>
+            PREFIX obo: <http://purl.obolibrary.org/obo/>
+            PREFIX oboInOwl: <http://www.geneontology.org/formats/oboInOwl#>
+         
+            SELECT DISTINCT ?chemLabel ?roleLabel ?chemId ?roleId
+            WHERE {{                                      
+                ?chem rdfs:subClassOf ?restriction .
+                ?restriction rdf:type owl:Restriction .
+                ?restriction owl:onProperty obo:RO_0000087 .
+                ?restriction owl:someValuesFrom/(rdfs:subClassOf) ?role .
+                ?role rdfs:label ?roleLabel .
+                ?role oboInOwl:id ?roleId .
+                ?chem rdfs:label ?chemLabel .
+                ?chem oboInOwl:id ?chemId .
+            }}
+            """
+    sparql = SPARQLWrapper(endpoint_url)
+    sparql.setQuery(query)
+    sparql.setReturnFormat(JSON)
+    results = sparql.query().convert()
+    return results
+
+
+def extract_chebi_roles(url_endpoint=URL[CHEBI], output='chebi_roles', version=''):
+    d_roles_ontology = dict()
+    d_labels = dict()
+    results = chebi_role_onto_query(url_endpoint)
+    for result in results['results']['bindings']:
+        child_role_label = result['childRoleLabel']['value']
+        parent_role_label = result['parentRoleLabel']['value']
+        child_role_id = result['childRoleId']['value']
+        parent_role_id = result['parentRoleId']['value']
+        if child_role_id not in d_roles_ontology:
+            d_roles_ontology[child_role_id] = []
+        d_roles_ontology[child_role_id].append(parent_role_id)
+        d_labels[parent_role_id] = parent_role_label
+        d_labels[child_role_id] = child_role_label
+
+    results = chebi_chem_roles_query(url_endpoint)
+    for result in results['results']['bindings']:
+        chem_label = result['chemLabel']['value']
+        role_label = result['roleLabel']['value']
+        chem_id = result['chemId']['value']
+        role_id = result['roleId']['value']
+        if role_id not in d_labels:
+            print(f'Role {role_label} not in the ontology.')
+        if chem_id not in d_roles_ontology:
+            d_roles_ontology[chem_id] = []
+        d_roles_ontology[chem_id].append(role_id)
+        d_labels[chem_id] = chem_label
+
+    output_classes = output + version + CLASSES_SUFFIX
+    output_labels = output + version + NAMES_SUFFIX
+    with open(output_classes, 'w') as oc, open(output_labels, 'w') as ol:
+        json.dump(d_roles_ontology, oc, indent=1)
+        json.dump(d_labels, ol, indent=1)
+
 
