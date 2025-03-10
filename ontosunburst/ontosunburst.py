@@ -24,19 +24,19 @@ METACYC = 'metacyc'
 EC = 'ec'
 CHEBI = 'chebi'
 CHEBI_R = 'chebi_roles'
-GO = 'go'
+GO_CC = 'go_cc'
+GO_MF = 'go_mf'
+GO_BP = 'go_bp'
 KEGG = 'kegg'
 
 ROOTS = {METACYC: 'FRAMES',
          CHEBI: 'CHEBI:23117',
          CHEBI_R: 'CHEBI:50906',
          EC: 'Enzyme',
-         GO: 'GO',
+         GO_CC: 'GO:0005575',
+         GO_BP: 'GO:0008150',
+         GO_MF: 'GO:0003674',
          KEGG: 'kegg'}
-
-GO_ROOTS = {'GO:0005575': 'cc',
-            'GO:0008150': 'bp',
-            'GO:0003674': 'mf'}
 
 
 # ==================================================================================================
@@ -267,9 +267,12 @@ def write_met_classes(ontology: str, all_classes: Dict[str, Set[str]], output: s
         ontology = ''
     links_dict = {METACYC: 'https://metacyc.org/compound?orgid=META&id=',
                   CHEBI: 'https://www.ebi.ac.uk/chebi/searchId.do?chebiId=CHEBI:',
+                  CHEBI_R: 'https://www.ebi.ac.uk/chebi/searchId.do?chebiId=CHEBI:',
                   EC: 'https://enzyme.expasy.org/EC/',
                   KEGG: 'https://www.genome.jp/entry/',
-                  GO: 'https://amigo.geneontology.org/amigo/term/',
+                  GO_MF: 'https://amigo.geneontology.org/amigo/term/',
+                  GO_CC: 'https://amigo.geneontology.org/amigo/term/',
+                  GO_BP: 'https://amigo.geneontology.org/amigo/term/',
                   '': ''}
     with open(f'{output}.tsv', 'w') as f:
         f.write('\t'.join(['ID', 'Label', 'Classes ID', 'Classes Label', 'Link']) + '\n')

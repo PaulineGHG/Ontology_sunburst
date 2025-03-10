@@ -2,12 +2,14 @@ import json
 import kegg2bipartitegraph.reference as keggr
 from SPARQLWrapper import SPARQLWrapper, JSON
 from padmet.classes.padmetRef import PadmetRef
-from ontosunburst.ontosunburst import METACYC, EC, CHEBI, CHEBI_R, GO, KEGG, ROOTS, \
-    CLASSES_SUFFIX, LABELS_SUFFIX, GO_ROOTS
+from ontosunburst.ontosunburst import METACYC, EC, CHEBI, CHEBI_R, GO_MF, GO_BP, GO_CC, KEGG, \
+    ROOTS, CLASSES_SUFFIX, LABELS_SUFFIX
 
 
 URL = {CHEBI: 'http://localhost:3030/chebi/',
-       GO: 'http://localhost:3030/go/'}
+       GO_MF: 'http://localhost:3030/go/'}
+
+GO_ROOTS = [GO_CC, GO_BP, GO_MF]
 
 
 def get_output_path(prefix, suffix, version):
@@ -327,8 +329,9 @@ def go_onto_query(root: str, endpoint_url: str) -> dict:
     return results
 
 
-def generate_go_input(url_endpoint=URL[GO], version=''):
-    for root, root_name in GO_ROOTS.items():
+def generate_go_input(url_endpoint=URL[GO_MF], version=''):
+    for root_name in GO_ROOTS:
+        root = ROOTS[root_name]
         d_ontology = dict()
         d_labels = dict()
         results = go_onto_query(root, url_endpoint)
@@ -343,8 +346,8 @@ def generate_go_input(url_endpoint=URL[GO], version=''):
             d_labels[parent_id] = parent_label
             d_labels[child_id] = child_label
 
-        output_classes = get_output_path(GO + '_' + root_name, version, CLASSES_SUFFIX)
-        output_labels = get_output_path(GO + '_' + root_name, version, LABELS_SUFFIX)
+        output_classes = get_output_path(root_name, version, CLASSES_SUFFIX)
+        output_labels = get_output_path(root_name, version, LABELS_SUFFIX)
         with open(output_classes, 'w') as oc, open(output_labels, 'w') as ol:
             json.dump(d_ontology, oc, indent=1)
             json.dump(d_labels, ol, indent=1)
