@@ -12,7 +12,7 @@ URL = {CHEBI: 'http://localhost:3030/chebi/',
 GO_ROOTS = [GO_CC, GO_BP, GO_MF]
 
 
-def get_output_path(prefix, suffix, version):
+def get_output_path(prefix, version, suffix):
     return prefix + '__' + version + '__' + suffix
 
 
@@ -140,7 +140,7 @@ def chebi_onto_query(endpoint_url: str) -> dict:
     return results
 
 
-def generate_chebi_input(url_endpoint=URL[CHEBI], version=''):
+def generate_chebi_input(version='', url_endpoint=URL[CHEBI]):
     d_ontology = dict()
     d_labels = dict()
     results = chebi_onto_query(url_endpoint)
@@ -243,7 +243,7 @@ def chebi_chem_roles_query(endpoint_url: str) -> dict:
     return results
 
 
-def generate_chebi_roles_input(url_endpoint=URL[CHEBI], version=''):
+def generate_chebi_roles_input(version='', url_endpoint=URL[CHEBI]):
     d_roles_ontology = dict()
     d_labels = dict()
     results = chebi_role_onto_query(url_endpoint)
@@ -329,7 +329,7 @@ def go_onto_query(root: str, endpoint_url: str) -> dict:
     return results
 
 
-def generate_go_input(url_endpoint=URL[GO_MF], version=''):
+def generate_go_input(version='', url_endpoint=URL[GO_MF]):
     for root_name in GO_ROOTS:
         root = ROOTS[root_name]
         d_ontology = dict()
@@ -351,4 +351,3 @@ def generate_go_input(url_endpoint=URL[GO_MF], version=''):
         with open(output_classes, 'w') as oc, open(output_labels, 'w') as ol:
             json.dump(d_ontology, oc, indent=1)
             json.dump(d_labels, ol, indent=1)
-

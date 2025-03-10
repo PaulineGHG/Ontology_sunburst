@@ -141554,7 +141554,7 @@
  "C10399": [
   "PK1505 Alkyl hydroquinones and derivatives"
  ],
- "metabolite": [
+ "ko": [
   "kegg"
  ],
  "ko_transporter": [
@@ -141563,13 +141563,13 @@
  "metabolite_lipid": [
   "kegg"
  ],
- "pathway": [
-  "kegg"
- ],
  "module": [
   "kegg"
  ],
- "ko": [
+ "metabolite": [
+  "kegg"
+ ],
+ "pathway": [
   "kegg"
  ]
 }

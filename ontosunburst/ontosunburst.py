@@ -23,7 +23,7 @@ LABELS_SUFFIX = 'labels.json'
 METACYC = 'metacyc'
 EC = 'ec'
 CHEBI = 'chebi'
-CHEBI_R = 'chebi_roles'
+CHEBI_R = 'chebi_r'
 GO_CC = 'go_cc'
 GO_MF = 'go_mf'
 GO_BP = 'go_bp'
@@ -67,7 +67,8 @@ def ontosunburst(interest_set: List[str],
     ----------
     interest_set: List[str]
         Interest set of concepts to classify
-    ontology: str (optional, default=None, values in ['metacyc', 'ec', 'chebi', 'kegg', 'go', None])
+    ontology: str (optional, default=None, values in ['metacyc', 'ec', 'chebi', 'chebi_r', 'kegg',
+                                                      'go_cc', 'go_bp', 'go_mf', None])
         Ontology to use
     root: str (optional, default=None)
         Root item of the ontology.
