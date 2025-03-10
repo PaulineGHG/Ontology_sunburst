@@ -12481,6 +12481,9 @@
  "K15403": [
   "00073 Cutin, suberine and wax biosynthesis [PATH:ko00073]"
  ],
+ "K28140": [
+  "00073 Cutin, suberine and wax biosynthesis [PATH:ko00073]"
+ ],
  "K15404": [
   "00073 Cutin, suberine and wax biosynthesis [PATH:ko00073]"
  ],
@@ -12493,8 +12496,18 @@
   "04146 Peroxisome [PATH:ko04146]",
   "04212 Longevity regulating pathway - worm [PATH:ko04212]"
  ],
+ "K28138": [
+  "00073 Cutin, suberine and wax biosynthesis [PATH:ko00073]"
+ ],
+ "K28139": [
+  "00073 Cutin, suberine and wax biosynthesis [PATH:ko00073]"
+ ],
  "K15406": [
   "00073 Cutin, suberine and wax biosynthesis [PATH:ko00073]"
+ ],
+ "K00635": [
+  "00073 Cutin, suberine and wax biosynthesis [PATH:ko00073]",
+  "00561 Glycerolipid metabolism [PATH:ko00561]"
  ],
  "K27538": [
   "00073 Cutin, suberine and wax biosynthesis [PATH:ko00073]",
@@ -13265,9 +13278,6 @@
   "00561 Glycerolipid metabolism [PATH:ko00561]"
  ],
  "K27539": [
-  "00561 Glycerolipid metabolism [PATH:ko00561]"
- ],
- "K00635": [
   "00561 Glycerolipid metabolism [PATH:ko00561]"
  ],
  "K00679": [
@@ -19297,6 +19307,9 @@
  "00520 Amino sugar and nucleotide sugar metabolism [PATH:ko00520]": [
   "09107 Glycan biosynthesis and metabolism"
  ],
+ "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]": [
+  "09107 Glycan biosynthesis and metabolism"
+ ],
  "00510 N-Glycan biosynthesis [PATH:ko00510]": [
   "09107 Glycan biosynthesis and metabolism"
  ],
@@ -19340,9 +19353,6 @@
   "09107 Glycan biosynthesis and metabolism"
  ],
  "00540 Lipopolysaccharide biosynthesis [PATH:ko00540]": [
-  "09107 Glycan biosynthesis and metabolism"
- ],
- "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]": [
   "09107 Glycan biosynthesis and metabolism"
  ],
  "00542 O-Antigen repeat unit biosynthesis [PATH:ko00542]": [
@@ -19429,6 +19439,12 @@
   "00523 Polyketide sugar unit biosynthesis [PATH:ko00523]",
   "00521 Streptomycin biosynthesis [PATH:ko00521]",
   "00525 Acarbose and validamycin biosynthesis [PATH:ko00525]"
+ ],
+ "K28125": [
+  "00520 Amino sugar and nucleotide sugar metabolism [PATH:ko00520]"
+ ],
+ "K28126": [
+  "00520 Amino sugar and nucleotide sugar metabolism [PATH:ko00520]"
  ],
  "K01791": [
   "00520 Amino sugar and nucleotide sugar metabolism [PATH:ko00520]",
@@ -19562,6 +19578,393 @@
   "00523 Polyketide sugar unit biosynthesis [PATH:ko00523]",
   "00521 Streptomycin biosynthesis [PATH:ko00521]",
   "00525 Acarbose and validamycin biosynthesis [PATH:ko00525]"
+ ],
+ "K02474": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K26218": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K24327": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K22925": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K13015": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K22926": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K13016": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K13020": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K13017": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
+  "01007 Amino acid related enzymes [BR:ko01007]"
+ ],
+ "K13018": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K13019": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K24326": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K27853": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K15894": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K24336": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K24252": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K24256": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K19068": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K24258": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K24259": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K15895": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K15896": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K15897": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K15898": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K15899": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K24280": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K24281": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K24282": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K24283": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K24284": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K24285": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K15912": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K24300": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
+  "00552 Teichoic acid biosynthesis [PATH:ko00552]"
+ ],
+ "K24301": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K24310": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K24311": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K24312": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K26217": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K25626": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
+  "00552 Teichoic acid biosynthesis [PATH:ko00552]"
+ ],
+ "K27969": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K15910": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K24302": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K15913": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K18429": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K18430": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K18431": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K24303": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K24304": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K24305": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K24306": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K24307": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K21279": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K05304": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K21055": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K21750": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K21749": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K06041": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
+  "01005 Lipopolysaccharide biosynthesis proteins [BR:ko01005]"
+ ],
+ "K01627": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
+  "01005 Lipopolysaccharide biosynthesis proteins [BR:ko01005]"
+ ],
+ "K03270": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
+  "01005 Lipopolysaccharide biosynthesis proteins [BR:ko01005]"
+ ],
+ "K00979": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
+  "01005 Lipopolysaccharide biosynthesis proteins [BR:ko01005]"
+ ],
+ "K08068": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K24257": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K01097": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
+  "01009 Protein phosphatases and associated proteins [BR:ko01009]"
+ ],
+ "K01654": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K01639": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K00983": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K08080": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K00326": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K02472": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
+  "02020 Two-component system [PATH:ko02020]",
+  "05111 Biofilm formation - Vibrio cholerae [PATH:ko05111]"
+ ],
+ "K03271": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
+  "01005 Lipopolysaccharide biosynthesis proteins [BR:ko01005]"
+ ],
+ "K07031": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K03273": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
+  "01005 Lipopolysaccharide biosynthesis proteins [BR:ko01005]"
+ ],
+ "K15669": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K03272": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
+  "01005 Lipopolysaccharide biosynthesis proteins [BR:ko01005]"
+ ],
+ "K21344": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
+  "01005 Lipopolysaccharide biosynthesis proteins [BR:ko01005]"
+ ],
+ "K21345": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
+  "01005 Lipopolysaccharide biosynthesis proteins [BR:ko01005]"
+ ],
+ "K03274": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
+  "01005 Lipopolysaccharide biosynthesis proteins [BR:ko01005]"
+ ],
+ "K12450": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K12451": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
+  "00523 Polyketide sugar unit biosynthesis [PATH:ko00523]"
+ ],
+ "K10011": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
+  "01503 Cationic antimicrobial peptide (CAMP) resistance [PATH:ko01503]"
+ ],
+ "K07806": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
+  "02020 Two-component system [PATH:ko02020]",
+  "01503 Cationic antimicrobial peptide (CAMP) resistance [PATH:ko01503]",
+  "01007 Amino acid related enzymes [BR:ko01007]"
+ ],
+ "K10012": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
+  "01503 Cationic antimicrobial peptide (CAMP) resistance [PATH:ko01503]"
+ ],
+ "K13014": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
+  "01503 Cationic antimicrobial peptide (CAMP) resistance [PATH:ko01503]"
+ ],
+ "K01709": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K12452": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K00523": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K12453": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K12454": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K12455": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K19632": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K15857": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K15858": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K01710": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
+  "00523 Polyketide sugar unit biosynthesis [PATH:ko00523]",
+  "01055 Biosynthesis of vancomycin group antibiotics [PATH:ko01055]",
+  "00521 Streptomycin biosynthesis [PATH:ko00521]",
+  "00525 Acarbose and validamycin biosynthesis [PATH:ko00525]"
+ ],
+ "K01790": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
+  "00523 Polyketide sugar unit biosynthesis [PATH:ko00523]",
+  "00521 Streptomycin biosynthesis [PATH:ko00521]"
+ ],
+ "K23987": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
+  "00523 Polyketide sugar unit biosynthesis [PATH:ko00523]",
+  "00521 Streptomycin biosynthesis [PATH:ko00521]"
+ ],
+ "K00067": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
+  "00523 Polyketide sugar unit biosynthesis [PATH:ko00523]",
+  "00521 Streptomycin biosynthesis [PATH:ko00521]"
+ ],
+ "K19180": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
+  "00523 Polyketide sugar unit biosynthesis [PATH:ko00523]"
+ ],
+ "K19652": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
+  "00523 Polyketide sugar unit biosynthesis [PATH:ko00523]"
+ ],
+ "K20679": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
+  "00523 Polyketide sugar unit biosynthesis [PATH:ko00523]"
+ ],
+ "K20680": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
+  "00523 Polyketide sugar unit biosynthesis [PATH:ko00523]"
+ ],
+ "K20681": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
+  "00523 Polyketide sugar unit biosynthesis [PATH:ko00523]"
+ ],
+ "K24249": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K24250": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K24251": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K02805": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
+  "01007 Amino acid related enzymes [BR:ko01007]"
+ ],
+ "K16704": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K20429": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K21379": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K13306": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
+  "00523 Polyketide sugar unit biosynthesis [PATH:ko00523]"
+ ],
+ "K20678": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
+  "00523 Polyketide sugar unit biosynthesis [PATH:ko00523]"
+ ],
+ "K13010": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
+  "01007 Amino acid related enzymes [BR:ko01007]"
+ ],
+ "K00607": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K17939": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K21131": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
+ ],
+ "K21130": [
+  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
  ],
  "K11170": [
   "00510 N-Glycan biosynthesis [PATH:ko00510]"
@@ -20791,393 +21194,6 @@
  "K02847": [
   "00540 Lipopolysaccharide biosynthesis [PATH:ko00540]",
   "01005 Lipopolysaccharide biosynthesis proteins [BR:ko01005]"
- ],
- "K02474": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K26218": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K24327": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K22925": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K13015": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K22926": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K13016": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K13020": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K13017": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
-  "01007 Amino acid related enzymes [BR:ko01007]"
- ],
- "K13018": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K13019": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K24326": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K27853": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K15894": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K24336": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K24252": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K24256": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K19068": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K24258": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K24259": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K15895": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K15896": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K15897": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K15898": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K15899": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K24280": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K24281": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K24282": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K24283": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K24284": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K24285": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K15912": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K24300": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
-  "00552 Teichoic acid biosynthesis [PATH:ko00552]"
- ],
- "K24301": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K24310": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K24311": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K24312": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K26217": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K25626": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
-  "00552 Teichoic acid biosynthesis [PATH:ko00552]"
- ],
- "K27969": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K15910": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K24302": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K15913": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K18429": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K18430": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K18431": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K24303": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K24304": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K24305": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K24306": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K24307": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K21279": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K05304": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K21055": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K21750": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K21749": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K06041": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
-  "01005 Lipopolysaccharide biosynthesis proteins [BR:ko01005]"
- ],
- "K01627": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
-  "01005 Lipopolysaccharide biosynthesis proteins [BR:ko01005]"
- ],
- "K03270": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
-  "01005 Lipopolysaccharide biosynthesis proteins [BR:ko01005]"
- ],
- "K00979": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
-  "01005 Lipopolysaccharide biosynthesis proteins [BR:ko01005]"
- ],
- "K08068": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K24257": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K01097": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
-  "01009 Protein phosphatases and associated proteins [BR:ko01009]"
- ],
- "K01654": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K01639": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K00983": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K08080": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K00326": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K02472": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
-  "02020 Two-component system [PATH:ko02020]",
-  "05111 Biofilm formation - Vibrio cholerae [PATH:ko05111]"
- ],
- "K03271": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
-  "01005 Lipopolysaccharide biosynthesis proteins [BR:ko01005]"
- ],
- "K07031": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K03273": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
-  "01005 Lipopolysaccharide biosynthesis proteins [BR:ko01005]"
- ],
- "K15669": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K03272": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
-  "01005 Lipopolysaccharide biosynthesis proteins [BR:ko01005]"
- ],
- "K21344": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
-  "01005 Lipopolysaccharide biosynthesis proteins [BR:ko01005]"
- ],
- "K21345": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
-  "01005 Lipopolysaccharide biosynthesis proteins [BR:ko01005]"
- ],
- "K03274": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
-  "01005 Lipopolysaccharide biosynthesis proteins [BR:ko01005]"
- ],
- "K12450": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K12451": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
-  "00523 Polyketide sugar unit biosynthesis [PATH:ko00523]"
- ],
- "K10011": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
-  "01503 Cationic antimicrobial peptide (CAMP) resistance [PATH:ko01503]"
- ],
- "K07806": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
-  "02020 Two-component system [PATH:ko02020]",
-  "01503 Cationic antimicrobial peptide (CAMP) resistance [PATH:ko01503]",
-  "01007 Amino acid related enzymes [BR:ko01007]"
- ],
- "K10012": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
-  "01503 Cationic antimicrobial peptide (CAMP) resistance [PATH:ko01503]"
- ],
- "K13014": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
-  "01503 Cationic antimicrobial peptide (CAMP) resistance [PATH:ko01503]"
- ],
- "K01709": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K12452": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K00523": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K12453": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K12454": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K12455": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K19632": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K15857": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K15858": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K01710": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
-  "00523 Polyketide sugar unit biosynthesis [PATH:ko00523]",
-  "01055 Biosynthesis of vancomycin group antibiotics [PATH:ko01055]",
-  "00521 Streptomycin biosynthesis [PATH:ko00521]",
-  "00525 Acarbose and validamycin biosynthesis [PATH:ko00525]"
- ],
- "K01790": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
-  "00523 Polyketide sugar unit biosynthesis [PATH:ko00523]",
-  "00521 Streptomycin biosynthesis [PATH:ko00521]"
- ],
- "K23987": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
-  "00523 Polyketide sugar unit biosynthesis [PATH:ko00523]",
-  "00521 Streptomycin biosynthesis [PATH:ko00521]"
- ],
- "K00067": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
-  "00523 Polyketide sugar unit biosynthesis [PATH:ko00523]",
-  "00521 Streptomycin biosynthesis [PATH:ko00521]"
- ],
- "K19180": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
-  "00523 Polyketide sugar unit biosynthesis [PATH:ko00523]"
- ],
- "K19652": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
-  "00523 Polyketide sugar unit biosynthesis [PATH:ko00523]"
- ],
- "K20679": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
-  "00523 Polyketide sugar unit biosynthesis [PATH:ko00523]"
- ],
- "K20680": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
-  "00523 Polyketide sugar unit biosynthesis [PATH:ko00523]"
- ],
- "K20681": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
-  "00523 Polyketide sugar unit biosynthesis [PATH:ko00523]"
- ],
- "K24249": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K24250": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K24251": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K02805": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
-  "01007 Amino acid related enzymes [BR:ko01007]"
- ],
- "K16704": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K20429": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K21379": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K13306": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
-  "00523 Polyketide sugar unit biosynthesis [PATH:ko00523]"
- ],
- "K20678": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
-  "00523 Polyketide sugar unit biosynthesis [PATH:ko00523]"
- ],
- "K13010": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]",
-  "01007 Amino acid related enzymes [BR:ko01007]"
- ],
- "K00607": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K17939": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K21131": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
- ],
- "K21130": [
-  "00541 Biosynthesis of various nucleotide sugars [PATH:ko00541]"
  ],
  "K02851": [
   "00542 O-Antigen repeat unit biosynthesis [PATH:ko00542]",
@@ -23990,6 +24006,7 @@
  ],
  "K13787": [
   "00900 Terpenoid backbone biosynthesis [PATH:ko00900]",
+  "00997 Biosynthesis of various other secondary metabolites [PATH:ko00997]",
   "01006 Prenyltransferases [BR:ko01006]"
  ],
  "K12503": [
@@ -24050,6 +24067,9 @@
   "01006 Prenyltransferases [BR:ko01006]"
  ],
  "K19177": [
+  "00900 Terpenoid backbone biosynthesis [PATH:ko00900]"
+ ],
+ "K28131": [
   "00900 Terpenoid backbone biosynthesis [PATH:ko00900]"
  ],
  "K15888": [
@@ -41730,6 +41750,7 @@
  ],
  "K06788": [
   "03267 Virion - Adenovirus [PATH:ko03267]",
+  "04514 Cell adhesion molecules [PATH:ko04514]",
   "05416 Viral myocarditis [PATH:ko05416]",
   "04515 Cell adhesion molecules [BR:ko04515]"
  ],
@@ -66525,6 +66546,10 @@
  "K06816": [
   "04514 Cell adhesion molecules [PATH:ko04514]"
  ],
+ "K28137": [
+  "04514 Cell adhesion molecules [PATH:ko04514]",
+  "04515 Cell adhesion molecules [BR:ko04515]"
+ ],
  "K06736": [
   "04514 Cell adhesion molecules [PATH:ko04514]",
   "05412 Arrhythmogenic right ventricular cardiomyopathy [PATH:ko05412]",
@@ -83054,12 +83079,15 @@
  "K16518": [
   "01009 Protein phosphatases and associated proteins [BR:ko01009]"
  ],
- "K16527": [
-  "01009 Protein phosphatases and associated proteins [BR:ko01009]"
- ],
  "K16551": [
   "01009 Protein phosphatases and associated proteins [BR:ko01009]",
   "03036 Chromosome and associated proteins [BR:ko03036]"
+ ],
+ "K16527": [
+  "01009 Protein phosphatases and associated proteins [BR:ko01009]"
+ ],
+ "K28129": [
+  "01009 Protein phosphatases and associated proteins [BR:ko01009]"
  ],
  "K17580": [
   "01009 Protein phosphatases and associated proteins [BR:ko01009]",
@@ -84145,6 +84173,9 @@
  "K13539": [
   "01002 Peptidases and inhibitors [BR:ko01002]",
   "03036 Chromosome and associated proteins [BR:ko03036]"
+ ],
+ "K28136": [
+  "01002 Peptidases and inhibitors [BR:ko01002]"
  ],
  "K01387": [
   "01002 Peptidases and inhibitors [BR:ko01002]",
@@ -94843,6 +94874,13 @@
  "K26241": [
   "03110 Chaperones and folding catalysts [BR:ko03110]"
  ],
+ "K28127": [
+  "03110 Chaperones and folding catalysts [BR:ko03110]"
+ ],
+ "K28128": [
+  "03110 Chaperones and folding catalysts [BR:ko03110]",
+  "03036 Chromosome and associated proteins [BR:ko03036]"
+ ],
  "K26538": [
   "03110 Chaperones and folding catalysts [BR:ko03110]"
  ],
@@ -100057,6 +100095,15 @@
  "K26787": [
   "03036 Chromosome and associated proteins [BR:ko03036]"
  ],
+ "K28132": [
+  "03036 Chromosome and associated proteins [BR:ko03036]"
+ ],
+ "K28133": [
+  "03036 Chromosome and associated proteins [BR:ko03036]"
+ ],
+ "K28134": [
+  "03036 Chromosome and associated proteins [BR:ko03036]"
+ ],
  "K16584": [
   "03036 Chromosome and associated proteins [BR:ko03036]"
  ],
@@ -100525,6 +100572,12 @@
   "03036 Chromosome and associated proteins [BR:ko03036]"
  ],
  "K06899": [
+  "03036 Chromosome and associated proteins [BR:ko03036]"
+ ],
+ "K03622": [
+  "03036 Chromosome and associated proteins [BR:ko03036]"
+ ],
+ "K28135": [
   "03036 Chromosome and associated proteins [BR:ko03036]"
  ],
  "K03632": [
@@ -101098,6 +101151,9 @@
   "03400 DNA repair and recombination proteins [BR:ko03400]"
  ],
  "K22585": [
+  "03400 DNA repair and recombination proteins [BR:ko03400]"
+ ],
+ "K28130": [
   "03400 DNA repair and recombination proteins [BR:ko03400]"
  ],
  "K10908": [
@@ -119061,9 +119117,6 @@
   "99973 Transcription"
  ],
  "K03627": [
-  "99973 Transcription"
- ],
- "K03622": [
   "99973 Transcription"
  ],
  "K03623": [
@@ -141507,13 +141560,13 @@
  "ko_transporter": [
   "kegg"
  ],
- "module": [
-  "kegg"
- ],
  "metabolite_lipid": [
   "kegg"
  ],
  "pathway": [
+  "kegg"
+ ],
+ "module": [
   "kegg"
  ],
  "ko": [

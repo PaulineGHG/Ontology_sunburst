@@ -12,6 +12,7 @@ GO = 'go'
 KEGG = 'kegg'
 
 ROOTS = {METACYC: 'FRAMES',
+         CHEBI: 'CHEBI:23117',
          CHEBI_R: 'CHEBI:50906',
          EC: 'Enzyme',
          GO: 'GO',
@@ -87,7 +88,7 @@ def get_ec_parent(ec: str) -> str:
 
 # KEGG
 # ==================================================================================================
-def get_kegg_input():
+def generate_kegg_input():
     keggr.create_reference_base()
     print('base created')
     _, k2b_dict = keggr.get_kegg_hierarchy()
@@ -152,7 +153,7 @@ def chebi_onto_query(endpoint_url: str) -> dict:
     return results
 
 
-def extract_chebi_classes(url_endpoint=URL[CHEBI], version=''):
+def generate_chebi_input(url_endpoint=URL[CHEBI], version=''):
     d_ontology = dict()
     d_labels = dict()
     results = chebi_onto_query(url_endpoint)
@@ -255,7 +256,7 @@ def chebi_chem_roles_query(endpoint_url: str) -> dict:
     return results
 
 
-def extract_chebi_roles(url_endpoint=URL[CHEBI], version=''):
+def generate_chebi_roles_input(url_endpoint=URL[CHEBI], version=''):
     d_roles_ontology = dict()
     d_labels = dict()
     results = chebi_role_onto_query(url_endpoint)
@@ -341,7 +342,7 @@ def go_onto_query(root: str, endpoint_url: str) -> dict:
     return results
 
 
-def extract_go_classes(url_endpoint=URL[GO], version=''):
+def generate_go_input(url_endpoint=URL[GO], version=''):
     for root, root_name in GO_ROOTS.items():
         d_ontology = dict()
         d_labels = dict()
