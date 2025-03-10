@@ -1,17 +1,18 @@
 import json
-from typing import List, Set, Dict, Tuple
+import kegg2bipartitegraph.reference as keggr
 from SPARQLWrapper import SPARQLWrapper, JSON
 from padmet.classes.padmetRef import PadmetRef
-import kegg2bipartitegraph.reference as keggr
+
 
 METACYC = 'metacyc'
 EC = 'ec'
 CHEBI = 'chebi'
+CHEBI_R = 'chebi_roles'
 GO = 'go'
 KEGG = 'kegg'
 
 ROOTS = {METACYC: 'FRAMES',
-         CHEBI: 'CHEBI:50906',
+         CHEBI_R: 'CHEBI:50906',
          EC: 'Enzyme',
          GO: 'GO',
          KEGG: 'kegg'}
@@ -22,11 +23,15 @@ NAMES_SUFFIX = '_names.json'
 URL = {CHEBI: 'http://localhost:3030/chebi/',
        GO: 'http://localhost:3030/go/'}
 
+GO_ROOTS = {'GO:0005575': 'cc',
+            'GO:0008150': 'bp',
+            'GO:0003674': 'mf'}
+
 
 # METACYC
 # ==================================================================================================
-def generate_metacyc_input(input_padmet, version, output_name='MetaCyc'):
-    output = output_name + version + CLASSES_SUFFIX
+def generate_metacyc_input(input_padmet, version=''):
+    output = METACYC + '_' + version + CLASSES_SUFFIX
     pref = PadmetRef(input_padmet)
     rels = pref.getAllRelation()
     classes = dict()
@@ -43,9 +48,9 @@ def generate_metacyc_input(input_padmet, version, output_name='MetaCyc'):
 
 # EC
 # ==================================================================================================
-def generate_ec_input(enzclass_txt, enzyme_dat, version, output='enzyme'):
-    output_name = output + version + NAMES_SUFFIX
-    output_class = output + version + CLASSES_SUFFIX
+def generate_ec_input(enzclass_txt, enzyme_dat, version=''):
+    output_name = EC + '_' + version + NAMES_SUFFIX
+    output_class = EC + '_' + version + CLASSES_SUFFIX
     names = dict()
     classes = dict()
     with open(enzclass_txt, 'r') as f:
@@ -82,16 +87,15 @@ def get_ec_parent(ec: str) -> str:
 
 # KEGG
 # ==================================================================================================
-def get_kegg_input(output='kegg'):
+def get_kegg_input():
     keggr.create_reference_base()
     print('base created')
     _, k2b_dict = keggr.get_kegg_hierarchy()
     version = keggr.get_kegg_database_version().split('+')[0].replace('.', '_')
-    root = 'kegg'
     sub_roots = get_sub_roots(k2b_dict)
     for sub_root in sub_roots:
-        k2b_dict[sub_root] = [root]
-    output = output + version + CLASSES_SUFFIX
+        k2b_dict[sub_root] = [ROOTS[KEGG]]
+    output = KEGG + '_' + version + CLASSES_SUFFIX
     with open(output, 'w') as f:
         json.dump(fp=f, obj=k2b_dict, indent=1)
 
@@ -148,7 +152,7 @@ def chebi_onto_query(endpoint_url: str) -> dict:
     return results
 
 
-def extract_chebi_classes(url_endpoint=URL[CHEBI], output='chebi', version=''):
+def extract_chebi_classes(url_endpoint=URL[CHEBI], version=''):
     d_ontology = dict()
     d_labels = dict()
     results = chebi_onto_query(url_endpoint)
@@ -163,8 +167,8 @@ def extract_chebi_classes(url_endpoint=URL[CHEBI], output='chebi', version=''):
         d_labels[parent_id] = parent_label
         d_labels[child_id] = child_label
 
-    output_classes = output + version + CLASSES_SUFFIX
-    output_labels = output + version + NAMES_SUFFIX
+    output_classes = CHEBI + '_' + version + CLASSES_SUFFIX
+    output_labels = CHEBI + '_' + version + NAMES_SUFFIX
     with open(output_classes, 'w') as oc, open(output_labels, 'w') as ol:
         json.dump(d_ontology, oc, indent=1)
         json.dump(d_labels, ol, indent=1)
@@ -251,7 +255,7 @@ def chebi_chem_roles_query(endpoint_url: str) -> dict:
     return results
 
 
-def extract_chebi_roles(url_endpoint=URL[CHEBI], output='chebi_roles', version=''):
+def extract_chebi_roles(url_endpoint=URL[CHEBI], version=''):
     d_roles_ontology = dict()
     d_labels = dict()
     results = chebi_role_onto_query(url_endpoint)
@@ -279,10 +283,83 @@ def extract_chebi_roles(url_endpoint=URL[CHEBI], output='chebi_roles', version='
         d_roles_ontology[chem_id].append(role_id)
         d_labels[chem_id] = chem_label
 
-    output_classes = output + version + CLASSES_SUFFIX
-    output_labels = output + version + NAMES_SUFFIX
+    output_classes = CHEBI_R + '_' + version + CLASSES_SUFFIX
+    output_labels = CHEBI_R + '_' + version + NAMES_SUFFIX
     with open(output_classes, 'w') as oc, open(output_labels, 'w') as ol:
         json.dump(d_roles_ontology, oc, indent=1)
         json.dump(d_labels, ol, indent=1)
 
+
+# GO
+# ==================================================================================================
+def go_onto_query(root: str, endpoint_url: str) -> dict:
+    """ Returns the query results to get the chebi roles associated to each chemical having a role.
+
+    Parameters
+    ----------
+    root: str
+    endpoint_url: str
+        Endpoint URL of Jena Fuseki server
+
+    Returns
+    -------
+    dict
+        Dictionary of query results
+    """
+    query = f"""
+            PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX owl: <http://www.w3.org/2002/07/owl#>
+            PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+            PREFIX dc: <http://purl.org/dc/elements/1.1/>
+            PREFIX dcterms: <http://purl.org/dc/terms/>
+            PREFIX oboInOwl: <http://www.geneontology.org/formats/oboInOwl#>
+            PREFIX taxon: <http://purl.uniprot.org/taxonomy/>
+            PREFIX uniprot: <http://purl.uniprot.org/uniprot/>
+            PREFIX up:<http://purl.uniprot.org/core/>
+            PREFIX go: <http://purl.obolibrary.org/obo/GO_>
+            PREFIX goavoc: <http://bio2rdf.org/goa_vocabulary:>
+    
+            SELECT ?childLabel ?parentLabel ?childId ?parentId
+            WHERE {{
+                VALUES ?root{{{root.lower()}}}
+                ?root rdfs:label ?rootLabel .
+                
+                ?child rdfs:subClassOf* ?root .
+                ?child oboInOwl:id ?childId .  
+                ?child rdfs:label ?childLabel .
+
+                ?child rdfs:subClassOf ?parent .
+                ?parent rdfs:label ?parentLabel .
+                ?parent oboInOwl:id ?parentId .
+            }}
+            """
+    sparql = SPARQLWrapper(endpoint_url)
+    sparql.setQuery(query)
+    sparql.setReturnFormat(JSON)
+    results = sparql.query().convert()
+    return results
+
+
+def extract_go_classes(url_endpoint=URL[GO], version=''):
+    for root, root_name in GO_ROOTS.items():
+        d_ontology = dict()
+        d_labels = dict()
+        results = go_onto_query(root, url_endpoint)
+        for result in results['results']['bindings']:
+            child_label = result['childLabel']['value']
+            parent_label = result['parentLabel']['value']
+            child_id = result['childId']['value']
+            parent_id = result['parentId']['value']
+            if child_id not in d_ontology:
+                d_ontology[child_id] = []
+            d_ontology[child_id].append(parent_id)
+            d_labels[parent_id] = parent_label
+            d_labels[child_id] = child_label
+
+        output_classes = GO + '_' + root_name + '_' + version + CLASSES_SUFFIX
+        output_labels = GO + '_' + root_name + '_' + version + NAMES_SUFFIX
+        with open(output_classes, 'w') as oc, open(output_labels, 'w') as ol:
+            json.dump(d_ontology, oc, indent=1)
+            json.dump(d_labels, ol, indent=1)
 
