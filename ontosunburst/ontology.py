@@ -1,4 +1,4 @@
-from typing import List, Set, Dict, Tuple
+from typing import List, Set, Dict, Any
 
 import numpy
 from SPARQLWrapper import SPARQLWrapper, JSON
@@ -30,9 +30,8 @@ GO_ROOTS = ['cellular_component', 'biological_process', 'molecular_function']
 
 # Main class extraction function
 # --------------------------------------------------------------------------------------------------
-def extract_classes(concepts: List[str], root: str, d_classes_ontology: Dict[str, List[str]] = None,
-                    names: Dict[str, str] = None)\
-        -> Tuple[Dict[str, Set[str]], Dict[str, List[str]], Dict[str, str] or None]:
+def extract_classes(concepts: List[str], root: str,
+                    d_classes_ontology: Dict[str, List[str]]) -> Dict[str, Set[str]]:
     """ Extract all parent classes (until root) from a list of concepts.
 
     Parameters
@@ -41,18 +40,13 @@ def extract_classes(concepts: List[str], root: str, d_classes_ontology: Dict[str
         List of concepts to classify
     root: str
         Root item of the ontology
-    d_classes_ontology: Dict[str, List[str]], optional (default=None)
+    d_classes_ontology: Dict[str, List[str]]
         Dictionary of the classes ontology associating for each concept its +1 parent classes.
-    names: Dict[str, str] (default=None)
 
     Returns
     -------
     Dict[str, Set[str]]
         Dictionary associating to each concept all its parent classes (until the root)
-    Dict[str, List[str]]
-        Dictionary of the classes ontology associating for each concept its +1 parent classes.
-    Dict[str, str]  or None
-        Dictionary of labels
     """
     d_obj_classes = dict()
     print(f'{len(concepts)} concepts to classify')
@@ -65,7 +59,7 @@ def extract_classes(concepts: List[str], root: str, d_classes_ontology: Dict[str
         if not classified:
             print(f'{obj} not classified.')
     print(f'{len(d_obj_classes)}/{len(concepts)} concepts classified')
-    return get_all_classes(d_obj_classes, d_classes_ontology, root), d_classes_ontology, names
+    return get_all_classes(d_obj_classes, d_classes_ontology, root)
 
 
 # Recursive class extraction function
@@ -217,21 +211,21 @@ def get_classes_scores(all_classes, scores_dict, root):
 # UTILS
 # ==================================================================================================
 
-def reduce_d_ontology(d_classes_ontology: Dict[str, List[str]],
-                      classes_abundance: Dict[str, float]) -> Dict[str, List[str]]:
+def reduce_d_ontology(d_classes_ontology: Dict[str, Any],
+                      classes_abundance: Dict[str, float]) -> Dict[str, Any]:
     """ Extract the sub-graph of the d_classes_ontology dictionary conserving only nodes implicated
     with the concepts studied.
 
     Parameters
     ----------
-    d_classes_ontology: Dict[str, List[str]]
+    d_classes_ontology: Dict[str, Any]
         Dictionary of the ontology complete graph
     classes_abundance: Dict[str, float]
         Dictionary of abundances (keys are all nodes implicated to be conserved)
 
     Returns
     -------
-    Dict[str, List[str]]
+    Dict[str, Any]
         Dictionary of the ontology sub-graph conserving only nodes implicated with the concepts
         studied.
     """
@@ -240,3 +234,4 @@ def reduce_d_ontology(d_classes_ontology: Dict[str, List[str]],
         if k in classes_abundance:
             reduced_d_ontology[k] = v
     return reduced_d_ontology
+

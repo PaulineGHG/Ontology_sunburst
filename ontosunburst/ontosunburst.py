@@ -1,6 +1,6 @@
 import os
 import json
-from typing import List, Dict
+from typing import List, Dict, Set
 from time import time
 import plotly.graph_objects as go
 
@@ -170,8 +170,7 @@ def _global_analysis(ontology, analysis, metabolic_objects, abundances, scores, 
     """
     # EXTRACT CLASSES
     # ----------------------------------------------------------------------------------------------
-    obj_all_classes, d_classes_ontology, names = extract_classes(ontology, metabolic_objects, root,
-                                                                 d_classes_ontology, names)
+    obj_all_classes = extract_classes(ontology, metabolic_objects, root)
     if not obj_all_classes:
         print('No object classified, passing.')
     if write_output:
@@ -189,8 +188,7 @@ def _global_analysis(ontology, analysis, metabolic_objects, abundances, scores, 
         ref_abundances_dict = get_abundance_dict(abundances=ref_abundances,
                                                  metabolic_objects=reference_set,
                                                  ref=True)
-        ref_all_classes, d_classes_ontology, names = extract_classes(ontology, reference_set, root,
-                                                                     d_classes_ontology, names)
+        ref_all_classes = extract_classes(ontology, reference_set, root)
         ref_classes_abundance = get_classes_abundance(ref_all_classes, ref_abundances_dict,
                                                       show_leaves)
     else:
@@ -211,8 +209,10 @@ def _global_analysis(ontology, analysis, metabolic_objects, abundances, scores, 
         ref_classes_abundance = classes_abundance
     if ref_base:
         d_classes_ontology = reduce_d_ontology(d_classes_ontology, ref_classes_abundance)
+        names = reduce_d_ontology(names, ref_classes_abundance)
     else:
         d_classes_ontology = reduce_d_ontology(d_classes_ontology, classes_abundance)
+        names = reduce_d_ontology(names, classes_abundance)
 
     data.fill_parameters(set_abundance=classes_abundance, ref_abundance=ref_classes_abundance,
                          parent_dict=d_classes_ontology, root_item=root, names=names,
@@ -234,7 +234,7 @@ def _global_analysis(ontology, analysis, metabolic_objects, abundances, scores, 
                                  write_fig=write_output, **kwargs)
 
 
-def write_met_classes(ontology: str, all_classes: Dict[str, List[str]], output: str,
+def write_met_classes(ontology: str, all_classes: Dict[str, Set[str]], output: str,
                       names: Dict[str, str]):
     """ Writes, for each input class, all its ancestors in a .tsv file.
 
