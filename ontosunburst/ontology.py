@@ -1,27 +1,5 @@
 from typing import List, Set, Dict, Any
-
 import numpy
-from SPARQLWrapper import SPARQLWrapper, JSON
-
-
-# CONSTANTS ========================================================================================
-
-
-METACYC = 'metacyc'
-EC = 'ec'
-CHEBI = 'chebi'
-CHEBI_R = 'chebi_roles'
-GO = 'go'
-KEGG = 'kegg'
-
-ROOTS = {METACYC: 'FRAMES',
-         CHEBI: 'CHEBI:23117',
-         CHEBI_R: 'CHEBI:50906',
-         EC: 'Enzyme',
-         GO: 'GO',
-         KEGG: 'kegg'}
-
-GO_ROOTS = ['cellular_component', 'biological_process', 'molecular_function']
 
 
 # ==================================================================================================

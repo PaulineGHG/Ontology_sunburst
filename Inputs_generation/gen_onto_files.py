@@ -2,31 +2,12 @@ import json
 import kegg2bipartitegraph.reference as keggr
 from SPARQLWrapper import SPARQLWrapper, JSON
 from padmet.classes.padmetRef import PadmetRef
+from ontosunburst.ontosunburst import METACYC, EC, CHEBI, CHEBI_R, GO, KEGG, ROOTS, \
+    CLASSES_SUFFIX, LABELS_SUFFIX, GO_ROOTS
 
-
-METACYC = 'metacyc'
-EC = 'ec'
-CHEBI = 'chebi'
-CHEBI_R = 'chebi_roles'
-GO = 'go'
-KEGG = 'kegg'
-
-ROOTS = {METACYC: 'FRAMES',
-         CHEBI: 'CHEBI:23117',
-         CHEBI_R: 'CHEBI:50906',
-         EC: 'Enzyme',
-         GO: 'GO',
-         KEGG: 'kegg'}
-
-CLASSES_SUFFIX = 'classes.json'
-LABELS_SUFFIX = 'labels.json'
 
 URL = {CHEBI: 'http://localhost:3030/chebi/',
        GO: 'http://localhost:3030/go/'}
-
-GO_ROOTS = {'GO:0005575': 'cc',
-            'GO:0008150': 'bp',
-            'GO:0003674': 'mf'}
 
 
 def get_output_path(prefix, suffix, version):
@@ -39,22 +20,22 @@ def generate_metacyc_input(input_padmet, version=''):
     output = get_output_path(METACYC, version, CLASSES_SUFFIX)
     pref = PadmetRef(input_padmet)
     rels = pref.getAllRelation()
-    classes = dict()
+    mc_classes = dict()
     for r in rels:
         if r.type == 'is_a_class':
-            if r.id_in not in classes:
-                classes[r.id_in] = set()
-            classes[r.id_in].add(r.id_out)
-    for c, p in classes.items():
-        classes[c] = list(p)
+            if r.id_in not in mc_classes:
+                mc_classes[r.id_in] = set()
+            mc_classes[r.id_in].add(r.id_out)
+    for c, p in mc_classes.items():
+        mc_classes[c] = list(p)
     with open(output, 'w') as o:
-        json.dump(fp=o, obj=classes, indent=1)
+        json.dump(fp=o, obj=mc_classes, indent=1)
 
 
 # EC
 # ==================================================================================================
 def generate_ec_input(enzclass_txt, enzyme_dat, version=''):
-    output_name = get_output_path(EC, version, NAMES_SUFFIX)
+    output_name = get_output_path(EC, version, LABELS_SUFFIX)
     output_class = get_output_path(EC, version, CLASSES_SUFFIX)
     names = dict()
     classes = dict()
@@ -173,7 +154,7 @@ def generate_chebi_input(url_endpoint=URL[CHEBI], version=''):
         d_labels[child_id] = child_label
 
     output_classes = get_output_path(CHEBI, version, CLASSES_SUFFIX)
-    output_labels = get_output_path(CHEBI, version, NAMES_SUFFIX)
+    output_labels = get_output_path(CHEBI, version, LABELS_SUFFIX)
     with open(output_classes, 'w') as oc, open(output_labels, 'w') as ol:
         json.dump(d_ontology, oc, indent=1)
         json.dump(d_labels, ol, indent=1)
@@ -289,7 +270,7 @@ def generate_chebi_roles_input(url_endpoint=URL[CHEBI], version=''):
         d_labels[chem_id] = chem_label
 
     output_classes = get_output_path(CHEBI_R, version, CLASSES_SUFFIX)
-    output_labels = get_output_path(CHEBI_R, version, NAMES_SUFFIX)
+    output_labels = get_output_path(CHEBI_R, version, LABELS_SUFFIX)
     with open(output_classes, 'w') as oc, open(output_labels, 'w') as ol:
         json.dump(d_roles_ontology, oc, indent=1)
         json.dump(d_labels, ol, indent=1)
@@ -363,7 +344,7 @@ def generate_go_input(url_endpoint=URL[GO], version=''):
             d_labels[child_id] = child_label
 
         output_classes = get_output_path(GO + '_' + root_name, version, CLASSES_SUFFIX)
-        output_labels = get_output_path(GO + '_' + root_name, version, NAMES_SUFFIX)
+        output_labels = get_output_path(GO + '_' + root_name, version, LABELS_SUFFIX)
         with open(output_classes, 'w') as oc, open(output_labels, 'w') as ol:
             json.dump(d_ontology, oc, indent=1)
             json.dump(d_labels, ol, indent=1)

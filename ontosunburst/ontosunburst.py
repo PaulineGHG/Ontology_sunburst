@@ -5,7 +5,7 @@ from time import time
 import plotly.graph_objects as go
 
 from ontosunburst.ontology import get_abundance_dict, get_classes_abundance, get_classes_scores, \
-    extract_classes, reduce_d_ontology, METACYC, CHEBI, EC, GO, KEGG, ROOTS
+    extract_classes, reduce_d_ontology
 
 from ontosunburst.data_table_tree import DataTable, get_name, BINOMIAL_TEST, ROOT_CUT, PATH_UNCUT
 from ontosunburst.sunburst_fig import generate_sunburst_fig, TOPOLOGY_A, ENRICHMENT_A
@@ -19,6 +19,24 @@ DEFAULT_PATH = os.path.join(CURRENT_DIR, 'Inputs')
 DEFAULT = 'default'
 CLASSES_SUFFIX = 'classes.json'
 LABELS_SUFFIX = 'labels.json'
+
+METACYC = 'metacyc'
+EC = 'ec'
+CHEBI = 'chebi'
+CHEBI_R = 'chebi_roles'
+GO = 'go'
+KEGG = 'kegg'
+
+ROOTS = {METACYC: 'FRAMES',
+         CHEBI: 'CHEBI:23117',
+         CHEBI_R: 'CHEBI:50906',
+         EC: 'Enzyme',
+         GO: 'GO',
+         KEGG: 'kegg'}
+
+GO_ROOTS = {'GO:0005575': 'cc',
+            'GO:0008150': 'bp',
+            'GO:0003674': 'mf'}
 
 
 # ==================================================================================================
