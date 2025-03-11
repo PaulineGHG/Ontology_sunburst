@@ -7,7 +7,7 @@ import numpy
 def ontology_to_weighted_dag(concepts, abundances, root, ontology_dag, show_lvs):
     classified_concepts = classify_concepts(concepts, ontology_dag)
     concepts_all_classes = get_all_classes(classified_concepts, ontology_dag, root)
-    abundances_dict = get_abundance_dict(concepts, abundances)
+    abundances_dict = get_abundance_dict(abundances, concepts)
     calculated_weights = calculate_weights(concepts_all_classes, abundances_dict, show_lvs)
     return calculated_weights
 
@@ -36,7 +36,7 @@ def reduce_d_ontology(d_classes_ontology: Dict[str, Any],
     return reduced_d_ontology
 
 # ==================================================================================================
-# REDUCE DAD FUNCTIONS
+# REDUCE DAG FUNCTIONS
 # ==================================================================================================
 
 def classify_concepts(concepts: List[str], ontology_dag: Dict[str, List[str]]) \
