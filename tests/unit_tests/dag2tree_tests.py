@@ -3,7 +3,6 @@ import io
 
 from functools import wraps
 from ontosunburst.dag2tree import *
-from ontosunburst.onto2dag import *
 
 """
 Tests manually good file creation.
@@ -16,18 +15,19 @@ No automatic tests integrated.
 
 # --------------------------------------------------------------------------------------------------
 
+ROOT = 'root'
 CT_ONTO = {'a': ['ab'], 'b': ['ab'], 'c': ['cde', 'cf'], 'd': ['cde'], 'e': ['cde', 'eg'],
            'f': ['cf'], 'g': ['gh', 'eg'], 'h': ['gh'],
-           'ab': [ROOTS[METACYC]], 'cde': ['cdecf', 'cdeeg'], 'cf': ['cdecf'],
-           'eg': ['cdeeg', ROOTS[METACYC]], 'gh': [ROOTS[METACYC]],
-           'cdecf': [ROOTS[METACYC]], 'cdeeg': ['cdeeg+'], 'cdeeg+': [ROOTS[METACYC]]}
+           'ab': [ROOT], 'cde': ['cdecf', 'cdeeg'], 'cf': ['cdecf'],
+           'eg': [ROOT, 'cdeeg'], 'gh': [ROOT],
+           'cdecf': [ROOT], 'cdeeg': ['cdeeg+'], 'cdeeg+': [ROOT]}
 
-CT_AB = {'FRAMES': 6, 'cde': 3, 'cf': 3, 'cdecf': 3, 'cdeeg+': 3, 'cdeeg': 3, 'c': 3, 'ab': 3,
+CT_AB = {ROOT: 6, 'cde': 3, 'cf': 3, 'cdecf': 3, 'cdeeg+': 3, 'cdeeg': 3, 'c': 3, 'ab': 3,
          'b': 2, 'a': 1}
-CT_REF_AB = {'FRAMES': 36, 'cdeeg+': 19, 'cdeeg': 19, 'cdecf': 18, 'gh': 15, 'eg': 12, 'cde': 12,
+CT_REF_AB = {ROOT: 36, 'cdeeg+': 19, 'cdeeg': 19, 'cdecf': 18, 'gh': 15, 'eg': 12, 'cde': 12,
              'cf': 9, 'h': 8, 'g': 7, 'f': 6, 'e': 5, 'd': 4, 'c': 3, 'ab': 3, 'b': 2, 'a': 1}
 
-CT_LAB = {'FRAMES': 'Root', 'cdeeg+': 'CDEEG+', 'cdeeg': 'CDEEG', 'cdecf': 'CDECF', 'gh': 'GH',
+CT_LAB = {ROOT: 'Root', 'cdeeg+': 'CDEEG+', 'cdeeg': 'CDEEG', 'cdecf': 'CDECF', 'gh': 'GH',
           'eg': 'EG', 'cde': 'CDE', 'cf': 'CF', 'h': 'H', 'g': 'G', 'f': 'F', 'e': 'E', 'd': 'D',
           'c': 'C', 'ab': 'AB', 'b': 'B'}
 
@@ -149,7 +149,7 @@ class TestGenerateDataTable(unittest.TestCase):
     def test_get_fig_parameters(self):
         data = TreeData()
         data.dag_to_tree(ref_abundance=CT_REF_AB, parent_dict=CT_ONTO,
-                         root_item=ROOTS[METACYC], set_abundance=CT_AB, names=None)
+                         root_item=ROOT, set_abundance=CT_AB, names=None)
         lines = set(data.get_col())
         w_lines = {('27', 'g', 'g', '25', nan, 7, nan, nan, nan, nan),
                    ('13', 'c', 'c', '12', 3, 3, nan, nan, nan, nan),
@@ -161,7 +161,7 @@ class TestGenerateDataTable(unittest.TestCase):
                    ('18', 'f', 'f', '16', nan, 6, nan, nan, nan, nan),
                    ('15', 'e', 'e', '12', nan, 5, nan, nan, nan, nan),
                    ('2', 'ab', 'ab', '1', 3, 3, nan, nan, nan, nan),
-                   ('1', 'FRAMES', 'FRAMES', '', 6, 36, nan, nan, nan, nan),
+                   ('1', ROOT, ROOT, '', 6, 36, nan, nan, nan, nan),
                    ('8', 'gh', 'gh', '1', nan, 15, nan, nan, nan, nan),
                    ('26', 'e', 'e', '25', nan, 5, nan, nan, nan, nan),
                    ('19', 'cdeeg+', 'cdeeg+', '1', 3, 19, nan, nan, nan, nan),
@@ -184,7 +184,7 @@ class TestGenerateDataTable(unittest.TestCase):
     def test_get_fig_parameters_names(self):
         data = TreeData()
         data.dag_to_tree(ref_abundance=CT_REF_AB, parent_dict=CT_ONTO,
-                         root_item=ROOTS[METACYC], set_abundance=CT_AB, names=CT_LAB)
+                         root_item=ROOT, set_abundance=CT_AB, names=CT_LAB)
         lines = set(data.get_col())
         w_lines = {('9', 'g', 'G', '8', nan, 7, nan, nan, nan, nan),
                    ('19', 'cdeeg+', 'CDEEG+', '1', 3, 19, nan, nan, nan, nan),
@@ -195,7 +195,7 @@ class TestGenerateDataTable(unittest.TestCase):
                    ('16', 'cf', 'CF', '11', 3, 9, nan, nan, nan, nan),
                    ('10', 'h', 'H', '8', nan, 8, nan, nan, nan, nan),
                    ('8', 'gh', 'GH', '1', nan, 15, nan, nan, nan, nan),
-                   ('1', 'FRAMES', 'Root', '', 6, 36, nan, nan, nan, nan),
+                   ('1', ROOT, 'Root', '', 6, 36, nan, nan, nan, nan),
                    ('27', 'g', 'G', '25', nan, 7, nan, nan, nan, nan),
                    ('17', 'c', 'C', '16', 3, 3, nan, nan, nan, nan),
                    ('15', 'e', 'E', '12', nan, 5, nan, nan, nan, nan),
@@ -219,7 +219,7 @@ class TestGenerateDataTable(unittest.TestCase):
     def test_get_fig_parameters_no_ref_base(self):
         data = TreeData()
         data.dag_to_tree(ref_abundance=CT_REF_AB, parent_dict=CT_ONTO,
-                         root_item=ROOTS[METACYC], set_abundance=CT_AB, names=None,
+                         root_item=ROOT, set_abundance=CT_AB, names=None,
                          ref_base=False)
         lines = set(data.get_col())
         w_lines = {('4', 'b', 'b', '2', 2, 2, nan, nan, nan, nan),
@@ -233,7 +233,7 @@ class TestGenerateDataTable(unittest.TestCase):
                    ('12', 'cde', 'cde', '11', 3, 12, nan, nan, nan, nan),
                    ('5', 'cdecf', 'cdecf', '1', 3, 18, nan, nan, nan, nan),
                    ('6', 'cde', 'cde', '5', 3, 12, nan, nan, nan, nan),
-                   ('1', 'FRAMES', 'FRAMES', '', 6, 36, nan, nan, nan, nan),
+                   ('1', ROOT, ROOT, '', 6, 36, nan, nan, nan, nan),
                    ('11', 'cdeeg', 'cdeeg', '10', 3, 19, nan, nan, nan, nan)}
         self.assertEqual(lines, w_lines)
 
@@ -241,10 +241,10 @@ class TestGenerateDataTable(unittest.TestCase):
     def test_get_fig_parameters_no_ref(self):
         data = TreeData()
         data.dag_to_tree(ref_abundance=CT_AB, parent_dict=CT_ONTO,
-                         root_item=ROOTS[METACYC], set_abundance=CT_AB, names=None,
+                         root_item=ROOT, set_abundance=CT_AB, names=None,
                          ref_base=False)
         lines = set(data.get_col())
-        w_lines = {('1', 'FRAMES', 'FRAMES', '', 6, 6, nan, nan, nan, nan),
+        w_lines = {('1', ROOT, ROOT, '', 6, 6, nan, nan, nan, nan),
                    ('8', 'cf', 'cf', '5', 3, 3, nan, nan, nan, nan),
                    ('13', 'c', 'c', '12', 3, 3, nan, nan, nan, nan),
                    ('9', 'c', 'c', '8', 3, 3, nan, nan, nan, nan),
@@ -266,7 +266,7 @@ class TestAddProportionDataTable(unittest.TestCase):
     def test_get_data_proportion_no_relative(self):
         data = TreeData()
         data.dag_to_tree(ref_abundance=CT_REF_AB, parent_dict=CT_ONTO,
-                         root_item=ROOTS[METACYC], set_abundance=CT_AB, names=CT_LAB)
+                         root_item=ROOT, set_abundance=CT_AB, names=CT_LAB)
         data.calculate_proportions(True)
         for i in range(data.len):
             if np.isnan(data.prop[i]):
@@ -278,7 +278,7 @@ class TestAddProportionDataTable(unittest.TestCase):
     def test_get_data_proportion_no_relative_ref(self):
         data = TreeData()
         data.dag_to_tree(ref_abundance=CT_REF_AB, parent_dict=CT_ONTO,
-                         root_item=ROOTS[METACYC], set_abundance=CT_AB, names=CT_LAB)
+                         root_item=ROOT, set_abundance=CT_AB, names=CT_LAB)
         data.calculate_proportions(True)
         for i in range(data.len):
             self.assertEqual(data.ref_prop[i], W_REF_PROP[data.ids[i]])
@@ -287,7 +287,7 @@ class TestAddProportionDataTable(unittest.TestCase):
     def test_get_data_proportion_relative(self):
         data = TreeData()
         data.dag_to_tree(ref_abundance=CT_REF_AB, parent_dict=CT_ONTO,
-                         root_item=ROOTS[METACYC], set_abundance=CT_AB, names=CT_LAB)
+                         root_item=ROOT, set_abundance=CT_AB, names=CT_LAB)
         data.calculate_proportions(True)
         for i in range(data.len):
             self.assertEqual(data.relative_prop[i], W_REL_PROP[data.ids[i]])
@@ -334,6 +334,7 @@ class TestEnrichmentAnalysis(unittest.TestCase):
         data.calculate_proportions(True)
         significant = data.make_enrichment_analysis(BINOMIAL_TEST)
         lines = set(data.get_col())
+        print(lines)
         exp_significant = {'01': 3.799562441228011e-06, '03': 0.001125114927936431,
                            '02': 0.003092409570144631}
         exp_lines = {('8', '09', '9', '6', 1, 3, 0.02, 0.03, 30000, 0.0),
@@ -421,19 +422,19 @@ ROOT_ONTO = {'01': ['00'], '02': ['00'], '03': ['00'], '04': ['00'], '05': ['01'
 
 PATH_ONTO = {'a': ['ab', 'cdeeg++++'], 'b': ['ab'], 'c': ['cde', 'cf'], 'd': ['cde'],
              'e': ['cde', 'eg'], 'f': ['cf'], 'g': ['gh', 'eg'], 'h': ['gh'],
-             'ab': [ROOTS[METACYC]], 'cde': ['cde+'], 'cde+': ['cde++'], 'cde++': ['cde+++'],
-             'cde+++': ['cdecf', 'cdeeg'], 'cf': ['cdecf'], 'eg': ['cdeeg', ROOTS[METACYC]],
-             'gh': [ROOTS[METACYC]], 'cdecf': [ROOTS[METACYC]], 'cdeeg': ['cdeeg+'],
+             'ab': [ROOT], 'cde': ['cde+'], 'cde+': ['cde++'], 'cde++': ['cde+++'],
+             'cde+++': ['cdecf', 'cdeeg'], 'cf': ['cdecf'], 'eg': ['cdeeg', ROOT],
+             'gh': [ROOT], 'cdecf': [ROOT], 'cdeeg': ['cdeeg+'],
              'cdeeg+': ['cdeeg++'], 'cdeeg++': ['cdeeg+++'], 'cdeeg+++': ['cdeeg++++'],
-             'cdeeg++++': [ROOTS[METACYC]]}
-PATH_AB = {'FRAMES': 6, 'cde': 3, 'cde+': 3, 'cde++': 3, 'cde+++': 3, 'cf': 3, 'cdecf': 3,
+             'cdeeg++++': [ROOT]}
+PATH_AB = {ROOT: 6, 'cde': 3, 'cde+': 3, 'cde++': 3, 'cde+++': 3, 'cf': 3, 'cdecf': 3,
            'cdeeg++++': 3, 'cdeeg+++': 3, 'cdeeg++': 3, 'cdeeg+': 3, 'cdeeg': 3, 'c': 3, 'ab': 3,
            'b': 2, 'a': 1}
-PATH_REF_AB = {'FRAMES': 36, 'cdeeg++++': 19, 'cdeeg+++': 19, 'cdeeg++': 19, 'cdeeg+': 19,
+PATH_REF_AB = {ROOT: 36, 'cdeeg++++': 19, 'cdeeg+++': 19, 'cdeeg++': 19, 'cdeeg+': 19,
                'cdeeg': 19, 'cdecf': 18, 'gh': 15, 'eg': 12, 'cde': 12, 'cde+': 12, 'cde++': 12,
                'cde+++': 12, 'cf': 9, 'h': 8, 'g': 7, 'f': 6, 'e': 5, 'd': 4, 'c': 3, 'ab': 3,
                'b': 2, 'a': 1}
-PATH_LAB = {'FRAMES': 'Root', 'cdeeg+': 'CDEEG+', 'cdeeg': 'CDEEG', 'cdecf': 'CDECF', 'gh': 'GH',
+PATH_LAB = {ROOT: 'Root', 'cdeeg+': 'CDEEG+', 'cdeeg': 'CDEEG', 'cdecf': 'CDECF', 'gh': 'GH',
             'eg': 'EG', 'cde': 'CDE', 'cf': 'CF', 'h': 'H', 'g': 'G', 'f': 'F', 'e': 'E', 'd': 'D',
             'c': 'C', 'ab': 'AB', 'b': 'B'}
 
@@ -519,7 +520,7 @@ class TestTopologyManagement(unittest.TestCase):
     @test_for(TreeData.cut_nested_path)
     def test_cut_path_uncut(self):
         data = TreeData()
-        data.dag_to_tree(PATH_AB, PATH_REF_AB, PATH_ONTO, ROOTS[METACYC], PATH_LAB)
+        data.dag_to_tree(PATH_AB, PATH_REF_AB, PATH_ONTO, ROOT, PATH_LAB)
         data.calculate_proportions(True)
         data.cut_nested_path(PATH_UNCUT, False)
         exp_l = {('27', 'cdeeg', 'CDEEG', '26', 3, 19, 0.5, 0.5277777777777778, 269402, nan),
@@ -529,7 +530,7 @@ class TestTopologyManagement(unittest.TestCase):
                  ('6', 'e', 'E', '5', nan, 5, nan, 0.1388888888888889, 74626, nan),
                  ('9', 'g', 'G', '8', nan, 7, nan, 0.19444444444444445, 104477, nan),
                  ('22', 'cdeeg++++', 'cdeeg++++', '1', 3, 19, 0.5, 0.5277777777777778, 283582, nan),
-                 ('1', 'FRAMES', 'Root', '', 6, 36, 1.0, 1.0, 1000000, nan),
+                 ('1', ROOT, 'Root', '', 6, 36, 1.0, 1.0, 1000000, nan),
                  ('20', 'c', 'C', '19', 3, 3, 0.5, 0.08333333333333333, 38379, nan),
                  ('8', 'gh', 'GH', '1', nan, 15, nan, 0.4166666666666667, 223880, nan),
                  (
@@ -571,13 +572,13 @@ class TestTopologyManagement(unittest.TestCase):
     @test_for(TreeData.cut_nested_path)
     def test_cut_path_cut_deeper(self):
         data = TreeData()
-        data.dag_to_tree(PATH_AB, PATH_REF_AB, PATH_ONTO, ROOTS[METACYC], PATH_LAB)
+        data.dag_to_tree(PATH_AB, PATH_REF_AB, PATH_ONTO, ROOT, PATH_LAB)
         data.calculate_proportions(True)
         data.cut_nested_path(PATH_DEEPER, False)
         # from ontosunburst.sunburst_fig import generate_sunburst_fig
         # generate_sunburst_fig(data, 'test')
         exp_l = {('34', 'e', 'E', '31', nan, 5, nan, 0.1388888888888889, 56125, nan),
-                 ('1', 'FRAMES', 'Root', '', 6, 36, 1.0, 1.0, 1000000, nan),
+                 ('1', ROOT, 'Root', '', 6, 36, 1.0, 1.0, 1000000, nan),
                  ('8', 'gh', 'GH', '1', nan, 15, nan, 0.4166666666666667, 223880, nan),
                  ('19', 'cf', 'CF', '11', 3, 9, 0.5, 0.25, 115138, nan),
                  ('27', 'cdeeg', '... CDEEG', '22', 3, 19, 0.5, 0.5277777777777778, 269402, nan),
@@ -614,7 +615,7 @@ class TestTopologyManagement(unittest.TestCase):
     @test_for(TreeData.cut_nested_path)
     def test_cut_path_cut_higher(self):
         data = TreeData()
-        data.dag_to_tree(PATH_AB, PATH_REF_AB, PATH_ONTO, ROOTS[METACYC], PATH_LAB)
+        data.dag_to_tree(PATH_AB, PATH_REF_AB, PATH_ONTO, ROOT, PATH_LAB)
         data.calculate_proportions(True)
         data.cut_root(ROOT_CUT)
         data.cut_nested_path(PATH_HIGHER, False)
@@ -656,7 +657,7 @@ class TestTopologyManagement(unittest.TestCase):
     @test_for(TreeData.cut_nested_path)
     def test_cut_path_cut_bound(self):
         data = TreeData()
-        data.dag_to_tree(PATH_AB, PATH_REF_AB, PATH_ONTO, ROOTS[METACYC], PATH_LAB)
+        data.dag_to_tree(PATH_AB, PATH_REF_AB, PATH_ONTO, ROOT, PATH_LAB)
         data.calculate_proportions(True)
         data.cut_nested_path(PATH_BOUND, False)
         exp_l = {('16', 'c', 'C', '15', 3, 3, 0.5, 0.08333333333333333, 38379, nan),
@@ -680,7 +681,7 @@ class TestTopologyManagement(unittest.TestCase):
                  ('3', 'a', 'a', '2', 1, 1, 0.16666666666666666, 0.027777777777777776, 14925, nan),
                  ('12', 'cde+++', 'cde+++ ...', '11', 3, 12, 0.5, 0.3333333333333333, 153517, nan),
                  ('5', 'eg', 'EG', '1', nan, 12, nan, 0.3333333333333333, 179104, nan),
-                 ('1', 'FRAMES', 'Root', '', 6, 36, 1.0, 1.0, 1000000, nan),
+                 ('1', ROOT, 'Root', '', 6, 36, 1.0, 1.0, 1000000, nan),
                  ('37', 'g', 'G', '35', nan, 7, nan, 0.19444444444444445, 78575, nan),
                  ('33', 'd', 'D', '31', nan, 4, nan, 0.1111111111111111, 44900, nan),
                  ('31', 'cde', '... CDE', '28', 3, 12, 0.5, 0.3333333333333333, 134701, nan),

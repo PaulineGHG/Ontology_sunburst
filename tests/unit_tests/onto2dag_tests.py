@@ -204,7 +204,7 @@ class TestWeightsCalculation(unittest.TestCase):
                        'f': {'cdecf', 'root', 'cf'}, 'cf': {'cdecf', 'root'}}
         abundances_dict = {'c': 3, 'd': 4, 'e': 5, 'f': 2, 'cf': 2}
         classes_abundances = calculate_weights(all_classes, abundances_dict, show_leaves=True)
-        wanted_abundances = {'FRAMES': 16, 'cdecf': 16, 'cde': 12, 'cdeeg+': 12, 'cdeeg': 12,
+        wanted_abundances = {ROOT: 16, 'cdecf': 16, 'cde': 12, 'cdeeg+': 12, 'cdeeg': 12,
                              'cf': 7, 'eg': 5, 'e': 5, 'd': 4, 'c': 3, 'f': 2}
         self.assertEqual(classes_abundances, wanted_abundances)
 
