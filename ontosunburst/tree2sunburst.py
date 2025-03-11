@@ -185,29 +185,29 @@ def get_hover_fig_text(data: TreeData, analysis: str, ref_set: bool) \
     """
     if analysis == ENRICHMENT_A:
         return [f'P value: {10 ** (-data.p_val[i])}<br>'
-                f'{COUNT}: <b>{data.count[i]}</b><br>'
-                f'{REF_COUNT}: {data.ref_count[i]}<br>'
+                f'{WEIGHT}: <b>{data.count[i]}</b><br>'
+                f'{REF_WEIGHT}: {data.ref_count[i]}<br>'
                 f'{PROP}: <b>{round(data.prop[i] * 100, 2)}%</b><br>'
                 f'{REF_PROP}: {round(data.ref_prop[i] * 100, 2)}%<br>'
                 f'{IDS}: {data.onto_ids[i]}'
                 if data.p_val[i] > 0 else
                 f'P value: {10 ** data.p_val[i]}<br>'
-                f'{COUNT}: <b>{data.count[i]}</b><br>'
-                f'{REF_COUNT}: {data.ref_count[i]}<br>'
+                f'{WEIGHT}: <b>{data.count[i]}</b><br>'
+                f'{REF_WEIGHT}: {data.ref_count[i]}<br>'
                 f'{PROP}: <b>{round(data.prop[i] * 100, 2)}%</b><br>'
                 f'{REF_PROP}: {round(data.ref_prop[i] * 100, 2)}%<br>'
                 f'{IDS}: {data.onto_ids[i]}'
                 for i in range(data.len)]
     elif analysis == TOPOLOGY_A:
         if ref_set:
-            return [f'{COUNT}: <b>{data.count[i]}</b><br>'
-                    f'{REF_COUNT}: {data.ref_count[i]}<br>'
+            return [f'{WEIGHT}: <b>{data.count[i]}</b><br>'
+                    f'{REF_WEIGHT}: {data.ref_count[i]}<br>'
                     f'{PROP}: <b>{round(data.prop[i] * 100, 2)}%</b><br>'
                     f'{REF_PROP}: {round(data.ref_prop[i] * 100, 2)}%<br>'
                     f'{IDS}: {data.onto_ids[i]}'
                     for i in range(data.len)]
         else:
-            return [f'{COUNT}: <b>{data.count[i]}</b><br>'
+            return [f'{WEIGHT}: <b>{data.count[i]}</b><br>'
                     f'{PROP}: <b>{round(data.prop[i] * 100, 2)}%</b><br>'
                     f'{IDS}: {data.onto_ids[i]}'
                     for i in range(data.len)]

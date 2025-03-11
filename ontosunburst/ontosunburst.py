@@ -199,9 +199,9 @@ def _global_analysis(ontology, analysis, interest_concepts, abundances, scores, 
     # DAG TO TREE
     # =============================================================================================
     tree_data = TreeData()
-    tree_data.fill_parameters(set_abundance=calculated_weights, ref_abundance=ref_calculated_weights,
-                              parent_dict=ontology_dag, root_item=root, names=id_to_label,
-                              ref_base=ref_base)
+    tree_data.dag_to_tree(set_abundance=calculated_weights, ref_abundance=ref_calculated_weights,
+                          parent_dict=ontology_dag, root_item=root, names=id_to_label,
+                          ref_base=ref_base)
 
     tree_data.calculate_proportions(ref_base)
     significant = None

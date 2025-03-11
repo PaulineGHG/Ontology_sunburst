@@ -23,8 +23,8 @@ IDS = 'ID'
 ONTO_ID = 'Onto ID'
 PARENT = 'Parent'
 LABEL = 'Label'
-COUNT = 'Count'
-REF_COUNT = 'Reference count'
+WEIGHT = 'Weight'
+REF_WEIGHT = 'Reference weight'
 PROP = 'Proportion'
 REF_PROP = 'Reference proportion'
 RELAT_PROP = 'Relative proportion'
@@ -98,13 +98,13 @@ class TreeData:
 
     def get_data_dict(self):
         return {IDS: self.ids, ONTO_ID: self.onto_ids, LABEL: self.labels, PARENT: self.parents,
-                COUNT: self.count, REF_COUNT: self.ref_count, PROP: self.prop,
+                WEIGHT: self.count, REF_WEIGHT: self.ref_count, PROP: self.prop,
                 REF_PROP: self.ref_prop, RELAT_PROP: self.relative_prop, PVAL: self.p_val}
 
-    def fill_parameters(self, set_abundance: Dict[str, float], ref_abundance: Dict[str, float],
-                        parent_dict: Dict[str, List[str]], root_item: str,
-                        names: Dict[str, str] = None, ref_base: bool = True):
-        """ Fill DataTable list attributes (self.ids, self.onto_ids, self.labels, self.parents,
+    def dag_to_tree(self, set_abundance: Dict[str, float], ref_abundance: Dict[str, float],
+                    parent_dict: Dict[str, List[str]], root_item: str,
+                    names: Dict[str, str] = None, ref_base: bool = True):
+        """ Fill TreeData list attributes (self.ids, self.onto_ids, self.labels, self.parents,
         self.count, self.ref_count)
 
         Parameters
@@ -201,7 +201,7 @@ class TreeData:
         self.len += 1
 
     def calculate_proportions(self, ref_base: bool):
-        """ Calculate DataTable proportion list attributes (self.prop, self.ref_prop,
+        """ Calculate TreeData proportion list attributes (self.prop, self.ref_prop,
         self.relative_prop). If total add relative proportion to +1 parent for branch value.
 
         Parameters
@@ -450,7 +450,7 @@ class TreeData:
         self.delete_value(to_del)
 
     def delete_value(self, v_index: int or List[int]):
-        """ Delete a sector of DataTable from its index or a list of sectors from a list of indexes
+        """ Delete a sector of TreeData from its index or a list of sectors from a list of indexes
 
         Parameters
         ----------
@@ -466,7 +466,7 @@ class TreeData:
             self.len -= 1
 
     def get_col(self, index: int or List[int] = None) -> List or List[List]:
-        """ Get a DataTable column from its index or a list of columns from a list of indexes.
+        """ Get a TreeData column from its index or a list of columns from a list of indexes.
         Column = all values associated with a sector.
 
         Parameters

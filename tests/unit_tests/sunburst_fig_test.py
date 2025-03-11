@@ -36,7 +36,7 @@ MC_LABELS = {'FRAMES': 'Root', 'cdeeg+': 'CDEEG+', 'cdeeg': 'CDEEG', 'cdecf': 'C
              'eg': 'EG', 'cde': 'CDE', 'cf': 'CF', 'h': 'H', 'g': 'G', 'f': 'F', 'e': 'E', 'd': 'D',
              'c': 'C', 'ab': 'AB', 'b': 'B'}
 MC_DATA = TreeData()
-MC_DATA.fill_parameters(MC_AB, MC_REF_AB, MC_ONTO, ROOTS[METACYC], MC_LABELS)
+MC_DATA.dag_to_tree(MC_AB, MC_REF_AB, MC_ONTO, ROOTS[METACYC], MC_LABELS)
 MC_DATA.calculate_proportions(True)
 
 # Enrichment
@@ -50,7 +50,7 @@ E_ONTO = {'01': ['00'], '02': ['00'], '03': ['00'], '04': ['00'], '05': ['01'],
           '06': ['01'], '07': ['01'], '08': ['02'], '09': ['02']}
 
 E_DATA = TreeData()
-E_DATA.fill_parameters(E_AB, E_REF_AB, E_ONTO, '00', E_LABElS, True)
+E_DATA.dag_to_tree(E_AB, E_REF_AB, E_ONTO, '00', E_LABElS, True)
 E_DATA.calculate_proportions(True)
 E_SIGN = E_DATA.make_enrichment_analysis(BINOMIAL_TEST)
 
