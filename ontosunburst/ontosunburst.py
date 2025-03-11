@@ -16,7 +16,6 @@ from ontosunburst.tree2sunburst import generate_sunburst_fig, TOPOLOGY_A, ENRICH
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 DEFAULT_PATH = os.path.join(CURRENT_DIR, 'Inputs')
-DEFAULT = 'default'
 CLASSES_SUFFIX = 'classes.json'
 LABELS_SUFFIX = 'labels.json'
 
@@ -27,6 +26,7 @@ CHEBI_R = 'chebi_r'
 GO_CC = 'go_cc'
 GO_MF = 'go_mf'
 GO_BP = 'go_bp'
+GO = 'go'
 KEGG = 'kegg'
 
 ROOTS = {METACYC: 'FRAMES',
@@ -36,6 +36,7 @@ ROOTS = {METACYC: 'FRAMES',
          GO_CC: 'GO:0005575',
          GO_BP: 'GO:0008150',
          GO_MF: 'GO:0003674',
+         GO: 'GO',
          KEGG: 'kegg'}
 
 
@@ -45,16 +46,17 @@ ROOTS = {METACYC: 'FRAMES',
 
 def ontosunburst(interest_set: List[str],
                  ontology: str = None,
-                 root: str = None,
                  abundances: List[float] = None,
-                 scores: Dict[str, float] = None,
                  reference_set: List[str] = None,
                  ref_abundances: List[float] = None,
                  analysis: str = TOPOLOGY_A,
                  output: str = 'sunburst',
+                 scores: Dict[str, float] = None,
                  write_output: bool = True,
-                 class_ontology: str or Dict[str, str] = None,
-                 labels: str or Dict[str, str] = DEFAULT,
+                 ontology_dag_input: str or Dict[str, str] = None,
+                 input_root: str = None,
+                 id_to_label_input: str or Dict[str, str] = None,
+                 labels: bool = True,
                  test: str = BINOMIAL_TEST,
                  root_cut: str = ROOT_CUT,
                  path_cut: str = PATH_UNCUT,
@@ -66,19 +68,14 @@ def ontosunburst(interest_set: List[str],
     Parameters
     ----------
     interest_set: List[str]
-        Interest set of concepts to classify
+        Interest list of concepts IDs to classify.
     ontology: str (optional, default=None, values in ['metacyc', 'ec', 'chebi', 'chebi_r', 'kegg',
-                                                      'go_cc', 'go_bp', 'go_mf', None])
-        Ontology to use
-    root: str (optional, default=None)
-        Root item of the ontology.
+                                                      'go_cc', 'go_bp', 'go_mf', 'go', None])
+        Ontology name to use.
     abundances: List[str] (optional, default=None)
         Abundance values associated to interest_set list parameter
-    scores: Dict[str, float] (optional, default=None)
-        Dictionary associating for each ontology ID, its enrichment score. If None enrichment will
-        be calculated.
     reference_set: List[str] (optional, default=None)
-        Reference set of concepts
+        Reference list of concepts IDs.
     ref_abundances: List[str] (optional, default=None)
         Abundance values associated to reference_set list parameter
     analysis: str (optional, default='topology', values in ['topology', 'enrichment'])
@@ -86,14 +83,23 @@ def ontosunburst(interest_set: List[str],
     output: str (optional, default='sunburst')
         Path of the output to save figure, if None, outputs will be sunburst.html and sunburst.tsv
         files
+    scores: Dict[str, float] (optional, default=None)
+        Dictionary associating for each ontology ID, its precalculated enrichment score. If None
+        enrichment will be calculated.
     write_output: bool (optional, default=True)
         True to write the html figure and tsv class files, False to only return plotly sunburst
-        figure
-    class_ontology: str or Dict[str, str] (optional, default=None)
-        Class ontology dictionary or json file.
-    labels: str or Dict[str, str] (optional, default='default')
-        Path to ID-LABELS association json file or ID-LABELS association dictionary or 'default'
-        to use default files. If None ontology IDs will be used as labels.
+        figure.
+    ontology_dag_input: str or Dict[str, str] (optional, default=None)
+        Ontology DAG dictionary or json file. Use if tailored ontology or alternative
+        (modified, updated, ...) default ontology DAG.
+    input_root: str (optional, default=None)
+        Root item of the ontology  (to precise if tailored ontology).
+    id_to_label_input: str or Dict[str, str] (optional, default=None)
+        Path to ID-LABELS association json file or ID-LABELS association dictionary.
+        If None default files will be used. Use if Use if tailored ontology or alternative
+        (modified, updated, ...) default ontology.
+    labels: bool (optional, default=True)
+        True to show labels as sunburst sectors labels, False to show ID as sunburst sectors labels.
     test: str (optional, default='binomial', values in ['binomial', 'hypergeometric'])
         Type of test if analysis=enrichment, binomial or hypergeometric test.
     root_cut: str (optional, default='cut', values in ['uncut', 'cut', 'total'])
@@ -112,42 +118,19 @@ def ontosunburst(interest_set: List[str],
         Plotly graph_objects figure of the sunburst
     """
     start_time = time()
-    # LOAD NAMES -----------------------------------------------------------------------------------
-    if labels == DEFAULT:
-        if ontology is not None:
-            labels = get_file(ontology, LABELS_SUFFIX)
-        else:
-            labels = None
-    if labels is not None:
-        if type(labels) == str:
-            with open(labels, 'r') as f:
-                names = json.load(f)
-        else:
-            names = labels
-    else:
-        names = None
-    # DICTIONARY / JSON INPUT ----------------------------------------------------------------------
-    if ontology is None:
-        if class_ontology is None:
-            raise ValueError('If no default ontology, must fill class_ontology parameter')
-        if root is None:
-            raise ValueError('If no default ontology, must fill root parameter')
-    else:
-        if class_ontology is None:
-            class_ontology = get_file(ontology, CLASSES_SUFFIX)
-    if type(class_ontology) == str:
-        with open(class_ontology, 'r') as f:
-            class_ontology = json.load(f)
+    # LOAD ID TO LABELS DICTIONARY -----------------------------------------------------------------
+    id_to_label = get_id_to_label_dict(id_to_label_input, labels, ontology)
+    # LOAD ONTOLOGY DAG DICTIONARY -----------------------------------------------------------------
+    ontology_dag = get_ontology_dag_dict(ontology, ontology_dag_input)
     # GET ROOT -------------------------------------------------------------------------------------
-    if ontology is not None:
-        root = ROOTS[ontology]
+    root = get_ontology_root(ontology, input_root)
     # WORKFLOW -------------------------------------------------------------------------------------
     fig = _global_analysis(ontology=ontology, analysis=analysis,
-                           metabolic_objects=interest_set, abundances=abundances,
+                           interest_concepts=interest_set, abundances=abundances,
                            scores=scores,
-                           reference_set=reference_set, ref_abundances=ref_abundances,
-                           d_classes_ontology=class_ontology,
-                           output=output, write_output=write_output, names=names,
+                           reference_concepts=reference_set, ref_abundances=ref_abundances,
+                           ontology_dag=ontology_dag,
+                           output=output, write_output=write_output, id_to_label=id_to_label,
                            test=test, root=root, root_cut=root_cut, path_cut=path_cut,
                            ref_base=ref_base, show_leaves=show_leaves, **kwargs)
     end_time = time()
@@ -155,11 +138,8 @@ def ontosunburst(interest_set: List[str],
     return fig
 
 
-# ==================================================================================================
-#                                             FUNCTIONS
-# ==================================================================================================
-def _global_analysis(ontology, analysis, metabolic_objects, abundances, scores, reference_set,
-                     ref_abundances, d_classes_ontology, output, write_output, names,
+def _global_analysis(ontology, analysis, interest_concepts, abundances, scores, reference_concepts,
+                     ref_abundances, ontology_dag, output, write_output, id_to_label,
                      test, root, root_cut, path_cut, ref_base, show_leaves, **kwargs):
     """
 
@@ -167,14 +147,14 @@ def _global_analysis(ontology, analysis, metabolic_objects, abundances, scores, 
     ----------
     ontology
     analysis
-    metabolic_objects
+    interest_concepts
     abundances
-    reference_set
+    reference_concepts
     ref_abundances
-    d_classes_ontology
+    ontology_dag
     output
     write_output
-    names
+    id_to_label
     test
     root
     root_cut
@@ -187,27 +167,29 @@ def _global_analysis(ontology, analysis, metabolic_objects, abundances, scores, 
     -------
 
     """
-    # EXTRACT CLASSES
-    # ----------------------------------------------------------------------------------------------
-    obj_all_classes = extract_classes(ontology, metabolic_objects, root)
-    if not obj_all_classes:
+    # EXTRACT CLASSES -----------------------------------------------------------------------------
+    concepts_all_classes = extract_classes(ontology, interest_concepts, root)
+    if not concepts_all_classes:
         print('No object classified, passing.')
-    if write_output:
-        write_met_classes(ontology, obj_all_classes, output, names)
 
-    # ABUNDANCES
-    # ----------------------------------------------------------------------------------------------
-    # Interest
+    # WRITE CONCEPTS CLASSES IN TSV OUTPUT FILE ---------------------------------------------------
+    if write_output:
+        write_concepts_classes(ontology, concepts_all_classes, output, id_to_label)
+
+    # CALCULATE WEIGHTS ---------------------------------------------------------------------------
+
+    # Interest set
     abundances_dict = get_abundance_dict(abundances=abundances,
-                                         metabolic_objects=metabolic_objects,
+                                         metabolic_objects=interest_concepts,
                                          ref=False)
-    classes_abundance = get_classes_abundance(obj_all_classes, abundances_dict, show_leaves)
-    # Reference
-    if reference_set is not None:
+    classes_abundance = get_classes_abundance(concepts_all_classes, abundances_dict, show_leaves)
+
+    # Reference set
+    if reference_concepts is not None:
         ref_abundances_dict = get_abundance_dict(abundances=ref_abundances,
-                                                 metabolic_objects=reference_set,
+                                                 metabolic_objects=reference_concepts,
                                                  ref=True)
-        ref_all_classes = extract_classes(ontology, reference_set, root)
+        ref_all_classes = extract_classes(ontology, reference_concepts, root)
         ref_classes_abundance = get_classes_abundance(ref_all_classes, ref_abundances_dict,
                                                       show_leaves)
     else:
@@ -219,7 +201,6 @@ def _global_analysis(ontology, analysis, metabolic_objects, abundances, scores, 
 
     # DATA TABLE
     # ----------------------------------------------------------------------------------------------
-    start_time = time()
     data = DataTable()
     if ref_classes_abundance is not None:
         ref_set = True
@@ -227,14 +208,14 @@ def _global_analysis(ontology, analysis, metabolic_objects, abundances, scores, 
         ref_set = False
         ref_classes_abundance = classes_abundance
     if ref_base:
-        d_classes_ontology = reduce_d_ontology(d_classes_ontology, ref_classes_abundance)
-        names = reduce_d_ontology(names, ref_classes_abundance)
+        ontology_dag = reduce_d_ontology(ontology_dag, ref_classes_abundance)
+        id_to_label = reduce_d_ontology(id_to_label, ref_classes_abundance)
     else:
-        d_classes_ontology = reduce_d_ontology(d_classes_ontology, classes_abundance)
-        names = reduce_d_ontology(names, classes_abundance)
+        ontology_dag = reduce_d_ontology(ontology_dag, classes_abundance)
+        id_to_label = reduce_d_ontology(id_to_label, classes_abundance)
 
     data.fill_parameters(set_abundance=classes_abundance, ref_abundance=ref_classes_abundance,
-                         parent_dict=d_classes_ontology, root_item=root, names=names,
+                         parent_dict=ontology_dag, root_item=root, names=id_to_label,
                          ref_base=ref_base)
 
     data.calculate_proportions(ref_base)
@@ -244,8 +225,6 @@ def _global_analysis(ontology, analysis, metabolic_objects, abundances, scores, 
     data.cut_root(root_cut)
     data.cut_nested_path(path_cut, ref_base)
 
-    end_time = time()
-    print(f'Execution time : {end_time - start_time} seconds')
     # FIGURE
     # ----------------------------------------------------------------------------------------------
     return generate_sunburst_fig(data=data, output=output, analysis=analysis, test=test,
@@ -253,8 +232,12 @@ def _global_analysis(ontology, analysis, metabolic_objects, abundances, scores, 
                                  write_fig=write_output, **kwargs)
 
 
-def write_met_classes(ontology: str, all_classes: Dict[str, Set[str]], output: str,
-                      names: Dict[str, str]):
+# ==================================================================================================
+#                                             FUNCTIONS
+# ==================================================================================================
+
+def write_concepts_classes(ontology: str, all_classes: Dict[str, Set[str]], output: str,
+                           id_to_label: Dict[str, str]):
     """ Writes, for each input class, all its ancestors in a .tsv file.
 
     Parameters
@@ -262,7 +245,7 @@ def write_met_classes(ontology: str, all_classes: Dict[str, Set[str]], output: s
     ontology
     all_classes
     output
-    names
+    id_to_label
     """
     if ontology is None:
         ontology = ''
@@ -274,13 +257,14 @@ def write_met_classes(ontology: str, all_classes: Dict[str, Set[str]], output: s
                   GO_MF: 'https://amigo.geneontology.org/amigo/term/',
                   GO_CC: 'https://amigo.geneontology.org/amigo/term/',
                   GO_BP: 'https://amigo.geneontology.org/amigo/term/',
+                  GO: 'https://amigo.geneontology.org/amigo/term/',
                   '': ''}
     with open(f'{output}.tsv', 'w') as f:
         f.write('\t'.join(['ID', 'Label', 'Classes ID', 'Classes Label', 'Link']) + '\n')
         for met_id, classes_id, in all_classes.items():
             link = links_dict[ontology] + met_id
-            met_lab = get_name(met_id, names)
-            classes_lab = [get_name(cl, names) for cl in classes_id]
+            met_lab = get_name(met_id, id_to_label)
+            classes_lab = [get_name(cl, id_to_label) for cl in classes_id]
             f.write('\t'.join([met_id, met_lab, ', '.join(classes_id), ', '.join(classes_lab),
                                link]) + '\n')
 
@@ -289,3 +273,51 @@ def get_file(ontology, suffix):
     for file in os.listdir(DEFAULT_PATH):
         if file.startswith(ontology + '__') and file.endswith('__' + suffix):
             return os.path.join(DEFAULT_PATH, file)
+
+def aggregate_go_ontologies(suffix):
+    go_aggregated = dict()
+    for sub_go_ontology in [GO_BP, GO_CC, GO_MF]:
+        dict_sub_onto_input = get_file(sub_go_ontology, suffix)
+        with open(dict_sub_onto_input, 'r') as f:
+            dict_sub_onto = json.load(f)
+        go_aggregated.update(dict_sub_onto)
+    if suffix == CLASSES_SUFFIX:
+        for sub_go_ontology in [GO_BP, GO_CC, GO_MF]:
+            go_aggregated[ROOTS[sub_go_ontology]] = [ROOTS[GO]]
+    return go_aggregated
+
+def get_id_to_label_dict(id_to_label_input, labels, ontology):
+    if labels:
+        if ontology is not None:
+            if ontology == GO:
+                return aggregate_go_ontologies(LABELS_SUFFIX)
+            id_to_label_input = get_file(ontology, LABELS_SUFFIX)
+        if id_to_label_input is not None:
+            if type(id_to_label_input) == str:
+                with open(id_to_label_input, 'r') as f:
+                    id_to_label = json.load(f)
+                    return id_to_label
+            else:
+                return id_to_label_input
+
+def get_ontology_dag_dict(ontology, ontology_dag_input):
+    if ontology is None:
+        if ontology_dag_input is None:
+            raise ValueError('If no default ontology, must fill class_ontology parameter')
+    else:
+        if ontology_dag_input is None:
+            if ontology == GO:
+                return aggregate_go_ontologies(CLASSES_SUFFIX)
+            ontology_dag_input = get_file(ontology, CLASSES_SUFFIX)
+    if type(ontology_dag_input) == str:
+        with open(ontology_dag_input, 'r') as f:
+            ontology_dag = json.load(f)
+            return ontology_dag
+
+def get_ontology_root(ontology, input_root):
+    if ontology is not None:
+        return ROOTS[ontology]
+    elif input_root is None:
+        raise ValueError('If no default ontology, must fill root parameter')
+    else:
+        return input_root
