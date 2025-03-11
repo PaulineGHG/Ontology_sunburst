@@ -2,20 +2,43 @@ from typing import List, Set, Dict, Any
 import numpy
 
 
-# ==================================================================================================
-# CLASSES EXTRACTION
-# ==================================================================================================
-
-# Main ontology to reduced dag function
+# Main ontology to reduced dag functions
 # --------------------------------------------------------------------------------------------------
-def ontology_to_weighted_dag(concepts, abundances, root, ontology_dag, ref, show_lvs):
+def ontology_to_weighted_dag(concepts, abundances, root, ontology_dag, show_lvs):
     classified_concepts = classify_concepts(concepts, ontology_dag)
     concepts_all_classes = get_all_classes(classified_concepts, ontology_dag, root)
-    abundances_dict = get_abundance_dict(concepts, abundances, ref)
+    abundances_dict = get_abundance_dict(concepts, abundances)
     calculated_weights = calculate_weights(concepts_all_classes, abundances_dict, show_lvs)
     return calculated_weights
 
-# ----
+def reduce_d_ontology(d_classes_ontology: Dict[str, Any],
+                      classes_abundance: Dict[str, float]) -> Dict[str, Any]:
+    """ Extract the sub-graph of the d_classes_ontology dictionary conserving only nodes implicated
+    with the concepts studied.
+
+    Parameters
+    ----------
+    d_classes_ontology: Dict[str, Any]
+        Dictionary of the ontology complete graph
+    classes_abundance: Dict[str, float]
+        Dictionary of abundances (keys are all nodes implicated to be conserved)
+
+    Returns
+    -------
+    Dict[str, Any]
+        Dictionary of the ontology sub-graph conserving only nodes implicated with the concepts
+        studied.
+    """
+    reduced_d_ontology = dict()
+    for k, v in d_classes_ontology.items():
+        if k in classes_abundance:
+            reduced_d_ontology[k] = v
+    return reduced_d_ontology
+
+# ==================================================================================================
+# REDUCE DAD FUNCTIONS
+# ==================================================================================================
+
 def classify_concepts(concepts: List[str], ontology_dag: Dict[str, List[str]]) \
         -> Dict[str, List[str]]:
     """ Extract concepts able to be classified in the ontology.
@@ -106,36 +129,11 @@ def get_parents(child: str, parent_set: Set[str], d_classes_ontology: Dict[str, 
     return parent_set
 
 
-def reduce_d_ontology(d_classes_ontology: Dict[str, Any],
-                      classes_abundance: Dict[str, float]) -> Dict[str, Any]:
-    """ Extract the sub-graph of the d_classes_ontology dictionary conserving only nodes implicated
-    with the concepts studied.
-
-    Parameters
-    ----------
-    d_classes_ontology: Dict[str, Any]
-        Dictionary of the ontology complete graph
-    classes_abundance: Dict[str, float]
-        Dictionary of abundances (keys are all nodes implicated to be conserved)
-
-    Returns
-    -------
-    Dict[str, Any]
-        Dictionary of the ontology sub-graph conserving only nodes implicated with the concepts
-        studied.
-    """
-    reduced_d_ontology = dict()
-    for k, v in d_classes_ontology.items():
-        if k in classes_abundance:
-            reduced_d_ontology[k] = v
-    return reduced_d_ontology
-
-
 # ==================================================================================================
 # WEIGHTS CALCULATION
 # ==================================================================================================
 
-def get_abundance_dict(abundances: List[float] or None, concepts: List[str], ref: bool)\
+def get_abundance_dict(abundances: List[float] or None, concepts: List[str])\
         -> Dict[str, float]:
     """ Generate abundances dictionary.
 
@@ -146,8 +144,6 @@ def get_abundance_dict(abundances: List[float] or None, concepts: List[str], ref
         an abundance of 1 for each concept)
     concepts: List[str] (size N)
         List of concepts ID.
-    ref: bool
-        True if concepts are the reference list, False otherwise (subset / study case).
 
     Returns
     -------
@@ -161,14 +157,9 @@ def get_abundance_dict(abundances: List[float] or None, concepts: List[str], ref
         for i in range(len(concepts)):
             abundances_dict[concepts[i]] = abundances[i]
     else:
-        if ref:
-            raise AttributeError(f'Length of "reference_set" parameter must be equal to '
-                                 f'"ref_abundances" parameter length : {len(concepts)} '
-                                 f'!= {len(abundances)}')
-        else:
-            raise AttributeError(f'Length of "metabolic_objects" parameter must be equal to '
-                                 f'"abundances" parameter length : {len(concepts)} '
-                                 f'!= {len(abundances)}')
+        raise AttributeError(f'Length of concepts IDs list must be equal to '
+                             f'its abundances list length : {len(concepts)} '
+                             f'!= {len(abundances)}')
     return abundances_dict
 
 
@@ -206,11 +197,12 @@ def calculate_weights(all_classes: Dict[str, Set[str]], abundances_dict: Dict[st
 
 
 def get_classes_scores(all_classes, scores_dict, root):
-    classes_scores = dict()
-    for met, classes in all_classes.items():
-        if met in scores_dict.keys():
-            classes_scores[met] = scores_dict[met]
-        else:
-            classes_scores[met] = numpy.nan
-    classes_scores[root] = numpy.nan
-    return classes_scores
+    if scores_dict is not None:
+        classes_scores = dict()
+        for met, classes in all_classes.items():
+            if met in scores_dict.keys():
+                classes_scores[met] = scores_dict[met]
+            else:
+                classes_scores[met] = numpy.nan
+        classes_scores[root] = numpy.nan
+        return classes_scores

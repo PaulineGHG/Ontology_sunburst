@@ -35,7 +35,7 @@ MC_REF_AB = {'FRAMES': 36, 'cdeeg+': 19, 'cdeeg': 19, 'cdecf': 18, 'gh': 15, 'eg
 MC_LABELS = {'FRAMES': 'Root', 'cdeeg+': 'CDEEG+', 'cdeeg': 'CDEEG', 'cdecf': 'CDECF', 'gh': 'GH',
              'eg': 'EG', 'cde': 'CDE', 'cf': 'CF', 'h': 'H', 'g': 'G', 'f': 'F', 'e': 'E', 'd': 'D',
              'c': 'C', 'ab': 'AB', 'b': 'B'}
-MC_DATA = DataTable()
+MC_DATA = TreeData()
 MC_DATA.fill_parameters(MC_AB, MC_REF_AB, MC_ONTO, ROOTS[METACYC], MC_LABELS)
 MC_DATA.calculate_proportions(True)
 
@@ -49,7 +49,7 @@ E_LABElS = {'00': '0', '01': '1', '02': '2', '03': '3', '04': '4',
 E_ONTO = {'01': ['00'], '02': ['00'], '03': ['00'], '04': ['00'], '05': ['01'],
           '06': ['01'], '07': ['01'], '08': ['02'], '09': ['02']}
 
-E_DATA = DataTable()
+E_DATA = TreeData()
 E_DATA.fill_parameters(E_AB, E_REF_AB, E_ONTO, '00', E_LABElS, True)
 E_DATA.calculate_proportions(True)
 E_SIGN = E_DATA.make_enrichment_analysis(BINOMIAL_TEST)

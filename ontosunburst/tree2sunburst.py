@@ -88,14 +88,14 @@ def check_kwargs(**kwargs):
             print(f'"{k}" must be of type "{KWARGS_TYPE[k]}" not "{type(k)}"')
 
 
-def generate_sunburst_fig(data: DataTable, output: str, analysis: str = TOPOLOGY_A,
+def generate_sunburst_fig(data: TreeData, output: str, analysis: str = TOPOLOGY_A,
                           test=BINOMIAL_TEST, significant: Dict[str, float] = None,
                           ref_set: bool = True, write_fig: bool = True, **kwargs) -> go.Figure:
     """ Generate a Sunburst figure and save it to output path.
 
     Parameters
     ----------
-    data: DataTable
+    data: TreeData
         DataTable of figure parameters
         (sectors id, label, parent, count, proportion, p-value, ...)
     output: str
@@ -169,7 +169,7 @@ def generate_sunburst_fig(data: DataTable, output: str, analysis: str = TOPOLOGY
     return fig
 
 
-def get_hover_fig_text(data: DataTable, analysis: str, ref_set: bool) \
+def get_hover_fig_text(data: TreeData, analysis: str, ref_set: bool) \
         -> List[str]:
     """
 

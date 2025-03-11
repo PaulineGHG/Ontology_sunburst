@@ -7,7 +7,7 @@ import plotly.graph_objects as go
 from ontosunburst.onto2dag import ontology_to_weighted_dag, get_classes_scores, reduce_d_ontology
 
 
-from ontosunburst.dag2tree import DataTable, get_name, BINOMIAL_TEST, ROOT_CUT, PATH_UNCUT
+from ontosunburst.dag2tree import TreeData, get_name, BINOMIAL_TEST, ROOT_CUT, PATH_UNCUT
 from ontosunburst.tree2sunburst import generate_sunburst_fig, TOPOLOGY_A, ENRICHMENT_A
 
 # ==================================================================================================
@@ -169,18 +169,22 @@ def _global_analysis(ontology, analysis, interest_concepts, abundances, scores, 
     """
     # ONTOLOGY TO WEIGHTED DAG
     # =============================================================================================
+    # Calculate all concepts weights --------------------------------------------------------------
     calculated_weights = ontology_to_weighted_dag(concepts=interest_concepts, abundances=abundances, root=root,
-                                                  ontology_dag=ontology_dag, ref=False, show_lvs=show_leaves)
+                                                  ontology_dag=ontology_dag, show_lvs=show_leaves)
 
     if reference_concepts is not None:
-        ref_calculated_weights = ontology_to_weighted_dag(concepts=reference_concepts, abundances=ref_abundances,
-                                                          root=root, ontology_dag=ontology_dag,
-                                                          ref=True, show_lvs=show_leaves)
         ref_set = True
+        ref_calculated_weights = ontology_to_weighted_dag(concepts=reference_concepts, abundances=ref_abundances,
+                                                          root=root, ontology_dag=ontology_dag, show_lvs=show_leaves)
     else:
         ref_set = False
         ref_calculated_weights = calculated_weights
 
+    # Scores
+    classes_scores = get_classes_scores(calculated_weights, scores, root)
+
+    # Reduce ontology (get DAG subgraph) ----------------------------------------------------------
     if ref_base:
         ontology_dag = reduce_d_ontology(ontology_dag, ref_calculated_weights)
         id_to_label = reduce_d_ontology(id_to_label, ref_calculated_weights)
@@ -192,28 +196,23 @@ def _global_analysis(ontology, analysis, interest_concepts, abundances, scores, 
     # if write_output:
     #     write_concepts_classes(ontology, concepts_all_classes, output, id_to_label)
 
-    # Scores
-    classes_scores = None
-    if scores is not None:
-        classes_scores = get_classes_scores(calculated_weights, scores, root)
-
     # DAG TO TREE
     # =============================================================================================
-    data = DataTable()
-    data.fill_parameters(set_abundance=calculated_weights, ref_abundance=ref_calculated_weights,
-                         parent_dict=ontology_dag, root_item=root, names=id_to_label,
-                         ref_base=ref_base)
+    tree_data = TreeData()
+    tree_data.fill_parameters(set_abundance=calculated_weights, ref_abundance=ref_calculated_weights,
+                              parent_dict=ontology_dag, root_item=root, names=id_to_label,
+                              ref_base=ref_base)
 
-    data.calculate_proportions(ref_base)
+    tree_data.calculate_proportions(ref_base)
     significant = None
     if analysis == ENRICHMENT_A:
-        significant = data.make_enrichment_analysis(test, classes_scores)
-    data.cut_root(root_cut)
-    data.cut_nested_path(path_cut, ref_base)
+        significant = tree_data.make_enrichment_analysis(test, classes_scores)
+    tree_data.cut_root(root_cut)
+    tree_data.cut_nested_path(path_cut, ref_base)
 
     # TREE TO SUNBURST
     # =============================================================================================
-    return generate_sunburst_fig(data=data, output=output, analysis=analysis, test=test,
+    return generate_sunburst_fig(data=tree_data, output=output, analysis=analysis, test=test,
                                  significant=significant, ref_set=ref_set,
                                  write_fig=write_output, **kwargs)
 

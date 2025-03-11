@@ -45,10 +45,10 @@ PATH_BOUND = 'bound'
 # ==================================================================================================
 # CLASS
 # ==================================================================================================
-class DataTable:
+class TreeData:
     C_ID = 0
     """
-    DataTable class: stores figure parameters values.
+    TreeData class: stores figure parameters values.
 
     Attributes
     ----------
