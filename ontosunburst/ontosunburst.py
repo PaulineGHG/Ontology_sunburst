@@ -4,8 +4,8 @@ from typing import List, Dict, Set
 from time import time
 import plotly.graph_objects as go
 
-from ontosunburst.onto2dag import get_abundance_dict, get_classes_abundance, get_classes_scores, \
-    extract_classes, reduce_d_ontology
+from ontosunburst.onto2dag import ontology_to_weighted_dag, get_classes_scores, reduce_d_ontology
+
 
 from ontosunburst.dag2tree import DataTable, get_name, BINOMIAL_TEST, ROOT_CUT, PATH_UNCUT
 from ontosunburst.tree2sunburst import generate_sunburst_fig, TOPOLOGY_A, ENRICHMENT_A
@@ -167,54 +167,40 @@ def _global_analysis(ontology, analysis, interest_concepts, abundances, scores, 
     -------
 
     """
-    # EXTRACT CLASSES -----------------------------------------------------------------------------
-    concepts_all_classes = extract_classes(ontology, interest_concepts, root)
-    if not concepts_all_classes:
-        print('No object classified, passing.')
+    # ONTOLOGY TO WEIGHTED DAG
+    # =============================================================================================
+    calculated_weights = ontology_to_weighted_dag(concepts=interest_concepts, abundances=abundances, root=root,
+                                                  ontology_dag=ontology_dag, ref=False, show_lvs=show_leaves)
 
-    # WRITE CONCEPTS CLASSES IN TSV OUTPUT FILE ---------------------------------------------------
-    if write_output:
-        write_concepts_classes(ontology, concepts_all_classes, output, id_to_label)
-
-    # CALCULATE WEIGHTS ---------------------------------------------------------------------------
-
-    # Interest set
-    abundances_dict = get_abundance_dict(abundances=abundances,
-                                         metabolic_objects=interest_concepts,
-                                         ref=False)
-    classes_abundance = get_classes_abundance(concepts_all_classes, abundances_dict, show_leaves)
-
-    # Reference set
     if reference_concepts is not None:
-        ref_abundances_dict = get_abundance_dict(abundances=ref_abundances,
-                                                 metabolic_objects=reference_concepts,
-                                                 ref=True)
-        ref_all_classes = extract_classes(ontology, reference_concepts, root)
-        ref_classes_abundance = get_classes_abundance(ref_all_classes, ref_abundances_dict,
-                                                      show_leaves)
-    else:
-        ref_classes_abundance = None
-    # Scores
-    classes_scores = None
-    if scores is not None:
-        classes_scores = get_classes_scores(classes_abundance, scores, root)
-
-    # DATA TABLE
-    # ----------------------------------------------------------------------------------------------
-    data = DataTable()
-    if ref_classes_abundance is not None:
+        ref_calculated_weights = ontology_to_weighted_dag(concepts=reference_concepts, abundances=ref_abundances,
+                                                          root=root, ontology_dag=ontology_dag,
+                                                          ref=True, show_lvs=show_leaves)
         ref_set = True
     else:
         ref_set = False
-        ref_classes_abundance = classes_abundance
-    if ref_base:
-        ontology_dag = reduce_d_ontology(ontology_dag, ref_classes_abundance)
-        id_to_label = reduce_d_ontology(id_to_label, ref_classes_abundance)
-    else:
-        ontology_dag = reduce_d_ontology(ontology_dag, classes_abundance)
-        id_to_label = reduce_d_ontology(id_to_label, classes_abundance)
+        ref_calculated_weights = calculated_weights
 
-    data.fill_parameters(set_abundance=classes_abundance, ref_abundance=ref_classes_abundance,
+    if ref_base:
+        ontology_dag = reduce_d_ontology(ontology_dag, ref_calculated_weights)
+        id_to_label = reduce_d_ontology(id_to_label, ref_calculated_weights)
+    else:
+        ontology_dag = reduce_d_ontology(ontology_dag, calculated_weights)
+        id_to_label = reduce_d_ontology(id_to_label, calculated_weights)
+
+    # WRITE CONCEPTS CLASSES IN TSV OUTPUT FILE ---------------------------------------------------
+    # if write_output:
+    #     write_concepts_classes(ontology, concepts_all_classes, output, id_to_label)
+
+    # Scores
+    classes_scores = None
+    if scores is not None:
+        classes_scores = get_classes_scores(calculated_weights, scores, root)
+
+    # DAG TO TREE
+    # =============================================================================================
+    data = DataTable()
+    data.fill_parameters(set_abundance=calculated_weights, ref_abundance=ref_calculated_weights,
                          parent_dict=ontology_dag, root_item=root, names=id_to_label,
                          ref_base=ref_base)
 
@@ -225,8 +211,8 @@ def _global_analysis(ontology, analysis, interest_concepts, abundances, scores, 
     data.cut_root(root_cut)
     data.cut_nested_path(path_cut, ref_base)
 
-    # FIGURE
-    # ----------------------------------------------------------------------------------------------
+    # TREE TO SUNBURST
+    # =============================================================================================
     return generate_sunburst_fig(data=data, output=output, analysis=analysis, test=test,
                                  significant=significant, ref_set=ref_set,
                                  write_fig=write_output, **kwargs)
@@ -235,39 +221,6 @@ def _global_analysis(ontology, analysis, interest_concepts, abundances, scores, 
 # ==================================================================================================
 #                                             FUNCTIONS
 # ==================================================================================================
-
-def write_concepts_classes(ontology: str, all_classes: Dict[str, Set[str]], output: str,
-                           id_to_label: Dict[str, str]):
-    """ Writes, for each input class, all its ancestors in a .tsv file.
-
-    Parameters
-    ----------
-    ontology
-    all_classes
-    output
-    id_to_label
-    """
-    if ontology is None:
-        ontology = ''
-    links_dict = {METACYC: 'https://metacyc.org/compound?orgid=META&id=',
-                  CHEBI: 'https://www.ebi.ac.uk/chebi/searchId.do?chebiId=CHEBI:',
-                  CHEBI_R: 'https://www.ebi.ac.uk/chebi/searchId.do?chebiId=CHEBI:',
-                  EC: 'https://enzyme.expasy.org/EC/',
-                  KEGG: 'https://www.genome.jp/entry/',
-                  GO_MF: 'https://amigo.geneontology.org/amigo/term/',
-                  GO_CC: 'https://amigo.geneontology.org/amigo/term/',
-                  GO_BP: 'https://amigo.geneontology.org/amigo/term/',
-                  GO: 'https://amigo.geneontology.org/amigo/term/',
-                  '': ''}
-    with open(f'{output}.tsv', 'w') as f:
-        f.write('\t'.join(['ID', 'Label', 'Classes ID', 'Classes Label', 'Link']) + '\n')
-        for met_id, classes_id, in all_classes.items():
-            link = links_dict[ontology] + met_id
-            met_lab = get_name(met_id, id_to_label)
-            classes_lab = [get_name(cl, id_to_label) for cl in classes_id]
-            f.write('\t'.join([met_id, met_lab, ', '.join(classes_id), ', '.join(classes_lab),
-                               link]) + '\n')
-
 
 def get_file(ontology, suffix):
     for file in os.listdir(DEFAULT_PATH):
@@ -321,3 +274,36 @@ def get_ontology_root(ontology, input_root):
         raise ValueError('If no default ontology, must fill root parameter')
     else:
         return input_root
+
+
+def write_concepts_classes(ontology: str, all_classes: Dict[str, Set[str]], output: str,
+                           id_to_label: Dict[str, str]):
+    """ Writes, for each input class, all its ancestors in a .tsv file.
+
+    Parameters
+    ----------
+    ontology
+    all_classes
+    output
+    id_to_label
+    """
+    if ontology is None:
+        ontology = ''
+    links_dict = {METACYC: 'https://metacyc.org/compound?orgid=META&id=',
+                  CHEBI: 'https://www.ebi.ac.uk/chebi/searchId.do?chebiId=CHEBI:',
+                  CHEBI_R: 'https://www.ebi.ac.uk/chebi/searchId.do?chebiId=CHEBI:',
+                  EC: 'https://enzyme.expasy.org/EC/',
+                  KEGG: 'https://www.genome.jp/entry/',
+                  GO_MF: 'https://amigo.geneontology.org/amigo/term/',
+                  GO_CC: 'https://amigo.geneontology.org/amigo/term/',
+                  GO_BP: 'https://amigo.geneontology.org/amigo/term/',
+                  GO: 'https://amigo.geneontology.org/amigo/term/',
+                  '': ''}
+    with open(f'{output}.tsv', 'w') as f:
+        f.write('\t'.join(['ID', 'Label', 'Classes ID', 'Classes Label', 'Link']) + '\n')
+        for met_id, classes_id, in all_classes.items():
+            link = links_dict[ontology] + met_id
+            met_lab = get_name(met_id, id_to_label)
+            classes_lab = [get_name(cl, id_to_label) for cl in classes_id]
+            f.write('\t'.join([met_id, met_lab, ', '.join(classes_id), ', '.join(classes_lab),
+                               link]) + '\n')

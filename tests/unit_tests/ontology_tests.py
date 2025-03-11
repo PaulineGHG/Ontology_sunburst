@@ -217,26 +217,26 @@ class TestClassesExtraction(unittest.TestCase):
 class TestAbundances(unittest.TestCase):
     @test_for(get_abundance_dict)
     def test_get_abundance_dict_abundances_not_ref(self):
-        abundance_dict = get_abundance_dict(abundances=MET_LAB, metabolic_objects=MET_LST,
+        abundance_dict = get_abundance_dict(abundances=MET_LAB, concepts=MET_LST,
                                             ref=False)
         self.assertEqual(abundance_dict, {'a': 1, 'b': 2, 'c': 3})
 
     @test_for(get_abundance_dict)
     def test_get_abundance_dict_no_abundances_not_ref(self):
-        abundance_dict = get_abundance_dict(abundances=None, metabolic_objects=MET_LST,
+        abundance_dict = get_abundance_dict(abundances=None, concepts=MET_LST,
                                             ref=False)
         self.assertEqual(abundance_dict, {'a': 1, 'b': 1, 'c': 1})
 
     @test_for(get_abundance_dict)
     def test_get_abundance_dict_abundances_ref(self):
-        abundance_dict = get_abundance_dict(abundances=MET_RAB, metabolic_objects=MET_REF,
+        abundance_dict = get_abundance_dict(abundances=MET_RAB, concepts=MET_REF,
                                             ref=True)
         self.assertEqual(abundance_dict, {'a': 1, 'b': 2, 'c': 3, 'd': 4,
                                           'e': 5, 'f': 6, 'g': 7, 'h': 8})
 
     @test_for(get_abundance_dict)
     def test_get_abundance_dict_no_abundances_ref(self):
-        abundance_dict = get_abundance_dict(abundances=None, metabolic_objects=MET_REF,
+        abundance_dict = get_abundance_dict(abundances=None, concepts=MET_REF,
                                             ref=True)
         self.assertEqual(abundance_dict, {'a': 1, 'b': 1, 'c': 1, 'd': 1,
                                           'e': 1, 'f': 1, 'g': 1, 'h': 1})
@@ -244,18 +244,18 @@ class TestAbundances(unittest.TestCase):
     @test_for(get_abundance_dict)
     def test_get_abundance_dict_errors_not_ref(self):
         with self.assertRaises(AttributeError) as e:
-            get_abundance_dict(abundances=MET_LAB + [4], metabolic_objects=MET_LST, ref=False)
+            get_abundance_dict(abundances=MET_LAB + [4], concepts=MET_LST, ref=False)
         self.assertEqual(str(e.exception), 'Length of "metabolic_objects" parameter must be '
                                            'equal to "abundances" parameter length : 3 != 4')
 
     @test_for(get_abundance_dict)
     def test_get_abundance_dict_errors_ref(self):
         with self.assertRaises(AttributeError) as e:
-            get_abundance_dict(abundances=MET_RAB[:-1], metabolic_objects=MET_REF, ref=True)
+            get_abundance_dict(abundances=MET_RAB[:-1], concepts=MET_REF, ref=True)
         self.assertEqual(str(e.exception), 'Length of "reference_set" parameter must be '
                                            'equal to "ref_abundances" parameter length : 8 != 7')
 
-    @test_for(get_classes_abundance)
+    @test_for(calculate_weights)
     def test_get_classes_abundance_leaves(self):
         all_classes = {'a': {'FRAMES', 'ab'}, 'b': {'FRAMES', 'ab'},
                        'c': {'cdecf', 'cdeeg+', 'FRAMES', 'cde', 'cdeeg', 'cf'},
@@ -264,23 +264,23 @@ class TestAbundances(unittest.TestCase):
                        'f': {'cdecf', 'FRAMES', 'cf'},
                        'g': {'cdeeg', 'cdeeg+', 'FRAMES', 'eg', 'gh'}, 'h': {'FRAMES', 'gh'}}
         abundances_dict = {'a': 1, 'b': 2, 'c': 3, 'd': 4, 'e': 5, 'f': 6, 'g': 7, 'h': 8}
-        classes_abundances = get_classes_abundance(all_classes, abundances_dict, show_leaves=True)
+        classes_abundances = calculate_weights(all_classes, abundances_dict, show_leaves=True)
         wanted_abundances = {'FRAMES': 36, 'cdeeg+': 19, 'cdeeg': 19, 'cdecf': 18, 'gh': 15,
                              'eg': 12, 'cde': 12, 'cf': 9, 'h': 8, 'g': 7, 'f': 6, 'e': 5,
                              'd': 4, 'c': 3, 'ab': 3, 'b': 2, 'a': 1}
         self.assertEqual(classes_abundances, wanted_abundances)
 
-    @test_for(get_classes_abundance)
+    @test_for(calculate_weights)
     def test_get_classes_abundance_leaves_sub(self):
         all_classes = {'a': {'FRAMES', 'ab'}, 'b': {'FRAMES', 'ab'},
                        'c': {'cdeeg+', 'cde', 'cdeeg', 'FRAMES', 'cdecf', 'cf'}}
         abundances_dict = {'a': 1, 'b': 2, 'c': 3}
-        classes_abundances = get_classes_abundance(all_classes, abundances_dict, show_leaves=True)
+        classes_abundances = calculate_weights(all_classes, abundances_dict, show_leaves=True)
         wanted_abundances = {'FRAMES': 6, 'cde': 3, 'cf': 3, 'cdecf': 3, 'cdeeg+': 3, 'cdeeg': 3,
                              'c': 3, 'ab': 3, 'b': 2, 'a': 1}
         self.assertEqual(classes_abundances, wanted_abundances)
 
-    @test_for(get_classes_abundance)
+    @test_for(calculate_weights)
     def test_get_classes_abundance_no_leaves(self):
         all_classes = {'a': {'FRAMES', 'ab'}, 'b': {'FRAMES', 'ab'},
                        'c': {'cdecf', 'cdeeg+', 'FRAMES', 'cde', 'cdeeg', 'cf'},
@@ -289,29 +289,29 @@ class TestAbundances(unittest.TestCase):
                        'f': {'cdecf', 'FRAMES', 'cf'},
                        'g': {'cdeeg', 'cdeeg+', 'FRAMES', 'eg', 'gh'}, 'h': {'FRAMES', 'gh'}}
         abundances_dict = {'a': 1, 'b': 2, 'c': 3, 'd': 4, 'e': 5, 'f': 6, 'g': 7, 'h': 8}
-        classes_abundances = get_classes_abundance(all_classes, abundances_dict, show_leaves=False)
+        classes_abundances = calculate_weights(all_classes, abundances_dict, show_leaves=False)
         wanted_abundances = {'FRAMES': 36, 'cdeeg+': 19, 'cdeeg': 19, 'cdecf': 18, 'gh': 15,
                              'eg': 12, 'cde': 12, 'cf': 9, 'ab': 3}
         self.assertEqual(classes_abundances, wanted_abundances)
 
-    @test_for(get_classes_abundance)
+    @test_for(calculate_weights)
     def test_get_classes_abundance_no_leaves_sub(self):
         all_classes = {'a': {'FRAMES', 'ab'}, 'b': {'FRAMES', 'ab'},
                        'c': {'cdeeg+', 'cde', 'cdeeg', 'FRAMES', 'cdecf', 'cf'}}
         abundances_dict = {'a': 1, 'b': 2, 'c': 3}
-        classes_abundances = get_classes_abundance(all_classes, abundances_dict, show_leaves=False)
+        classes_abundances = calculate_weights(all_classes, abundances_dict, show_leaves=False)
         wanted_abundances = {'FRAMES': 6, 'cde': 3, 'cf': 3, 'cdecf': 3, 'cdeeg+': 3, 'cdeeg': 3,
                              'ab': 3}
         self.assertEqual(classes_abundances, wanted_abundances)
 
-    @test_for(get_classes_abundance)
+    @test_for(calculate_weights)
     def test_get_classes_abundance_different_level_abundances(self):
         all_classes = {'c': {'cdecf', 'cdeeg+', 'FRAMES', 'cde', 'cdeeg', 'cf'},
                        'd': {'cdecf', 'cdeeg+', 'FRAMES', 'cde', 'cdeeg'},
                        'e': {'cdeeg+', 'FRAMES', 'cde', 'cdecf', 'eg', 'cdeeg'},
                        'f': {'cdecf', 'FRAMES', 'cf'}, 'cf': {'cdecf', 'FRAMES'}}
         abundances_dict = {'c': 3, 'd': 4, 'e': 5, 'f': 2, 'cf': 2}
-        classes_abundances = get_classes_abundance(all_classes, abundances_dict, show_leaves=True)
+        classes_abundances = calculate_weights(all_classes, abundances_dict, show_leaves=True)
         wanted_abundances = {'FRAMES': 16, 'cdecf': 16, 'cde': 12, 'cdeeg+': 12, 'cdeeg': 12,
                              'cf': 7, 'eg': 5, 'e': 5, 'd': 4, 'c': 3, 'f': 2}
         self.assertEqual(classes_abundances, wanted_abundances)

@@ -6,38 +6,44 @@ import numpy
 # CLASSES EXTRACTION
 # ==================================================================================================
 
-# Main class extraction function
+# Main ontology to reduced dag function
 # --------------------------------------------------------------------------------------------------
-def extract_classes(concepts: List[str], root: str,
-                    d_classes_ontology: Dict[str, List[str]]) -> Dict[str, Set[str]]:
-    """ Extract all parent classes (until root) from a list of concepts.
+def ontology_to_weighted_dag(concepts, abundances, root, ontology_dag, ref, show_lvs):
+    classified_concepts = classify_concepts(concepts, ontology_dag)
+    concepts_all_classes = get_all_classes(classified_concepts, ontology_dag, root)
+    abundances_dict = get_abundance_dict(concepts, abundances, ref)
+    calculated_weights = calculate_weights(concepts_all_classes, abundances_dict, show_lvs)
+    return calculated_weights
+
+# ----
+def classify_concepts(concepts: List[str], ontology_dag: Dict[str, List[str]]) \
+        -> Dict[str, List[str]]:
+    """ Extract concepts able to be classified in the ontology.
 
     Parameters
     ----------
     concepts: List[str]
         List of concepts to classify
-    root: str
-        Root item of the ontology
-    d_classes_ontology: Dict[str, List[str]]
+    ontology_dag: Dict[str, List[str]]
         Dictionary of the classes ontology associating for each concept its +1 parent classes.
 
     Returns
     -------
-    Dict[str, Set[str]]
-        Dictionary associating to each concept all its parent classes (until the root)
+    Dict[str, List[str]]
+        Dictionary associating to each classified concept all its +1 parent classes.
     """
-    d_obj_classes = dict()
+    classified_concepts = dict()
     print(f'{len(concepts)} concepts to classify')
-    for obj in concepts:
+    for cpt in concepts:
         try:
-            d_obj_classes[obj] = d_classes_ontology[obj]
+            classified_concepts[cpt] = ontology_dag[cpt]
             classified = True
         except KeyError:
             classified = False
         if not classified:
-            print(f'{obj} not classified.')
-    print(f'{len(d_obj_classes)}/{len(concepts)} concepts classified')
-    return get_all_classes(d_obj_classes, d_classes_ontology, root)
+            print(f'{cpt} not classified.')
+    print(f'{len(classified_concepts)}/{len(concepts)} concepts classified')
+    return classified_concepts
 
 
 # Recursive class extraction function
@@ -100,49 +106,74 @@ def get_parents(child: str, parent_set: Set[str], d_classes_ontology: Dict[str, 
     return parent_set
 
 
+def reduce_d_ontology(d_classes_ontology: Dict[str, Any],
+                      classes_abundance: Dict[str, float]) -> Dict[str, Any]:
+    """ Extract the sub-graph of the d_classes_ontology dictionary conserving only nodes implicated
+    with the concepts studied.
+
+    Parameters
+    ----------
+    d_classes_ontology: Dict[str, Any]
+        Dictionary of the ontology complete graph
+    classes_abundance: Dict[str, float]
+        Dictionary of abundances (keys are all nodes implicated to be conserved)
+
+    Returns
+    -------
+    Dict[str, Any]
+        Dictionary of the ontology sub-graph conserving only nodes implicated with the concepts
+        studied.
+    """
+    reduced_d_ontology = dict()
+    for k, v in d_classes_ontology.items():
+        if k in classes_abundance:
+            reduced_d_ontology[k] = v
+    return reduced_d_ontology
+
+
 # ==================================================================================================
-# ABUNDANCES CALCULATION
+# WEIGHTS CALCULATION
 # ==================================================================================================
 
-def get_abundance_dict(abundances: List[float] or None, metabolic_objects: List[str], ref: bool)\
+def get_abundance_dict(abundances: List[float] or None, concepts: List[str], ref: bool)\
         -> Dict[str, float]:
     """ Generate abundances dictionary.
 
     Parameters
     ----------
     abundances: List[float] (size N) or None
-        List of metabolic objects abundances (or None if no abundances associated --> will associate
-        an abundance of 1 for each object)
-    metabolic_objects: List[str] (size N)
-        List of metabolic objects ID.
+        List of concepts abundances (or None if no abundances associated --> will associate
+        an abundance of 1 for each concept)
+    concepts: List[str] (size N)
+        List of concepts ID.
     ref: bool
-        True if metabolic objects are the reference list, False otherwise (subset / study case).
+        True if concepts are the reference list, False otherwise (subset / study case).
 
     Returns
     -------
     Dict[str, float]
-        Dictionary associating to each object its abundance.
+        Dictionary associating to each concept its abundance.
     """
     if abundances is None:
-        abundances = len(metabolic_objects) * [1]
-    if len(metabolic_objects) == len(abundances):
+        abundances = len(concepts) * [1]
+    if len(concepts) == len(abundances):
         abundances_dict = {}
-        for i in range(len(metabolic_objects)):
-            abundances_dict[metabolic_objects[i]] = abundances[i]
+        for i in range(len(concepts)):
+            abundances_dict[concepts[i]] = abundances[i]
     else:
         if ref:
             raise AttributeError(f'Length of "reference_set" parameter must be equal to '
-                                 f'"ref_abundances" parameter length : {len(metabolic_objects)} '
+                                 f'"ref_abundances" parameter length : {len(concepts)} '
                                  f'!= {len(abundances)}')
         else:
             raise AttributeError(f'Length of "metabolic_objects" parameter must be equal to '
-                                 f'"abundances" parameter length : {len(metabolic_objects)} '
+                                 f'"abundances" parameter length : {len(concepts)} '
                                  f'!= {len(abundances)}')
     return abundances_dict
 
 
-def get_classes_abundance(all_classes: Dict[str, Set[str]], abundances_dict: Dict[str, float],
-                          show_leaves: bool) -> Dict[str, float]:
+def calculate_weights(all_classes: Dict[str, Set[str]], abundances_dict: Dict[str, float],
+                      show_leaves: bool) -> Dict[str, float]:
     """ Indicate for each class the number of base object found belonging to the class
 
     Parameters
@@ -183,33 +214,3 @@ def get_classes_scores(all_classes, scores_dict, root):
             classes_scores[met] = numpy.nan
     classes_scores[root] = numpy.nan
     return classes_scores
-
-
-# ==================================================================================================
-# UTILS
-# ==================================================================================================
-
-def reduce_d_ontology(d_classes_ontology: Dict[str, Any],
-                      classes_abundance: Dict[str, float]) -> Dict[str, Any]:
-    """ Extract the sub-graph of the d_classes_ontology dictionary conserving only nodes implicated
-    with the concepts studied.
-
-    Parameters
-    ----------
-    d_classes_ontology: Dict[str, Any]
-        Dictionary of the ontology complete graph
-    classes_abundance: Dict[str, float]
-        Dictionary of abundances (keys are all nodes implicated to be conserved)
-
-    Returns
-    -------
-    Dict[str, Any]
-        Dictionary of the ontology sub-graph conserving only nodes implicated with the concepts
-        studied.
-    """
-    reduced_d_ontology = dict()
-    for k, v in d_classes_ontology.items():
-        if k in classes_abundance:
-            reduced_d_ontology[k] = v
-    return reduced_d_ontology
-
