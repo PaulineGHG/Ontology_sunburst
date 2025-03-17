@@ -125,7 +125,7 @@ def ontosunburst(interest_set: List[str],
     # GET ROOT -------------------------------------------------------------------------------------
     root = get_ontology_root(ontology, input_root)
     # WORKFLOW -------------------------------------------------------------------------------------
-    fig = _global_analysis(ontology=ontology, analysis=analysis,
+    fig = _global_analysis(analysis=analysis,
                            interest_concepts=interest_set, abundances=abundances,
                            scores=scores,
                            reference_concepts=reference_set, ref_abundances=ref_abundances,
@@ -138,14 +138,13 @@ def ontosunburst(interest_set: List[str],
     return fig
 
 
-def _global_analysis(ontology, analysis, interest_concepts, abundances, scores, reference_concepts,
+def _global_analysis(analysis, interest_concepts, abundances, scores, reference_concepts,
                      ref_abundances, ontology_dag, output, write_output, id_to_label,
                      test, root, root_cut, path_cut, ref_base, show_leaves, **kwargs):
     """
 
     Parameters
     ----------
-    ontology
     analysis
     interest_concepts
     abundances
@@ -170,13 +169,16 @@ def _global_analysis(ontology, analysis, interest_concepts, abundances, scores, 
     # ONTOLOGY TO WEIGHTED DAG
     # =============================================================================================
     # Calculate all concepts weights --------------------------------------------------------------
-    calculated_weights = ontology_to_weighted_dag(concepts=interest_concepts, abundances=abundances, root=root,
-                                                  ontology_dag=ontology_dag, show_lvs=show_leaves)
+    calculated_weights = ontology_to_weighted_dag(concepts=interest_concepts, abundances=abundances,
+                                                  root=root, ontology_dag=ontology_dag,
+                                                  show_lvs=show_leaves)
 
     if reference_concepts is not None:
         ref_set = True
-        ref_calculated_weights = ontology_to_weighted_dag(concepts=reference_concepts, abundances=ref_abundances,
-                                                          root=root, ontology_dag=ontology_dag, show_lvs=show_leaves)
+        ref_calculated_weights = ontology_to_weighted_dag(concepts=reference_concepts,
+                                                          abundances=ref_abundances, root=root,
+                                                          ontology_dag=ontology_dag,
+                                                          show_lvs=show_leaves)
     else:
         ref_set = False
         ref_calculated_weights = calculated_weights
@@ -226,6 +228,7 @@ def get_file(ontology, suffix):
         if file.startswith(ontology + '__') and file.endswith('__' + suffix):
             return os.path.join(DEFAULT_PATH, file)
 
+
 def aggregate_go_ontologies(suffix):
     go_aggregated = dict()
     for sub_go_ontology in [GO_BP, GO_CC, GO_MF]:
@@ -238,39 +241,63 @@ def aggregate_go_ontologies(suffix):
             go_aggregated[ROOTS[sub_go_ontology]] = [ROOTS[GO]]
     return go_aggregated
 
+
 def get_id_to_label_dict(id_to_label_input, labels, ontology):
+    # Returns ID_to_Labels only if labels is True
     if labels:
-        if ontology is not None:
+        # Case default ontology AND use of default labels file
+        if ontology is not None and id_to_label_input is None:
             if ontology == GO:
                 return aggregate_go_ontologies(LABELS_SUFFIX)
             id_to_label_input = get_file(ontology, LABELS_SUFFIX)
+        # Case id_to_label_input parameter filled
         if id_to_label_input is not None:
+            # Case id_to_label_input parameter is a file path (str)
             if type(id_to_label_input) == str:
                 with open(id_to_label_input, 'r') as f:
                     id_to_label = json.load(f)
                     return id_to_label
-            else:
+            # Case id_to_label_input parameter is a dictionary (dict)
+            elif type(id_to_label_input) == dict:
                 return id_to_label_input
+            # Case id_to_label_input parameter is not a dictionary (dict), neither a file
+            # path (str) : raises an error
+            else:
+                raise ValueError('id_to_label_input parameter must be a json file path (str) or a '
+                                 'dictionary')
+
 
 def get_ontology_dag_dict(ontology, ontology_dag_input):
-    if ontology is None:
-        if ontology_dag_input is None:
-            raise ValueError('If no default ontology, must fill class_ontology parameter')
-    else:
-        if ontology_dag_input is None:
+    # Case ontology_dag_input parameter not filled (default : None)
+    if ontology_dag_input is None:
+        # Case no default ontology : raises an error
+        if ontology is None:
+            raise ValueError('If no default ontology, must fill ontology_dag_input parameter')
+        # Case default ontology : get default ontology file path
+        else:
             if ontology == GO:
                 return aggregate_go_ontologies(CLASSES_SUFFIX)
             ontology_dag_input = get_file(ontology, CLASSES_SUFFIX)
+    # Case ontology_dag_input parameter is a file path (str)
     if type(ontology_dag_input) == str:
         with open(ontology_dag_input, 'r') as f:
             ontology_dag = json.load(f)
             return ontology_dag
+    # Case ontology_dag_input parameter is a dictionary (dict)
+    elif type(ontology_dag_input) == dict:
+        return ontology_dag_input
+    # Case ontology_dag_input parameter is not a dictionary (dict), neither a file path (str) :
+    # raises an error
+    else:
+        raise ValueError('ontology_dag_input parameter must be a json file path (str) or a '
+                         'dictionary')
+
 
 def get_ontology_root(ontology, input_root):
     if ontology is not None:
         return ROOTS[ontology]
     elif input_root is None:
-        raise ValueError('If no default ontology, must fill root parameter')
+        raise ValueError('If no default ontology, must fill input_root parameter')
     else:
         return input_root
 

@@ -11,14 +11,15 @@ def ontology_to_weighted_dag(concepts, abundances, root, ontology_dag, show_lvs)
     calculated_weights = calculate_weights(concepts_all_classes, abundances_dict, show_lvs)
     return calculated_weights
 
-def reduce_d_ontology(d_classes_ontology: Dict[str, Any],
+
+def reduce_d_ontology(complete_dictionary: Dict[str, Any],
                       classes_abundance: Dict[str, float]) -> Dict[str, Any]:
     """ Extract the sub-graph of the d_classes_ontology dictionary conserving only nodes implicated
     with the concepts studied.
 
     Parameters
     ----------
-    d_classes_ontology: Dict[str, Any]
+    complete_dictionary: Dict[str, Any]
         Dictionary of the ontology complete graph
     classes_abundance: Dict[str, float]
         Dictionary of abundances (keys are all nodes implicated to be conserved)
@@ -29,11 +30,12 @@ def reduce_d_ontology(d_classes_ontology: Dict[str, Any],
         Dictionary of the ontology sub-graph conserving only nodes implicated with the concepts
         studied.
     """
-    reduced_d_ontology = dict()
-    for k, v in d_classes_ontology.items():
-        if k in classes_abundance:
-            reduced_d_ontology[k] = v
-    return reduced_d_ontology
+    if complete_dictionary is not None:
+        reduced_dictionary = dict()
+        for k, v in complete_dictionary.items():
+            if k in classes_abundance:
+                reduced_dictionary[k] = v
+        return reduced_dictionary
 
 # ==================================================================================================
 # REDUCE DAG FUNCTIONS
