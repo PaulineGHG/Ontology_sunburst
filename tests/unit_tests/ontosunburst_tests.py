@@ -390,3 +390,133 @@ class TestOntosunburstKegg(unittest.TestCase):
                            ref_base=False, show_leaves=True)
         w_fig_file = os.path.join('test_files', 'test_kg1.json')
         self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
+
+
+# CHEBI / CHEBI ROLES
+# --------------------------------------------------------------------------------------------------
+
+CH_LST = ['CHEBI:38028', 'CHEBI:28604', 'CHEBI:85146']
+REF_CH = ['CHEBI:38028', 'CHEBI:28604', 'CHEBI:85146',
+          'CHEBI:23066', 'CHEBI:27803', 'CHEBI:37565',
+          'CHEBI:58215', 'CHEBI:79983', 'CHEBI:42639']
+
+
+class TestOntosunburstChEBI(unittest.TestCase):
+
+    @test_for(ontosunburst)
+    def test_ontosunburst_ch1(self):
+        fig = ontosunburst(interest_set=CH_LST, ontology=CHEBI, reference_set=REF_CH,
+                           abundances=None, ref_abundances=None,
+                           analysis=TOPOLOGY_A, output='ch1', write_output=False,
+                           test=BINOMIAL_TEST, root_cut=ROOT_CUT,
+                           ref_base=True, show_leaves=True)
+        w_fig_file = os.path.join('test_files', 'test_ch1.json')
+        self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
+
+    @test_for(ontosunburst)
+    def test_ontosunburst_ch2(self):
+        fig = ontosunburst(interest_set=CH_LST, ontology=CHEBI, reference_set=REF_CH,
+                           abundances=None, ref_abundances=None, labels=False,
+                           analysis=TOPOLOGY_A, output='ch2', write_output=False,
+                           test=BINOMIAL_TEST, root_cut=ROOT_CUT,
+                           ref_base=False, show_leaves=True)
+        w_fig_file = os.path.join('test_files', 'test_ch2.json')
+        self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
+
+    @test_for(ontosunburst)
+    def test_ontosunburst_ch3(self):
+        fig = ontosunburst(interest_set=CH_LST, ontology=CHEBI, reference_set=REF_CH,
+                           abundances=None, ref_abundances=None, labels=True,
+                           analysis=ENRICHMENT_A, output='ch3', write_output=False,
+                           test=BINOMIAL_TEST, root_cut=ROOT_CUT,
+                           ref_base=True, show_leaves=True)
+        w_fig_file = os.path.join('test_files', 'test_ch3.json')
+        self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
+
+
+class TestOntosunburstChEBIRoles(unittest.TestCase):
+
+    @test_for(ontosunburst)
+    def test_ontosunburst_chr1(self):
+        fig = ontosunburst(interest_set=CH_LST, ontology=CHEBI_R, reference_set=REF_CH,
+                           abundances=None, ref_abundances=None,
+                           analysis=TOPOLOGY_A, output='chr1', write_output=False,
+                           test=BINOMIAL_TEST, root_cut=ROOT_CUT,
+                           ref_base=True, show_leaves=True)
+        w_fig_file = os.path.join('test_files', 'test_chr1.json')
+        self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
+
+    @test_for(ontosunburst)
+    def test_ontosunburst_chr2(self):
+        fig = ontosunburst(interest_set=CH_LST, ontology=CHEBI_R, reference_set=REF_CH,
+                           abundances=None, ref_abundances=None, labels=False,
+                           analysis=TOPOLOGY_A, output='chr2', write_output=False,
+                           test=BINOMIAL_TEST, root_cut=ROOT_CUT,
+                           ref_base=False, show_leaves=True)
+        w_fig_file = os.path.join('test_files', 'test_chr2.json')
+        self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
+
+    @test_for(ontosunburst)
+    def test_ontosunburst_chr3(self):
+        fig = ontosunburst(interest_set=CH_LST, ontology=CHEBI_R, reference_set=REF_CH,
+                           abundances=None, ref_abundances=None, labels=True,
+                           analysis=ENRICHMENT_A, output='chr3', write_output=False,
+                           test=BINOMIAL_TEST, root_cut=ROOT_CUT,
+                           ref_base=True, show_leaves=True)
+        w_fig_file = os.path.join('test_files', 'test_chr3.json')
+        self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
+
+
+# GO / GO_BP / GO_MF / GO_CC
+# --------------------------------------------------------------------------------------------------
+
+GO_BP_LST = ['GO:0061948', 'GO:1902266', 'GO:0003046']
+GO_MF_LST = ['GO:0051870', 'GO:0010013', 'GO:0031386']
+GO_CC_LST = ['GO:0098061', 'GO:1990177', 'GO:0098833']
+GO_LST = ['GO:0061948', 'GO:1902266', 'GO:0003046',
+          'GO:0051870', 'GO:0010013', 'GO:0031386',
+          'GO:0098061', 'GO:1990177', 'GO:0098833']
+
+
+class TestOntosunburstGO(unittest.TestCase):
+
+    @test_for(ontosunburst)
+    def test_ontosunburst_go_bp1(self):
+        fig = ontosunburst(interest_set=GO_BP_LST, ontology=GO_BP, reference_set=None,
+                           abundances=None, ref_abundances=None,
+                           analysis=TOPOLOGY_A, output='go_bp1', write_output=False,
+                           test=BINOMIAL_TEST, root_cut=ROOT_CUT,
+                           ref_base=False, show_leaves=True)
+        w_fig_file = os.path.join('test_files', 'test_go_bp1.json')
+        self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
+
+    @test_for(ontosunburst)
+    def test_ontosunburst_go_mf1(self):
+        fig = ontosunburst(interest_set=GO_MF_LST, ontology=GO_MF, reference_set=None,
+                           abundances=None, ref_abundances=None,
+                           analysis=TOPOLOGY_A, output='go_mf1', write_output=False,
+                           test=BINOMIAL_TEST, root_cut=ROOT_CUT,
+                           ref_base=False, show_leaves=True)
+        w_fig_file = os.path.join('test_files', 'test_go_mf1.json')
+        self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
+
+    @test_for(ontosunburst)
+    def test_ontosunburst_go_cc1(self):
+        fig = ontosunburst(interest_set=GO_CC_LST, ontology=GO_CC, reference_set=None,
+                           abundances=None, ref_abundances=None,
+                           analysis=TOPOLOGY_A, output='go_cc1', write_output=False,
+                           test=BINOMIAL_TEST, root_cut=ROOT_CUT,
+                           ref_base=False, show_leaves=True)
+        w_fig_file = os.path.join('test_files', 'test_go_cc1.json')
+        self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
+
+    @test_for(ontosunburst)
+    def test_ontosunburst_go1(self):
+        fig = ontosunburst(interest_set=GO_LST, ontology=GO, reference_set=None,
+                           abundances=None, ref_abundances=None,
+                           analysis=TOPOLOGY_A, output='go1', write_output=False,
+                           test=BINOMIAL_TEST, root_cut=ROOT_CUT,
+                           ref_base=False, show_leaves=True)
+        w_fig_file = os.path.join('test_files', 'test_go1.json')
+        self.assertTrue(are_fig_dict_equals(fig, w_fig_file))
+
