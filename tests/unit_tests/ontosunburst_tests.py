@@ -123,6 +123,8 @@ class DualWriter(io.StringIO):
         super().write(s)
         self.original_stdout.write(s)
 
+# Write image : fig.write_image('test_go_prop.png', width=1900, height=1000, scale=1)
+
 
 # ==================================================================================================
 # UNIT TESTS
