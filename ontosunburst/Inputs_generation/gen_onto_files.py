@@ -16,6 +16,15 @@ def get_output_path(prefix, version, suffix):
     return prefix + '__' + version + '__' + suffix
 
 
+def get_sub_roots(dict_onto):
+    sub_roots = set()
+    for v in dict_onto.values():
+        for c in v:
+            if c not in dict_onto:
+                sub_roots.add(c)
+    return sub_roots
+
+
 # METACYC
 # ==================================================================================================
 def generate_metacyc_input(input_padmet, version=''):
@@ -86,15 +95,6 @@ def generate_kegg_input():
     output = get_output_path(KEGG, version, CLASSES_SUFFIX)
     with open(output, 'w') as f:
         json.dump(fp=f, obj=k2b_dict, indent=1)
-
-
-def get_sub_roots(dict_kegg):
-    sub_roots = set()
-    for v in dict_kegg.values():
-        for c in v:
-            if c not in dict_kegg:
-                sub_roots.add(c)
-    return sub_roots
 
 
 # CHEBI CLASS

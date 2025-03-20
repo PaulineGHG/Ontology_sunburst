@@ -7,7 +7,8 @@ import plotly.graph_objects as go
 from ontosunburst.onto2dag import ontology_to_weighted_dag, get_classes_scores, reduce_d_ontology
 
 
-from ontosunburst.dag2tree import TreeData, get_name, BINOMIAL_TEST, ROOT_CUT, PATH_UNCUT
+from ontosunburst.dag2tree import TreeData, get_name, BINOMIAL_TEST, HYPERGEO_TEST, ROOT_CUT, \
+    ROOT_TOTAL_CUT, ROOT_UNCUT, PATH_UNCUT, PATH_BOUND, PATH_DEEPER, PATH_HIGHER
 from ontosunburst.tree2sunburst import generate_sunburst_fig, TOPOLOGY_A, ENRICHMENT_A
 
 # ==================================================================================================

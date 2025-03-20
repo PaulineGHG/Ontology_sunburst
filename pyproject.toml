@@ -38,4 +38,4 @@ Documentation = 'https://github.com/AuReMe/Ontosunburst/wiki'
 Repository = 'https://github.com/AuReMe/Ontology_sunburst.git'
 
 [project.scripts]
-ontosunburst = "ontosunburst.__main__:main"
+ontosunburst = "ontosunburst.commands:main"
