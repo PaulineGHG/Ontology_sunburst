@@ -154,7 +154,9 @@ def generate_chebi_input(version='', url_endpoint=URL[CHEBI]):
         d_ontology[child_id].append(parent_id)
         d_labels[parent_id] = parent_label
         d_labels[child_id] = child_label
-
+    sub_roots = get_sub_roots(d_ontology)
+    for sub_root in sub_roots:
+        d_ontology[sub_root] = [ROOTS[CHEBI]]
     output_classes = get_output_path(CHEBI, version, CLASSES_SUFFIX)
     output_labels = get_output_path(CHEBI, version, LABELS_SUFFIX)
     with open(output_classes, 'w') as oc, open(output_labels, 'w') as ol:

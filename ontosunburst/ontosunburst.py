@@ -31,7 +31,7 @@ GO = 'go'
 KEGG = 'kegg'
 
 ROOTS = {METACYC: 'FRAMES',
-         CHEBI: 'CHEBI:24431',
+         CHEBI: 'chebi',
          CHEBI_R: 'CHEBI:50906',
          EC: 'Enzyme',
          GO_CC: 'GO:0005575',
