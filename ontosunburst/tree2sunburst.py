@@ -158,14 +158,15 @@ def generate_sunburst_fig(data: TreeData, output: str, analysis: str = TOPOLOGY_
                                cells=dict(values=[list(significant.keys()),
                                                   list(significant.values())],
                                           fill=dict(color=table_color), height=35,
-                                          font=dict(size=font_size*0.80))),
+                                          font=dict(size=font_size * 0.80))),
                       row=1, col=1)
     else:
         raise ValueError('Wrong type input')
     fig.update_layout(paper_bgcolor=background_color, font_color=font_color, font_size=font_size)
-    fig.update_annotations(font_size=font_size*1.5)
+    fig.update_annotations(font_size=font_size * 1.5)
     if write_fig:
         fig.write_html(f'{output}.html')
+        write_tsv_output(data, f'{output}.tsv')
     return fig
 
 
@@ -211,3 +212,26 @@ def get_hover_fig_text(data: TreeData, analysis: str, ref_set: bool) \
                     f'{PROP}: <b>{round(data.prop[i] * 100, 2)}%</b><br>'
                     f'{IDS}: {data.onto_ids[i]}'
                     for i in range(data.len)]
+
+
+def write_tsv_output(data, output):
+    d_data = data.get_data_dict()
+    d_data_id = dict()
+    for i in range(data.len):
+        if d_data[ONTO_ID][i] not in d_data_id:
+            d_data_id[d_data[ONTO_ID][i]] = {'Parents ids': [],
+                                             'Parents labels': [],
+                                             LABEL: d_data[LABEL][i],
+                                             WEIGHT: d_data[WEIGHT][i],
+                                             REF_WEIGHT: d_data[REF_WEIGHT][i],
+                                             PROP: d_data[PROP][i],
+                                             REF_PROP: d_data[REF_PROP][i],
+                                             PVAL: d_data[PVAL][i]}
+        parent_id = d_data[PARENT][i]
+        print(i, d_data[IDS].index(parent_id))
+        parent_onto_id = d_data[ONTO_ID][d_data[PARENT].index(parent_id)]
+        parent_label = d_data[LABEL][d_data[PARENT].index(parent_id)]
+        d_data_id[d_data[ONTO_ID][i]]['Parents ids'].append(parent_onto_id)
+        d_data_id[d_data[ONTO_ID][i]]['Parents labels'].append(parent_label)
+    print(d_data_id)
+    pass
