@@ -221,17 +221,30 @@ def write_tsv_output(data, output):
         if d_data[ONTO_ID][i] not in d_data_id:
             d_data_id[d_data[ONTO_ID][i]] = {'Parents ids': [],
                                              'Parents labels': [],
-                                             LABEL: d_data[LABEL][i],
+                                             LABEL: d_data[LABEL][i].replace(' ...', ''),
                                              WEIGHT: d_data[WEIGHT][i],
                                              REF_WEIGHT: d_data[REF_WEIGHT][i],
                                              PROP: d_data[PROP][i],
                                              REF_PROP: d_data[REF_PROP][i],
                                              PVAL: d_data[PVAL][i]}
         parent_id = d_data[PARENT][i]
-        print(i, d_data[IDS].index(parent_id))
-        parent_onto_id = d_data[ONTO_ID][d_data[PARENT].index(parent_id)]
-        parent_label = d_data[LABEL][d_data[PARENT].index(parent_id)]
-        d_data_id[d_data[ONTO_ID][i]]['Parents ids'].append(parent_onto_id)
-        d_data_id[d_data[ONTO_ID][i]]['Parents labels'].append(parent_label)
-    print(d_data_id)
-    pass
+        if parent_id in d_data[IDS]:
+            p_index = d_data[IDS].index(parent_id)
+            parent_onto_id = d_data[ONTO_ID][p_index]
+            parent_label = d_data[LABEL][p_index].replace(' ...', '')
+            d_data_id[d_data[ONTO_ID][i]]['Parents ids'].append(parent_onto_id)
+            d_data_id[d_data[ONTO_ID][i]]['Parents labels'].append(parent_label)
+        else:
+            d_data_id[d_data[ONTO_ID][i]]['Parents ids'].append(parent_id)
+            d_data_id[d_data[ONTO_ID][i]]['Parents labels'].append(parent_id)
+
+    print(len(d_data_id))
+
+    with open(output, 'w') as f:
+        f.write(f'{ONTO_ID}\t{LABEL}\tParents ids\tParents labels\t'
+                f'{WEIGHT}\t{REF_WEIGHT}\t{PROP}\t{REF_PROP}\t{PVAL}\n')
+        for onto_id, val in d_data_id.items():
+            f.write(f'{onto_id}\t{val[LABEL]}\t{" ; ".join(val["Parents ids"])}\t'
+                    f'{" ; ".join(val["Parents labels"])}\t{val[WEIGHT]}\t{val[REF_WEIGHT]}\t'
+                    f'{val[PROP]}\t{val[REF_PROP]}\t{val[PVAL]}\n')
+
