@@ -304,15 +304,23 @@ class TreeData:
                         p_val_upper = stats.hypergeom.sf(self.count[i] - 1, m, self.ref_count[i], n)
                         p_val_lower = stats.hypergeom.cdf(self.count[i], m, self.ref_count[i], n)
                         p_val = 2 * min(p_val_lower, p_val_upper)  # bilateral
+                        if p_val == 0:
+                            print(p_val, self.labels[i])
                     else:
                         raise ValueError(
                             f'test parameter must be in : {[BINOMIAL_TEST, HYPERGEO_TEST]}')
                     if ((self.count[i] / n) - (self.ref_count[i] / m)) > 0:  # If over-represented :
-                        self.p_val[i] = -np.log10(p_val)  # Positive log10(p-value)
+                        if p_val == 0:
+                            self.p_val[i] = 400  # Simulate log10 of 400 decimal float
+                        else:
+                            self.p_val[i] = -np.log10(p_val)  # Positive log10(p-value)
                     else:  # If under-represented :
-                        self.p_val[i] = np.log10(p_val)  # Negative log10(p-value)
+                        if p_val == 0:
+                            self.p_val[i] = -400  # Simulate log10 of 400 decimal float
+                        else:
+                            self.p_val[i] = np.log10(p_val)  # Negative log10(p-value)
                     if p_val < 0.05 / nb_classes:  # Keep significant p-values : Bonferroni
-                        significant_representation[self.onto_ids[i]] = p_val
+                        significant_representation[self.labels[i]] = p_val
         significant_representation = dict(
             sorted(significant_representation.items(), key=lambda item: item[1]))
         return significant_representation

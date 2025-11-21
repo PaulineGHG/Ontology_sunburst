@@ -137,9 +137,9 @@ class TestOntosunburstCustomOnto(unittest.TestCase):
 
     def test_art(self):
         ontosunburst(interest_set=G_LST, input_root='r', ontology_dag_input=G_ONTO,
-                     reference_set=None, abundances=None, ref_abundances=None, labels=True,
-                     write_output=False, output='test_art', show_leaves=True, root_cut='uncut',
-                     bg_color='white', ref_base=False, analysis=TOPOLOGY_A, path_cut=PATH_UNCUT)
+                     reference_set=G_REF, abundances=G_LAB, ref_abundances=G_RAB, labels=True,
+                     write_output=True, output='test_art', show_leaves=True, root_cut='uncut',
+                     bg_color='white', ref_base=True, analysis=ENRICHMENT_A, path_cut=PATH_UNCUT)
 
     # TOPOLOGY : CUSTOM ONTO
     @test_for(ontosunburst)
