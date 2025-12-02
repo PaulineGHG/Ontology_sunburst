@@ -215,7 +215,6 @@ def extract_brite_hierarchy(brite_id, regex, labels):
     time.sleep(3)
     return hierarchy, labels
 
-generate_kegg_input()
 
 # CHEBI CLASS
 # ==================================================================================================
@@ -282,6 +281,7 @@ def generate_chebi_input(version='', url_endpoint=URL[CHEBI]):
     with open(output_classes, 'w') as oc, open(output_labels, 'w') as ol:
         json.dump(d_ontology, oc, indent=1)
         json.dump(d_labels, ol, indent=1)
+
 
 
 # CHEBI ROLES
