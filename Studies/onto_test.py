@@ -1,3 +1,5 @@
+import copy
+
 from ontosunburst import ontosunburst
 import json
 import numpy as np
@@ -92,8 +94,30 @@ INDEX = ['V-1', 'E', 'E/(V-1)', 'Density', 'Nb Leaves', 'Nb Branches', 'Max Pare
          'Nb Paths', 'Max Path len', 'Min Path len', 'Mean Path len', 'Med Path len']
 
 
-def get_stats_ontology(onto_dict):
+def get_stats_ontology(onto_dict, onto_name):
     values = pd.Series(index=INDEX)
+
+    # Separate leaves and branches elements
+    lv_classes = set(onto_dict.keys())
+    print(onto_name, len(lv_classes))
+    for p_classes in onto_dict.values():
+        for p in p_classes:
+            if p in lv_classes:
+                lv_classes.remove(p)
+    br_classes = set(onto_dict.keys()).difference(lv_classes)
+    # Delete leaves
+    od_temp = copy.deepcopy(onto_dict)
+    for k in od_temp.keys():
+        if k in lv_classes:
+            del onto_dict[k]
+    lv_classes = set(onto_dict.keys())
+    for p_classes in onto_dict.values():
+        for p in p_classes:
+            if p in lv_classes:
+                lv_classes.remove(p)
+    br_classes = set(onto_dict.keys()).difference(lv_classes)
+    print(len(onto_dict), len(lv_classes))
+
     # Calculate total number of elements
     nb_v = len(onto_dict)
     nb_e = sum(len(v) for v in onto_dict.values())
@@ -101,16 +125,11 @@ def get_stats_ontology(onto_dict):
     values['E'] = nb_e
     values['E/(V-1)'] = nb_e/nb_v
     values['Density'] = (2*nb_e)/(nb_v*(nb_v-1))
-    # Separate leaves and branches elements
-    lv_classes = set(onto_dict.keys())
-    for p_classes in onto_dict.values():
-        for p in p_classes:
-            if p in lv_classes:
-                lv_classes.remove(p)
-    br_classes = set(onto_dict.keys()).difference(lv_classes)
+
     # Calculate number of leaves and branches elements
     values['Nb Leaves'] = len(lv_classes)
     values['Nb Branches'] = len(br_classes)
+
     # Calculate nb parents
     nb_parents = [len(v) for v in onto_dict.values()]
     values['Max Parents'] = np.max(nb_parents)
@@ -120,11 +139,14 @@ def get_stats_ontology(onto_dict):
     # values['#>1_parents'] = len(nb_parents) - nb_parents.count(1)
     values['%+1 Parents'] = (len(nb_parents) - nb_parents.count(1))/len(nb_parents)
     # values['%=1_parents'] = nb_parents.count(1) / len(nb_parents)
+
+    # Calculate paths
     paths = list()
     for e in lv_classes:
         e_paths = find_all_paths_to_root(e, onto_dict)
         for p in e_paths:
             paths.append(len(p))
+    plot_hitogram(paths, onto_name)
     values['Nb Paths'] = int(len(paths))
     values['Max Path len'] = int(np.max(paths))
     values['Min Path len'] = int(np.min(paths))
@@ -133,14 +155,14 @@ def get_stats_ontology(onto_dict):
     return values, nb_parents, paths
 
 
-METACYC_FILE = 'ontosunburst/Inputs/metacyc__26-0__classes.json'
-KEGG_FILE = 'ontosunburst/Inputs/kegg__116-0__classes.json'
-EC_FILE = 'ontosunburst/Inputs/ec__18jun25__classes.json'
-CHEBI_FILE = 'ontosunburst/Inputs/chebi__239__classes.json'
-CHEBI_R_FILE = 'ontosunburst/Inputs/chebi_r__239__classes.json'
-GO_CC_FILE = 'ontosunburst/Inputs/go_cc__22jul25__classes.json'
-GO_BP_FILE = 'ontosunburst/Inputs/go_bp__22jul25__classes.json'
-GO_MF_FILE = 'ontosunburst/Inputs/go_mf__22jul25__classes.json'
+METACYC_FILE = '../ontosunburst/Inputs/metacyc__26-0__classes.json'
+KEGG_FILE = '../ontosunburst/Inputs/kegg__116-0__classes.json'
+EC_FILE = '../ontosunburst/Inputs/ec__18jun25__classes.json'
+CHEBI_FILE = '../ontosunburst/Inputs/chebi__239__classes.json'
+CHEBI_R_FILE = '../ontosunburst/Inputs/chebi_r__239__classes.json'
+GO_CC_FILE = '../ontosunburst/Inputs/go_cc__22jul25__classes.json'
+GO_BP_FILE = '../ontosunburst/Inputs/go_bp__22jul25__classes.json'
+GO_MF_FILE = '../ontosunburst/Inputs/go_mf__22jul25__classes.json'
 
 
 def stat_all_onto():
@@ -166,7 +188,7 @@ def stat_all_onto():
     onto_parents = {}
     onto_paths = {}
     for onto, dag in all_dag.items():
-        stats, parents, paths = get_stats_ontology(dag)
+        stats, parents, paths = get_stats_ontology(dag, onto)
         stats_df[onto] = stats
         onto_parents[onto] = parents
         onto_paths[onto] = paths
@@ -184,6 +206,17 @@ def stat_all_onto():
     # generate_kde(onto_paths, 'length of paths')
     # generate_violin(onto_parents, 'number of parents')
     # generate_violin(onto_paths, 'length of paths')
+
+
+def plot_hitogram(data, onto):
+    bins = np.arange(0, 30, 1)  # fixed bin size
+    plt.xlim([0, max(data)])
+    plt.hist(data, bins=bins, alpha=0.5)
+    plt.title(f'{onto} Path length histogram')
+    plt.xlabel('Path length')
+    plt.ylabel('Nuber of paths')
+    plt.savefig(f'{onto}_paths_histo.png', dpi=600)
+    plt.close()
 
 
 def generate_boxplot(data, title):

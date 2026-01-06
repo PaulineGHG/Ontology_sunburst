@@ -450,7 +450,7 @@ class TestOntosunburstChEBI(unittest.TestCase):
     def test_ontosunburst_ch3(self):
         fig = ontosunburst(interest_set=CH_LST, ontology=CHEBI, reference_set=REF_CH,
                            abundances=None, ref_abundances=None, labels=True,
-                           analysis=ENRICHMENT_A, output='ch3', write_output=False,
+                           analysis=ENRICHMENT_A, output='ch3', write_output=True,
                            test=BINOMIAL_TEST, root_cut=ROOT_CUT,
                            ref_base=True, show_leaves=True)
         w_fig_file = os.path.join('test_files', 'test_ch3.json')
