@@ -301,6 +301,7 @@ class TreeData:
                                                 alternative='two-sided').pvalue
                     # Hypergeometric Test
                     elif test == HYPERGEO_TEST:
+                        #                                n                  M  m                  N
                         p_val_upper = stats.hypergeom.sf(self.count[i] - 1, m, self.ref_count[i], n)
                         p_val_lower = stats.hypergeom.cdf(self.count[i], m, self.ref_count[i], n)
                         p_val = 2 * min(p_val_lower, p_val_upper)  # bilateral

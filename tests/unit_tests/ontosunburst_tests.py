@@ -54,6 +54,13 @@ G_LABELS = {'r': 'Root', 'v': 'V', 'o': 'O', 'n': 'N', 'm': 'M',
             'l': 'L', 'j': 'J', 'k': 'K', 'h': 'H', 'g': 'G', 'f': 'F', 'e': 'E', 'd': 'D',
             'c': 'C', 'i': 'I', 'b': 'B'}
 
+# EXEMPLE ARTICLE
+A_LST = ['CHEBI:27865', 'CHEBI:23929', 'CHEBI:27693']
+A_REF = ['CHEBI:27865', 'CHEBI:23929', 'CHEBI:27693', 'CHEBI:68609', 'CHEBI:15651',
+         'CHEBI:48206', 'CHEBI:28757', 'CHEBI:37719', 'CHEBI:17754', 'CHEBI:193929']
+A_LAB = [23, 20, 5]
+A_RAB = [14, 26, 20, 10, 20, 5, 4, 3, 1, 15]
+
 
 # ==================================================================================================
 # FUNCTIONS UTILS
@@ -140,6 +147,12 @@ class TestOntosunburstCustomOnto(unittest.TestCase):
                      reference_set=G_REF, abundances=G_LAB, ref_abundances=G_RAB, labels=True,
                      write_output=True, output='test_art', show_leaves=True, root_cut='uncut',
                      bg_color='white', ref_base=True, analysis=ENRICHMENT_A, path_cut=PATH_UNCUT)
+
+    def test_art_chebi(self):
+        ontosunburst(interest_set=A_REF, ontology=CHEBI,
+                     reference_set=A_REF, abundances=A_RAB, ref_abundances=A_RAB, labels=True,
+                     write_output=True, output='test_art', show_leaves=True, root_cut='uncut',
+                     bg_color='white', ref_base=True, analysis=TOPOLOGY_A, path_cut=PATH_UNCUT)
 
     # TOPOLOGY : CUSTOM ONTO
     @test_for(ontosunburst)

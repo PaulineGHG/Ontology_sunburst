@@ -185,7 +185,10 @@ def _global_analysis(analysis, interest_concepts, abundances, scores, reference_
         ref_calculated_weights = calculated_weights
 
     # Scores
-    classes_scores = get_classes_scores(calculated_weights, scores, root)
+    if ref_base:
+        classes_scores = get_classes_scores(ref_calculated_weights, scores, root)
+    else:
+        classes_scores = get_classes_scores(calculated_weights, scores, root)
 
     # Reduce ontology (get DAG subgraph) ----------------------------------------------------------
     if ref_base:
