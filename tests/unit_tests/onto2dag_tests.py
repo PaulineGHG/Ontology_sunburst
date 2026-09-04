@@ -22,13 +22,14 @@ CPT_AB = [1, 2, 3]
 RCPT_AB = [1, 2, 3, 4, 5, 6, 7, 8]
 ROOT = 'root'
 ONTO_DAG = {'a': ['ab'], 'b': ['ab'], 'c': ['cde', 'cf'], 'd': ['cde'], 'e': ['cde', 'eg'],
-           'f': ['cf'], 'g': ['gh', 'eg'], 'h': ['gh'],
-           'ab': [ROOT], 'cde': ['cdecf', 'cdeeg'], 'cf': ['cdecf'],
-           'eg': [ROOT, 'cdeeg'], 'gh': [ROOT],
-           'cdecf': [ROOT], 'cdeeg': ['cdeeg+'], 'cdeeg+': [ROOT]}
+            'f': ['cf'], 'g': ['gh', 'eg'], 'h': ['gh'],
+            'ab': [ROOT], 'cde': ['cdecf', 'cdeeg'], 'cf': ['cdecf'],
+            'eg': [ROOT, 'cdeeg'], 'gh': [ROOT],
+            'cdecf': [ROOT], 'cdeeg': ['cdeeg+'], 'cdeeg+': [ROOT]}
 ID2LAB = {ROOT: 'Root', 'cdeeg+': 'CDEEG+', 'cdeeg': 'CDEEG', 'cdecf': 'CDECF', 'gh': 'GH',
           'eg': 'EG', 'cde': 'CDE', 'cf': 'CF', 'h': 'H', 'g': 'G', 'f': 'F', 'e': 'E', 'd': 'D',
           'c': 'C', 'ab': 'AB', 'b': 'B'}
+
 
 # ==================================================================================================
 # FUNCTIONS UTILS
@@ -80,8 +81,6 @@ class TestReduceDAG(unittest.TestCase):
         self.assertEqual(output, '3 concepts to classify\n'
                                  '3/3 concepts classified')
         self.assertEqual(classified_concepts, {'a': ['ab'], 'b': ['ab'], 'c': ['cde', 'cf']})
-
-
 
     @test_for(classify_concepts)
     @patch('sys.stdout', new_callable=lambda: DualWriter(sys.stdout))
@@ -145,7 +144,6 @@ class TestWeightsCalculation(unittest.TestCase):
             get_abundance_dict(abundances=CPT_AB + [4], concepts=CPT_LST)
         self.assertEqual(str(e.exception), 'Length of concepts IDs list must '
                                            'be equal to its abundances list length : 3 != 4')
-
 
     @test_for(calculate_weights)
     def test_get_classes_abundance_leaves(self):

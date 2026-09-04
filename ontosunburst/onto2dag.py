@@ -2,6 +2,40 @@ from typing import List, Set, Dict, Any
 import numpy
 
 
+class StdDAG:
+    def __init__(self, concepts, abundances, ref_concepts, ref_abundances, ontology_dag, root):
+        self.nodes = []
+        self.root = None
+        self.leaves = []
+
+        classified_concepts = classify_concepts(concepts=list(set(concepts).union(set(ref_concepts))),
+                                                ontology_dag=ontology_dag)
+        concepts_all_classes = get_all_classes(classified_concepts, ontology_dag, root)
+        abundances_dict = get_abundance_dict(abundances, concepts)
+        ref_abundances_dict = get_abundance_dict(ref_abundances, ref_concepts)
+
+
+class NodeDAG:
+    def __init__(self):
+        # ID and label
+        self.onto_id = None
+        self.label = None
+        # Weights
+        self.experimental_weight = None
+        self.cumulative_weight = None
+        self.proportion = None
+        # Reference weights
+        self.ref_experimental_weight = None
+        self.ref_cumulative_weight = None
+        self.ref_proportion = None
+        # Comparison calculations
+        self.intensity = None
+        self.difference = None
+        # Hierarchy
+        self.parents = []
+        self.children = []
+
+
 # Main ontology to reduced dag functions
 # --------------------------------------------------------------------------------------------------
 def ontology_to_weighted_dag(concepts, abundances, root, ontology_dag, show_lvs):
@@ -36,6 +70,7 @@ def reduce_d_ontology(complete_dictionary: Dict[str, Any],
             if k in classes_abundance:
                 reduced_dictionary[k] = v
         return reduced_dictionary
+
 
 # ==================================================================================================
 # REDUCE DAG FUNCTIONS
@@ -96,7 +131,8 @@ def get_all_classes(obj_classes: Dict[str, List[str]], d_classes_ontology: Dict[
         all_classes = set(classes)
         for c in classes:
             if c != root_item:
-                m_classes = get_parents(c, set(d_classes_ontology[c]), d_classes_ontology, root_item)
+                m_classes = get_parents(c, set(d_classes_ontology[c]), d_classes_ontology,
+                                        root_item)
                 all_classes = all_classes.union(m_classes)
         all_classes_met[met] = all_classes
     return all_classes_met
@@ -135,7 +171,7 @@ def get_parents(child: str, parent_set: Set[str], d_classes_ontology: Dict[str, 
 # WEIGHTS CALCULATION
 # ==================================================================================================
 
-def get_abundance_dict(abundances: List[float] or None, concepts: List[str])\
+def get_abundance_dict(abundances: List[float] or None, concepts: List[str]) \
         -> Dict[str, float]:
     """ Generate abundances dictionary.
 

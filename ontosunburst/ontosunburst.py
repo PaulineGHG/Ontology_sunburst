@@ -4,11 +4,10 @@ from typing import List, Dict, Set
 from time import time
 import plotly.graph_objects as go
 
-from ontosunburst.onto2dag import ontology_to_weighted_dag, get_classes_scores, reduce_d_ontology
+from ontosunburst.onto2dag import StdDAG, ontology_to_weighted_dag, get_classes_scores, reduce_d_ontology
 
 
-from ontosunburst.dag2tree import TreeData, get_name, BINOMIAL_TEST, HYPERGEO_TEST, ROOT_CUT, \
-    ROOT_TOTAL_CUT, ROOT_UNCUT, PATH_UNCUT, PATH_BOUND, PATH_DEEPER, PATH_HIGHER
+from ontosunburst.dag2tree import TreeData, get_name, BINOMIAL_TEST, ROOT_CUT, PATH_UNCUT
 from ontosunburst.tree2sunburst import generate_sunburst_fig, TOPOLOGY_A, ENRICHMENT_A
 
 # ==================================================================================================
@@ -170,18 +169,21 @@ def _global_analysis(analysis, interest_concepts, abundances, scores, reference_
     # ONTOLOGY TO WEIGHTED DAG
     # =============================================================================================
     # Calculate all concepts weights --------------------------------------------------------------
+    dag = StdDAG(concepts=interest_concepts, abundances=abundances,
+                 ref_concepts=reference_concepts, ref_abundances=ref_abundances,
+                 ontology_dag=ontology_dag, root=root)
+
     calculated_weights = ontology_to_weighted_dag(concepts=interest_concepts, abundances=abundances,
                                                   root=root, ontology_dag=ontology_dag,
                                                   show_lvs=show_leaves)
 
-    if reference_concepts is not None:
-        ref_set = True
+    ref_set = reference_concepts is not None
+    if ref_set:
         ref_calculated_weights = ontology_to_weighted_dag(concepts=reference_concepts,
                                                           abundances=ref_abundances, root=root,
                                                           ontology_dag=ontology_dag,
                                                           show_lvs=show_leaves)
     else:
-        ref_set = False
         ref_calculated_weights = calculated_weights
 
     # Scores
