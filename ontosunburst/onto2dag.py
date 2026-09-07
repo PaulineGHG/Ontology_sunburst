@@ -14,23 +14,29 @@ class StdDAG:
         abundances_dict = get_abundance_dict(abundances, concepts)
         ref_abundances_dict = get_abundance_dict(ref_abundances, ref_concepts)
 
+        for c in concepts:
+            if c in ref_abundances_dict:
+                node = NodeDAG(onto_id=c, label=None,
+                               exp_w=abundances_dict[c], cum_w=None, max_w=None,
+                               r_exp_w=ref_abundances_dict[c], r_cum_w=None, r_max_w=None)
+
 
 class NodeDAG:
-    def __init__(self):
+    def __init__(self, onto_id, label, exp_w, cum_w, max_w, r_exp_w, r_cum_w, r_max_w):
         # ID and label
-        self.onto_id = None
-        self.label = None
+        self.onto_id = onto_id
+        self.label = label
         # Weights
-        self.experimental_weight = None
-        self.cumulative_weight = None
-        self.proportion = None
+        self.experimental_weight = exp_w
+        self.cumulative_weight = cum_w
+        self.proportion = cum_w / max_w
         # Reference weights
-        self.ref_experimental_weight = None
-        self.ref_cumulative_weight = None
-        self.ref_proportion = None
+        self.ref_experimental_weight = r_exp_w
+        self.ref_cumulative_weight = r_cum_w
+        self.ref_proportion = r_cum_w / r_max_w
         # Comparison calculations
         self.intensity = None
-        self.difference = None
+        self.difference = cum_w - r_cum_w
         # Hierarchy
         self.parents = []
         self.children = []
