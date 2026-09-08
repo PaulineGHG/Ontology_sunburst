@@ -1,6 +1,7 @@
 import os
 import json
-from typing import List, Dict, Set
+import logging
+from typing import List, Dict, Set, Tuple, TypeAlias
 from time import time
 import plotly.graph_objects as go
 
@@ -13,6 +14,8 @@ from ontosunburst.tree2sunburst import generate_sunburst_fig, TOPOLOGY_A, ENRICH
 # ==================================================================================================
 #                                           CONSTANTS
 # ==================================================================================================
+Input: TypeAlias = List[str] | Set[str] | Dict[str, float]
+
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 DEFAULT_PATH = os.path.join(CURRENT_DIR, 'Inputs')
@@ -39,29 +42,25 @@ ROOTS = {METACYC: 'FRAMES',
          GO: 'GO',
          KEGG: 'kegg'}
 
-
 # ==================================================================================================
 #                                            WORKFLOW
 # ==================================================================================================
 
-def ontosunburst(interest_set: List[str],
+def ontosunburst(interest: Input,
                  ontology: str = None,
-                 abundances: List[float] = None,
-                 reference_set: List[str] = None,
-                 ref_abundances: List[float] = None,
+                 reference: Input = None,
                  analysis: str = TOPOLOGY_A,
                  output: str = 'sunburst',
                  scores: Dict[str, float] = None,
                  write_output: bool = True,
                  ontology_dag_input: str or Dict[str, str] = None,
-                 input_root: str = None,
                  id_to_label_input: str or Dict[str, str] = None,
                  labels: bool = True,
                  test: str = BINOMIAL_TEST,
                  root_cut: str = ROOT_CUT,
                  path_cut: str = PATH_UNCUT,
                  ref_base: bool = False,
-                 show_leaves: bool = False,
+                 hide_leaves: bool = False,
                  **kwargs) -> go.Figure:
     """ Main function to be called generating the sunburst figure
 
@@ -118,24 +117,53 @@ def ontosunburst(interest_set: List[str],
         Plotly graph_objects figure of the sunburst
     """
     start_time = time()
+    # MANAGE INPUTS
+    interest, reference = check_inputs_sets(interest, reference)
+
+
+
     # LOAD ID TO LABELS DICTIONARY -----------------------------------------------------------------
-    id_to_label = get_id_to_label_dict(id_to_label_input, labels, ontology)
+    id_to_label = get_id_to_label_dict(id_to_label_input, ontology)
     # LOAD ONTOLOGY DAG DICTIONARY -----------------------------------------------------------------
     ontology_dag = get_ontology_dag_dict(ontology, ontology_dag_input)
     # GET ROOT -------------------------------------------------------------------------------------
-    root = get_ontology_root(ontology, input_root)
+    root = get_ontology_root(ontology)
     # WORKFLOW -------------------------------------------------------------------------------------
-    fig = _global_analysis(analysis=analysis,
-                           interest_concepts=interest_set, abundances=abundances,
-                           scores=scores,
-                           reference_concepts=reference_set, ref_abundances=ref_abundances,
-                           ontology_dag=ontology_dag,
-                           output=output, write_output=write_output, id_to_label=id_to_label,
-                           test=test, root=root, root_cut=root_cut, path_cut=path_cut,
-                           ref_base=ref_base, show_leaves=show_leaves, **kwargs)
+
     end_time = time()
     print(f'Execution time : {end_time - start_time} seconds')
-    return fig
+    # return fig
+
+
+def check_inputs_sets(interest: Input, reference: Input) -> Tuple[Input, Input]:
+    if interest is None:
+        logging.critical('No interest set given in "interest" field.')
+    elif type(interest) == list or type(interest) == set:
+        logging.info('No abundances for interest set, default value "1" will be used for all concept.')
+        interest = {str(x): 1 for x in interest}
+    elif type(interest) == dict:
+        # Test weights values
+        for c, w in interest.items():
+            if type(w) != float or type(w) != int or w <= 0:
+                logging.error(f'Invalid weight "{w}" for "{c}" concept in interest. '
+                              f'All weights must be strictly positive numerals.')
+        interest = {str(x): y for x, y in interest.items()}
+
+    # Reference
+    if reference is None:
+        logging.info('Running ontosunburst with no reference.')
+    elif type(reference) == list or type(reference) == set:
+        logging.info('No abundances for reference set, default value "1" will be used for all concept.')
+        reference = {str(x): 1 for x in reference}
+    elif type(reference) == dict:
+        # Test weights values
+        for c, w in reference.items():
+            if type(w) != float or type(w) != int or w <= 0:
+                logging.error(f'Invalid weight "{w}" for "{c}" concept in reference. '
+                              f'All weights must be strictly positive numerals.')
+        reference = {str(x): y for x, y in reference.items()}
+
+    return interest, reference
 
 
 def _global_analysis(analysis, interest_concepts, abundances, scores, reference_concepts,
@@ -171,7 +199,7 @@ def _global_analysis(analysis, interest_concepts, abundances, scores, reference_
     # Calculate all concepts weights --------------------------------------------------------------
     dag = StdDAG(concepts=interest_concepts, abundances=abundances,
                  ref_concepts=reference_concepts, ref_abundances=ref_abundances,
-                 ontology_dag=ontology_dag, root=root)
+                 ontology_dag=ontology_dag, root=root, labels=id_to_label)
 
     calculated_weights = ontology_to_weighted_dag(concepts=interest_concepts, abundances=abundances,
                                                   root=root, ontology_dag=ontology_dag,
@@ -247,29 +275,27 @@ def aggregate_go_ontologies(suffix):
     return go_aggregated
 
 
-def get_id_to_label_dict(id_to_label_input, labels, ontology):
-    # Returns ID_to_Labels only if labels is True
-    if labels:
-        # Case default ontology AND use of default labels file
-        if ontology is not None and id_to_label_input is None:
-            if ontology == GO:
-                return aggregate_go_ontologies(LABELS_SUFFIX)
-            id_to_label_input = get_file(ontology, LABELS_SUFFIX)
-        # Case id_to_label_input parameter filled
-        if id_to_label_input is not None:
-            # Case id_to_label_input parameter is a file path (str)
-            if type(id_to_label_input) == str:
-                with open(id_to_label_input, 'r') as f:
-                    id_to_label = json.load(f)
-                    return id_to_label
-            # Case id_to_label_input parameter is a dictionary (dict)
-            elif type(id_to_label_input) == dict:
-                return id_to_label_input
-            # Case id_to_label_input parameter is not a dictionary (dict), neither a file
-            # path (str) : raises an error
-            else:
-                raise ValueError('id_to_label_input parameter must be a json file path (str) or a '
-                                 'dictionary')
+def get_id_to_label_dict(id_to_label_input, ontology, all_concepts):
+    # Case default ontology AND use of default labels file
+    if ontology is not None and id_to_label_input is None:
+        if ontology == GO:
+            return aggregate_go_ontologies(LABELS_SUFFIX)
+        id_to_label_input = get_file(ontology, LABELS_SUFFIX)
+    # Case id_to_label_input parameter filled
+    if id_to_label_input is not None:
+        # Case id_to_label_input parameter is a file path (str)
+        if type(id_to_label_input) == str:
+            with open(id_to_label_input, 'r') as f:
+                id_to_label = json.load(f)
+                return id_to_label
+        # Case id_to_label_input parameter is a dictionary (dict)
+        elif type(id_to_label_input) == dict:
+            return id_to_label_input
+        # Case id_to_label_input parameter is not a dictionary (dict), neither a file
+        # path (str) : raises an error
+        else:
+            raise ValueError('id_to_label_input parameter must be a json file path (str) or a '
+                             'dictionary')
 
 
 def get_ontology_dag_dict(ontology, ontology_dag_input):

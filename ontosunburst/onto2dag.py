@@ -3,7 +3,7 @@ import numpy
 
 
 class StdDAG:
-    def __init__(self, concepts, abundances, ref_concepts, ref_abundances, ontology_dag, root):
+    def __init__(self, concepts, abundances, ref_concepts, ref_abundances, ontology_dag, root, labels):
         self.nodes = []
         self.root = None
         self.leaves = []
@@ -11,14 +11,19 @@ class StdDAG:
         classified_concepts = classify_concepts(concepts=list(set(concepts).union(set(ref_concepts))),
                                                 ontology_dag=ontology_dag)
         concepts_all_classes = get_all_classes(classified_concepts, ontology_dag, root)
+
         abundances_dict = get_abundance_dict(abundances, concepts)
         ref_abundances_dict = get_abundance_dict(ref_abundances, ref_concepts)
 
+        cum_w = get_cumulative_w(concepts_all_classes, abundances_dict)
+        r_cum_w = get_cumulative_w(concepts_all_classes, ref_abundances_dict)
+
+
         for c in concepts:
             if c in ref_abundances_dict:
-                node = NodeDAG(onto_id=c, label=None,
-                               exp_w=abundances_dict[c], cum_w=None, max_w=None,
-                               r_exp_w=ref_abundances_dict[c], r_cum_w=None, r_max_w=None)
+                node = NodeDAG(onto_id=c, label=labels[c],
+                               exp_w=abundances_dict[c], cum_w=cum_w[c], max_w=cum_w[root],
+                               r_exp_w=ref_abundances_dict[c], r_cum_w=r_cum_w[c], r_max_w=r_cum_w[root])
 
 
 class NodeDAG:
@@ -237,6 +242,35 @@ def calculate_weights(all_classes: Dict[str, Set[str]], abundances_dict: Dict[st
                 classes_abondance[c] = abundances_dict[met]
             else:
                 classes_abondance[c] += abundances_dict[met]
+    return dict(reversed(sorted(classes_abondance.items(), key=lambda item: item[1])))
+
+
+def get_cumulative_w(all_classes: Dict[str, Set[str]], abundances_dict: Dict[str, float]) -> Dict[str, float]:
+    """ Indicate for each class the number of base object found belonging to the class
+
+    Parameters
+    ----------
+    all_classes: Dict[str, Set[str]] (Dict[metabolite, Set[class]])
+        Dictionary associating for each concept the list of all parent classes it belongs to.
+    abundances_dict: Dict[str, float]
+        Dictionary associating for each concept, its abundance value
+
+    Returns
+    -------
+    Dict[str, float]
+        Dictionary associating for each class the weight of concepts found belonging to the class.
+    """
+    classes_abondance = dict()
+    for met, ab in abundances_dict.items():
+        if met not in classes_abondance.keys():
+            classes_abondance[met] = ab
+        else:
+            classes_abondance[met] += ab
+        for c in all_classes[met]:
+            if c not in classes_abondance.keys():
+                classes_abondance[c] = ab
+            else:
+                classes_abondance[c] += ab
     return dict(reversed(sorted(classes_abondance.items(), key=lambda item: item[1])))
 
 

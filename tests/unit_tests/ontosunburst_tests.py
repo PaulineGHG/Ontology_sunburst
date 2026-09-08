@@ -140,9 +140,28 @@ class DualWriter(io.StringIO):
 # CUSTOM ONTO
 # --------------------------------------------------------------------------------------------------
 
+# ARTICLE EX
+A_LST = ['brassicasterol', 'cholesterol', 'ethanol', 'steroid']
+A_IAB = [3, 2, 2, 1]
+A_ONTO = {'brassicasterol': ['alcohol', 'sterol', 'phytosteroid'],
+          'cholesterol': ['alcohol', 'sterol'],
+          'ethanol': ['alcohol'],
+          'sterol': ['steroid'],
+          'phytosteroid': ['steroid'],
+          'steroid': ['lipid'],
+          'alcohol': ['chemical entity'],
+          'lipid': ['chemical entity']}
+A_ROOT = 'chemical entity'
+
 class TestOntosunburstCustomOnto(unittest.TestCase):
 
     def test_art(self):
+        ontosunburst(interest_set=A_LST, input_root=A_ROOT, ontology_dag_input=A_ONTO,
+                     abundances=A_IAB, labels=True,
+                     write_output=True, output='test_art', show_leaves=True, root_cut='uncut',
+                     bg_color='white', ref_base=True, analysis=TOPOLOGY_A, path_cut=PATH_UNCUT, colorscale='Greys')
+
+    def test_art2(self):
         ontosunburst(interest_set=G_LST, input_root='r', ontology_dag_input=G_ONTO,
                      reference_set=G_REF, abundances=G_LAB, ref_abundances=G_RAB, labels=True,
                      write_output=True, output='test_art', show_leaves=True, root_cut='uncut',
