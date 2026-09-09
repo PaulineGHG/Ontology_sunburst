@@ -175,6 +175,5 @@ class TestInputs(unittest.TestCase):
     @test_for(get_ontology_dag_dict)
     def test_get_ontology_dag_dict_wrong_file(self):
         onto_file = os.path.join('test_files', 'toy_onto_bad_file.txt')
-
-        # self.assertRaises(FileNotFoundError, get_ontology_dag_dict, None, onto_file)
+        self.assertRaises(json.decoder.JSONDecodeError, get_ontology_dag_dict, None, onto_file)
 
