@@ -1,3 +1,5 @@
+import json
+import os.path
 import unittest
 from unittest.mock import patch
 import io
@@ -134,4 +136,45 @@ class TestInputs(unittest.TestCase):
     def test_get_file_not_exists(self):
         self.assertRaises(FileNotFoundError, get_file, 'metacyc', 'labels.json')
 
+    @test_for(get_ontology_dag_dict)
+    def test_get_ontology_dag_dict_name(self):
+        onto_dag = get_ontology_dag_dict('ec', None)
+        file_dag = os.path.join('..', '..', 'ontosunburst', 'Inputs', 'ec__18jun25__classes.json')
+        with open(file_dag, 'r') as f:
+            expected = json.load(f)
+        self.assertDictEqual(onto_dag, expected)
+
+    @test_for(get_ontology_dag_dict)
+    def test_get_ontology_dag_dict_dict(self):
+        onto_dag = get_ontology_dag_dict(None, ONTO)
+        self.assertDictEqual(onto_dag, ONTO)
+
+    @test_for(get_ontology_dag_dict)
+    def test_get_ontology_dag_dict_name_dict(self):
+        onto_dag = get_ontology_dag_dict('ec', ONTO)
+        self.assertDictEqual(onto_dag, ONTO)
+
+    @test_for(get_ontology_dag_dict)
+    def test_get_ontology_dag_dict_file(self):
+        onto_file = os.path.join('test_files', 'toy_onto.json')
+        onto_dag = get_ontology_dag_dict(None, onto_file)
+        self.assertDictEqual(onto_dag, ONTO)
+
+    @test_for(get_ontology_dag_dict)
+    def test_get_ontology_dag_dict_wrong_name(self):
+        self.assertRaises(ValueError, get_ontology_dag_dict, 'onto', None)
+
+    @test_for(get_ontology_dag_dict)
+    def test_get_ontology_dag_dict_wrong_type(self):
+        self.assertRaises(ValueError, get_ontology_dag_dict, None, ['a', 'b', 'c'])
+
+    @test_for(get_ontology_dag_dict)
+    def test_get_ontology_dag_dict_not_a_file(self):
+        self.assertRaises(FileNotFoundError, get_ontology_dag_dict, None, 'this_is_a_file.txt')
+
+    @test_for(get_ontology_dag_dict)
+    def test_get_ontology_dag_dict_wrong_file(self):
+        onto_file = os.path.join('test_files', 'toy_onto_bad_file.txt')
+
+        # self.assertRaises(FileNotFoundError, get_ontology_dag_dict, None, onto_file)
 

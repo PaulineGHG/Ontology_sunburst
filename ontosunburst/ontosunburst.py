@@ -6,10 +6,8 @@ from typing import List, Dict, Set, Tuple, TypeAlias, Literal, cast, get_args
 from time import time
 import plotly.graph_objects as go
 
-from ontosunburst.onto2dag import StdDAG, ontology_to_weighted_dag, get_classes_scores, reduce_d_ontology
-
-
-from ontosunburst.dag2tree import TreeData, get_name, BINOMIAL_TEST, ROOT_CUT, PATH_UNCUT
+from ontosunburst.onto2dag import *
+from ontosunburst.dag2tree import *
 from ontosunburst.tree2sunburst import generate_sunburst_fig, TOPOLOGY_A, ENRICHMENT_A
 
 
@@ -221,6 +219,11 @@ def _global_analysis(analysis, interest_concepts, abundances, scores, reference_
 #                                             FUNCTIONS
 # ==================================================================================================
 # Interest and reference inputs management
+def check_valid_literal(item: str, lit):
+    if item not in get_args(lit):
+        raise ValueError(f'Invalid {item} argument. Must be in : {get_args(lit)}')
+
+
 def check_inputs_sets(interest: Input, reference: Input | None) -> Tuple[Input, Input]:
     """ Checks for valid interest and reference parameters and raises ValueError if not.
     Converts to dictionary associating each ID to its weight (set to 1 by default).
@@ -228,12 +231,12 @@ def check_inputs_sets(interest: Input, reference: Input | None) -> Tuple[Input, 
 
     Parameters
     ----------
-    interest
-    reference
+    interest: list[str] | set[str] | dict[str, float]
+    reference: list[str] | set[str] | dict[str, float] | None
 
     Returns
     -------
-
+    tuple[list[str] | set[str] | dict[str, float], list[str] | set[str] | dict[str, float]]
     """
     if interest is None:
         logging.critical('No interest set given in "interest" field.')
@@ -302,23 +305,32 @@ def aggregate_go_ontologies(suffix: FileSuffix):
     return go_aggregated
 
 
-def get_ontology_dag_dict(ontology: OntologyName, ontology_dag_input: OntologyDAG | str | None,
-                          all_concepts: Set[str]) -> OntologyDAG:
+def get_ontology_dag_dict(ontology: OntologyName | None,
+                          ontology_dag_input: OntologyDAG | str | None) -> OntologyDAG:
     # Case ontology_dag_input parameter not filled (default : None)
     if ontology_dag_input is None:
         # Case no default ontology : raises an error
         if ontology is None:
+            logging.error('If no default ontology, must fill ontology_dag_input parameter')
             raise ValueError('If no default ontology, must fill ontology_dag_input parameter')
         # Case default ontology : get default ontology file path
         else:
+            check_valid_literal(ontology, OntologyName)
             if ontology == GO:
                 return aggregate_go_ontologies(CLASSES_SUFFIX)
             ontology_dag_input = get_file(ontology, CLASSES_SUFFIX)
+            logging.info(f'Using {ontology_dag_input} file as ontology DAG.')
     # Case ontology_dag_input parameter is a file path (str)
     if type(ontology_dag_input) == str:
-        with open(ontology_dag_input, 'r') as f:
-            ontology_dag = json.load(f)
-            return ontology_dag
+        if os.path.exists(ontology_dag_input):
+            with open(ontology_dag_input, 'r') as f:
+                ontology_dag = json.load(f)
+                return ontology_dag
+        else:
+            logging.error(f'No file {ontology_dag_input} found, '
+                          f'check for valid ontology_dag_input parameter given.')
+            raise FileNotFoundError(f'No file {ontology_dag_input} found, '
+                                    f'check for valid ontology_dag_input parameter given.')
     # Case ontology_dag_input parameter is a dictionary (dict)
     elif type(ontology_dag_input) == dict:
         return ontology_dag_input

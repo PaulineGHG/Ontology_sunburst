@@ -1,0 +1,5 @@
+Ceci est un DAG d'ontologie.
+
+Il est beau.
+
+Avec des super concepts reliés par des super relations.
