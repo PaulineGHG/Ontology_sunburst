@@ -56,7 +56,7 @@ def ontosunburst(interest: Input,
                  write_output: bool = True,
                  ontology_dag_input: str | OntologyDAG = None,
                  id_to_label_input: str or Dict[str, str] = None,
-                 labels: bool = True,
+                 use_labels: bool = True,
                  test: str = BINOMIAL_TEST,
                  root_cut: str = ROOT_CUT,
                  path_cut: str = PATH_UNCUT,
@@ -122,7 +122,7 @@ def ontosunburst(interest: Input,
     detect_cycles(ontology_dag)
     check_input_ids_to_ontology_mapping(ontology_dag, all_concepts)
     # GET ROOT -------------------------------------------------------------------------------------
-    root = get_ontology_root(ontology, ontology_dag_input)
+    root, ontology_dag = get_ontology_root(ontology_dag)
     # LOAD ID TO LABELS DICTIONARY -----------------------------------------------------------------
     id_to_label = get_id_to_label_dict(id_to_label_input, ontology, all_concepts)
 
@@ -439,6 +439,39 @@ def check_input_ids_to_ontology_mapping(onto_dag: OntologyDAG, all_classes: Set[
     return unmapped
 
 
+def get_ontology_root(onto_dag: OntologyDAG) -> Tuple[str, Dict[str, List[str]]]:
+    """ Gets the unique root concept of an ontology DAG (concept with no parent concept). If
+    several roots found, creates a new root over the others. Returns the unique root and the
+    modified ontology DAG if a new root has been created.
+
+    Parameters
+    ----------
+    onto_dag: dict[str, list[str]]
+        Ontology DAG
+
+    Returns
+    -------
+    tuple[str, dict[str, list[str]]]
+        Unique root ID and the Ontology DAG (eventually modified)
+    """
+    roots = set()
+    not_roots = {x for x, y in onto_dag.items() if y != []}
+    for p_list in onto_dag.values():
+        for p in p_list:
+            if p not in not_roots:
+                roots.add(p)
+    if len(roots) == 1:
+        unique_root = roots.pop()
+        logging.info(f'Using "{unique_root}" as ontology DAG root.')
+    else:
+        unique_root = 'Sunburst Root'
+        logging.warning(f'Several roots found in ontology DAG. Roots: {roots}')
+        logging.warning(f'Creating new unique root "{unique_root}" over the roots.')
+        for root in roots:
+            onto_dag[root] = [unique_root]
+    return unique_root, onto_dag
+
+
 def get_id_to_label_dict(id_to_label_input, ontology, all_concepts):
     # Case default ontology AND use of default labels file
     if ontology is not None and id_to_label_input is None:
@@ -462,13 +495,7 @@ def get_id_to_label_dict(id_to_label_input, ontology, all_concepts):
                              'dictionary')
 
 
-def get_ontology_root(ontology, input_root):
-    if ontology is not None:
-        return ROOTS[ontology]
-    elif input_root is None:
-        raise ValueError('If no default ontology, must fill input_root parameter')
-    else:
-        return input_root
+
 
 
 def write_concepts_classes(ontology: str, all_classes: Dict[str, Set[str]], output: str,

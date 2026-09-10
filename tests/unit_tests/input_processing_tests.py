@@ -206,3 +206,29 @@ class TestInputs(unittest.TestCase):
         unmapped = check_input_ids_to_ontology_mapping(ONTO, all_classes)
         self.assertEqual(unmapped, {'truc', 'autre truc'})
 
+    @test_for(get_ontology_root)
+    def test_get_ontology_root_1root(self):
+        root, onto_dag = get_ontology_root(ONTO)
+        self.assertEqual(root, 'r')
+        self.assertDictEqual(onto_dag, ONTO)
+
+    @test_for(get_ontology_root)
+    def test_get_ontology_root_several(self):
+        ontology_several_roots = copy.deepcopy(ONTO)
+        ontology_several_roots['n'].append('other root')
+        ontology_several_roots['o'].append('another root')
+        ontology_several_roots['r'] = []
+        root, onto_dag = get_ontology_root(ontology_several_roots)
+        self.assertEqual(root, 'Sunburst Root')
+        ontology_several_roots['other root'] = ['Sunburst Root']
+        ontology_several_roots['another root'] = ['Sunburst Root']
+        ontology_several_roots['r'] = ['Sunburst Root']
+        self.assertDictEqual(onto_dag, ontology_several_roots)
+        roots = set()
+        not_roots = {x for x, y in onto_dag.items() if y != []}
+        for p_list in onto_dag.values():
+            for p in p_list:
+                if p not in not_roots:
+                    roots.add(p)
+        self.assertEqual(len(roots), 1)
+
