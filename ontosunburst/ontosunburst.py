@@ -1,15 +1,16 @@
 import copy
-import os
 import json
 import logging
-from typing import List, Dict, Set, Tuple, TypeAlias, Literal, cast, get_args
+import os
+import networkx
 from time import time
+from typing import Tuple, TypeAlias, Literal, cast, get_args
+
 import plotly.graph_objects as go
 
-from ontosunburst.onto2dag import *
 from ontosunburst.dag2tree import *
+from ontosunburst.onto2dag import *
 from ontosunburst.tree2sunburst import generate_sunburst_fig, TOPOLOGY_A, ENRICHMENT_A
-
 
 # ==================================================================================================
 #                                             TYPES
@@ -339,6 +340,38 @@ def get_ontology_dag_dict(ontology: OntologyName | None,
     else:
         raise ValueError('ontology_dag_input parameter must be a json file path (str) or a '
                          'dictionary')
+
+
+def check_onto_dag(onto_dag: OntologyDAG, all_classes: Set[str]):
+    detect_cycles(onto_dag)
+    unclassified = check_classes_concordance(onto_dag, all_classes)
+
+
+def detect_cycles(onto_dag: OntologyDAG):
+    graph = networkx.DiGraph(onto_dag)
+    if not networkx.is_directed_acyclic_graph(graph):
+        cycles = networkx.simple_cycles(graph)
+        logging.error('Cycles detected in ontology graph, cannot be used.')
+        for cycle in cycles:
+            logging.error(f'Cycle: {cycle} detected : fix it by removing a relation.')
+        raise ValueError(f'Ontology graph given is not a DAG. Remove cycles to use.')
+    else:
+        logging.info('No cycles detected in ontology graph.')
+
+
+def check_classes_concordance(onto_dag: OntologyDAG, all_classes: Set[str]) -> Set[str]:
+    nb_concepts = len(all_classes)
+    logging.info(f'{nb_concepts} concepts to classify.')
+    classified = 0
+    unclassified = set()
+    for c in all_classes:
+        if c in onto_dag:
+            classified += 1
+        else:
+            logging.warning(f'Concept "{c}" not found in ontology DAG.')
+            unclassified.add(c)
+    logging.info(f'{classified}/{nb_concepts} concepts classified in ontology.')
+    return unclassified
 
 
 def get_id_to_label_dict(id_to_label_input, ontology, all_concepts):

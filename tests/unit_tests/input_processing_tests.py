@@ -1,3 +1,4 @@
+import copy
 import json
 import os.path
 import unittest
@@ -176,4 +177,32 @@ class TestInputs(unittest.TestCase):
     def test_get_ontology_dag_dict_wrong_file(self):
         onto_file = os.path.join('test_files', 'toy_onto_bad_file.txt')
         self.assertRaises(json.decoder.JSONDecodeError, get_ontology_dag_dict, None, onto_file)
+
+    @test_for(detect_cycles)
+    def test_detect_cycles_ok(self):
+        cycles = detect_cycles(ONTO)
+        self.assertIsNone(cycles)
+
+    @test_for(detect_cycles)
+    def test_detect_cycles_cycles(self):
+        onto_with_cycles = copy.deepcopy(ONTO)
+        onto_with_cycles['o'].append('d')
+        onto_with_cycles['x'].append('i')
+        onto_with_cycles['w'].append('w')
+        # Must detect ['w'], ['o', 'd', 'j'] and ['i', 'x'] cycles
+        self.assertRaises(ValueError, detect_cycles, onto_with_cycles)
+
+    @test_for(check_classes_concordance)
+    def test_check_classes_concordance_ok(self):
+        all_classes = set(R_LST)
+        unclassified = check_classes_concordance(ONTO, all_classes)
+        self.assertEqual(set(), unclassified)
+
+    @test_for(check_classes_concordance)
+    def test_check_classes_concordance_not_found(self):
+        all_classes = set(R_LST)
+        all_classes.add('truc')
+        all_classes.add('autre truc')
+        unclassified = check_classes_concordance(ONTO, all_classes)
+        self.assertEqual(unclassified, {'truc', 'autre truc'})
 
