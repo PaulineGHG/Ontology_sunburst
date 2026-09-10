@@ -20,6 +20,7 @@ OntologyName: TypeAlias = Literal['metacyc', 'ec', 'chebi', 'chebi_r', 'go_cc', 
                                   'go', 'kegg']
 FileSuffix: TypeAlias = Literal['classes.json', 'labels.json']
 OntologyDAG: TypeAlias = Dict[str, List[str]]
+FilePath: TypeAlias = str
 
 
 # ==================================================================================================
@@ -50,7 +51,7 @@ def ontosunburst(interest: Input,
                  reference: Input | None = None,
                  ontology: OntologyName = None,
                  analysis: str = TOPOLOGY_A,
-                 output: str = 'sunburst',
+                 output: FilePath = 'sunburst',
                  scores: Dict[str, float] = None,
                  write_output: bool = True,
                  ontology_dag_input: str | OntologyDAG = None,
@@ -117,12 +118,15 @@ def ontosunburst(interest: Input,
     interest, reference = check_inputs_sets(interest, reference)
     all_concepts = set(interest.keys()).union(set(reference.keys()))
     # LOAD ONTOLOGY DAG DICTIONARY -----------------------------------------------------------------
-    ontology_dag = get_ontology_dag_dict(ontology, ontology_dag_input, all_concepts)
+    ontology_dag = get_ontology_dag_dict(ontology, ontology_dag_input)
+    detect_cycles(ontology_dag)
+    check_input_ids_to_ontology_mapping(ontology_dag, all_concepts)
+    # GET ROOT -------------------------------------------------------------------------------------
+    root = get_ontology_root(ontology, ontology_dag_input)
     # LOAD ID TO LABELS DICTIONARY -----------------------------------------------------------------
     id_to_label = get_id_to_label_dict(id_to_label_input, ontology, all_concepts)
 
-    # GET ROOT -------------------------------------------------------------------------------------
-    root = get_ontology_root(ontology)
+
     # WORKFLOW -------------------------------------------------------------------------------------
 
     end_time = time()
@@ -284,7 +288,22 @@ def check_inputs_sets(interest: Input, reference: Input | None) -> Tuple[Input, 
 
 
 # Ontologies management
-def get_file(ontology: OntologyName, suffix: FileSuffix) -> str:
+def get_file(ontology: OntologyName, suffix: FileSuffix) -> FilePath:
+    """ Return the implemented ontology or labels file path from the ontology name and the suffix
+    (classes or labels) with the current version implemented.
+
+    Parameters
+    ----------
+    ontology: str
+        Name of the ontology (chebi, ec, metacyc, kegg, go, go_cc, go_mf, go_bp)
+    suffix: str
+        Suffix of the file 'classes.json' or 'labels.json'
+
+    Returns
+    -------
+    str
+        File path
+    """
     for file in os.listdir(DEFAULT_PATH):
         if file.startswith(ontology + '__') and file.endswith('__' + suffix):
             return os.path.join(DEFAULT_PATH, file)
@@ -293,7 +312,20 @@ def get_file(ontology: OntologyName, suffix: FileSuffix) -> str:
     raise FileNotFoundError(f'Cannot find {expected_file} file like in {DEFAULT_PATH} path.')
 
 
-def aggregate_go_ontologies(suffix: FileSuffix):
+def merge_go_ontologies(suffix: FileSuffix) -> OntologyDAG:
+    """ Merge all the 3 GO ontologies (go_cc, go_mf, go_bp) to one ontology "go" linked by a new
+    root "GO".
+
+    Parameters
+    ----------
+    suffix: str
+        Suffix of go files to aggregate either the GO ontology classes files or labels file
+
+    Returns
+    -------
+    dict[str, list[str]]
+        GO Ontology DAG containing all the 3 GO ontologies merged.
+    """
     go_aggregated = dict()
     for sub_go_ontology in [GO_BP, GO_CC, GO_MF]:
         dict_sub_onto_input = get_file(cast(OntologyName, sub_go_ontology), suffix)
@@ -308,6 +340,21 @@ def aggregate_go_ontologies(suffix: FileSuffix):
 
 def get_ontology_dag_dict(ontology: OntologyName | None,
                           ontology_dag_input: OntologyDAG | str | None) -> OntologyDAG:
+    """ Return the ontology DAG as a dict depending on the inputs given (ontology name, custom
+    ontology dict or custom ontology json file path)
+
+    Parameters
+    ----------
+    ontology: str | None
+        A default ontology name (chebi, metacyc, ec, ...) or None for custom ontology
+    ontology_dag_input: dict[str, list[str]] | str | None
+        A custom ontology as a dict or a json file path or None for default ontology
+
+    Returns
+    -------
+    dict[str, list[str]]
+        The ontology DAG as a dict.
+    """
     # Case ontology_dag_input parameter not filled (default : None)
     if ontology_dag_input is None:
         # Case no default ontology : raises an error
@@ -318,7 +365,7 @@ def get_ontology_dag_dict(ontology: OntologyName | None,
         else:
             check_valid_literal(ontology, OntologyName)
             if ontology == GO:
-                return aggregate_go_ontologies(CLASSES_SUFFIX)
+                return merge_go_ontologies(CLASSES_SUFFIX)
             ontology_dag_input = get_file(ontology, CLASSES_SUFFIX)
             logging.info(f'Using {ontology_dag_input} file as ontology DAG.')
     # Case ontology_dag_input parameter is a file path (str)
@@ -342,12 +389,15 @@ def get_ontology_dag_dict(ontology: OntologyName | None,
                          'dictionary')
 
 
-def check_onto_dag(onto_dag: OntologyDAG, all_classes: Set[str]):
-    detect_cycles(onto_dag)
-    unclassified = check_classes_concordance(onto_dag, all_classes)
-
-
 def detect_cycles(onto_dag: OntologyDAG):
+    """ Checks if an ontology DAG is actually a DAG by detecting cycles. Il cycles are detected,
+    logs the cycles to remove and raises an error.
+
+    Parameters
+    ----------
+    onto_dag: dict[str, list[str]]
+        Ontology DAG dictionary
+    """
     graph = networkx.DiGraph(onto_dag)
     if not networkx.is_directed_acyclic_graph(graph):
         cycles = networkx.simple_cycles(graph)
@@ -359,26 +409,41 @@ def detect_cycles(onto_dag: OntologyDAG):
         logging.info('No cycles detected in ontology graph.')
 
 
-def check_classes_concordance(onto_dag: OntologyDAG, all_classes: Set[str]) -> Set[str]:
+def check_input_ids_to_ontology_mapping(onto_dag: OntologyDAG, all_classes: Set[str]) -> Set[str]:
+    """ Checks the coverage of inputs IDs mappable on the Ontology DAG used. Warns about unmapped
+    concepts. Returns the set of the unmapped concepts.
+
+    Parameters
+    ----------
+    onto_dag: dict[str, list[str]]
+        Ontology DAG
+    all_classes: set[str]
+        Set of all concepts ids (from interest and reference)
+
+    Returns
+    -------
+    set[str]
+        Set of IDs unmapped on the ontology DAG.
+    """
     nb_concepts = len(all_classes)
-    logging.info(f'{nb_concepts} concepts to classify.')
-    classified = 0
-    unclassified = set()
+    logging.info(f'{nb_concepts} concepts to map.')
+    mapped = 0
+    unmapped = set()
     for c in all_classes:
         if c in onto_dag:
-            classified += 1
+            mapped += 1
         else:
             logging.warning(f'Concept "{c}" not found in ontology DAG.')
-            unclassified.add(c)
-    logging.info(f'{classified}/{nb_concepts} concepts classified in ontology.')
-    return unclassified
+            unmapped.add(c)
+    logging.info(f'{mapped}/{nb_concepts} concepts mapped in ontology.')
+    return unmapped
 
 
 def get_id_to_label_dict(id_to_label_input, ontology, all_concepts):
     # Case default ontology AND use of default labels file
     if ontology is not None and id_to_label_input is None:
         if ontology == GO:
-            return aggregate_go_ontologies(LABELS_SUFFIX)
+            return merge_go_ontologies(LABELS_SUFFIX)
         id_to_label_input = get_file(ontology, LABELS_SUFFIX)
     # Case id_to_label_input parameter filled
     if id_to_label_input is not None:

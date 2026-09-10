@@ -192,17 +192,17 @@ class TestInputs(unittest.TestCase):
         # Must detect ['w'], ['o', 'd', 'j'] and ['i', 'x'] cycles
         self.assertRaises(ValueError, detect_cycles, onto_with_cycles)
 
-    @test_for(check_classes_concordance)
+    @test_for(check_input_ids_to_ontology_mapping)
     def test_check_classes_concordance_ok(self):
         all_classes = set(R_LST)
-        unclassified = check_classes_concordance(ONTO, all_classes)
-        self.assertEqual(set(), unclassified)
+        unmapped = check_input_ids_to_ontology_mapping(ONTO, all_classes)
+        self.assertEqual(set(), unmapped)
 
-    @test_for(check_classes_concordance)
+    @test_for(check_input_ids_to_ontology_mapping)
     def test_check_classes_concordance_not_found(self):
         all_classes = set(R_LST)
         all_classes.add('truc')
         all_classes.add('autre truc')
-        unclassified = check_classes_concordance(ONTO, all_classes)
-        self.assertEqual(unclassified, {'truc', 'autre truc'})
+        unmapped = check_input_ids_to_ontology_mapping(ONTO, all_classes)
+        self.assertEqual(unmapped, {'truc', 'autre truc'})
 
