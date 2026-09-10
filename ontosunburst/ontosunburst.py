@@ -124,7 +124,7 @@ def ontosunburst(interest: Input,
     # GET ROOT -------------------------------------------------------------------------------------
     root, ontology_dag = get_ontology_root(ontology_dag)
     # LOAD ID TO LABELS DICTIONARY -----------------------------------------------------------------
-    id_to_label = get_id_to_label_dict(id_to_label_input, ontology, all_concepts)
+    id_to_label = get_id_to_label_dict(id_to_label_input, ontology)
 
 
     # WORKFLOW -------------------------------------------------------------------------------------
@@ -472,7 +472,8 @@ def get_ontology_root(onto_dag: OntologyDAG) -> Tuple[str, Dict[str, List[str]]]
     return unique_root, onto_dag
 
 
-def get_id_to_label_dict(id_to_label_input, ontology, all_concepts):
+def get_id_to_label_dict(id_to_label_input: Dict[str, str] | str | None,
+                         ontology: OntologyName | None):
     # Case default ontology AND use of default labels file
     if ontology is not None and id_to_label_input is None:
         if ontology == GO:
@@ -493,9 +494,6 @@ def get_id_to_label_dict(id_to_label_input, ontology, all_concepts):
         else:
             raise ValueError('id_to_label_input parameter must be a json file path (str) or a '
                              'dictionary')
-
-
-
 
 
 def write_concepts_classes(ontology: str, all_classes: Dict[str, Set[str]], output: str,
