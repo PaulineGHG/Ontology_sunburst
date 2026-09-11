@@ -5,6 +5,7 @@ import os
 import networkx
 from time import time
 from typing import Tuple, TypeAlias, Literal, cast, get_args
+from typeguard import check_type
 
 import plotly.graph_objects as go
 
@@ -20,6 +21,7 @@ OntologyName: TypeAlias = Literal['metacyc', 'ec', 'chebi', 'chebi_r', 'go_cc', 
                                   'go', 'kegg']
 FileSuffix: TypeAlias = Literal['classes.json', 'labels.json']
 OntologyDAG: TypeAlias = Dict[str, List[str]]
+IdToLabel: TypeAlias = Dict[str, str]
 FilePath: TypeAlias = str
 
 
@@ -55,7 +57,7 @@ def ontosunburst(interest: Input,
                  scores: Dict[str, float] = None,
                  write_output: bool = True,
                  ontology_dag_input: str | OntologyDAG = None,
-                 id_to_label_input: str or Dict[str, str] = None,
+                 id_to_label_input: str | IdToLabel = None,
                  use_labels: bool = True,
                  test: str = BINOMIAL_TEST,
                  root_cut: str = ROOT_CUT,
@@ -114,7 +116,7 @@ def ontosunburst(interest: Input,
         Plotly graph_objects figure of the sunburst
     """
     start_time = time()
-    # MANAGE INPUTS
+    # MANAGE INPUTS --------------------------------------------------------------------------------
     interest, reference = check_inputs_sets(interest, reference)
     all_concepts = set(interest.keys()).union(set(reference.keys()))
     # LOAD ONTOLOGY DAG DICTIONARY -----------------------------------------------------------------
@@ -126,11 +128,10 @@ def ontosunburst(interest: Input,
     # LOAD ID TO LABELS DICTIONARY -----------------------------------------------------------------
     id_to_label = get_id_to_label_dict(id_to_label_input, ontology)
 
-
     # WORKFLOW -------------------------------------------------------------------------------------
 
     end_time = time()
-    print(f'Execution time : {end_time - start_time} seconds')
+    logging.info(f'Execution time : {end_time - start_time} seconds')
     # return fig
 
 
@@ -312,7 +313,7 @@ def get_file(ontology: OntologyName, suffix: FileSuffix) -> FilePath:
     raise FileNotFoundError(f'Cannot find {expected_file} file like in {DEFAULT_PATH} path.')
 
 
-def merge_go_ontologies(suffix: FileSuffix) -> OntologyDAG:
+def merge_go_ontologies(suffix: FileSuffix) -> OntologyDAG | IdToLabel:
     """ Merge all the 3 GO ontologies (go_cc, go_mf, go_bp) to one ontology "go" linked by a new
     root "GO".
 
@@ -365,7 +366,7 @@ def get_ontology_dag_dict(ontology: OntologyName | None,
         else:
             check_valid_literal(ontology, OntologyName)
             if ontology == GO:
-                return merge_go_ontologies(CLASSES_SUFFIX)
+                ontology_dag = merge_go_ontologies(CLASSES_SUFFIX)
             ontology_dag_input = get_file(ontology, CLASSES_SUFFIX)
             logging.info(f'Using {ontology_dag_input} file as ontology DAG.')
     # Case ontology_dag_input parameter is a file path (str)
@@ -373,7 +374,6 @@ def get_ontology_dag_dict(ontology: OntologyName | None,
         if os.path.exists(ontology_dag_input):
             with open(ontology_dag_input, 'r') as f:
                 ontology_dag = json.load(f)
-                return ontology_dag
         else:
             logging.error(f'No file {ontology_dag_input} found, '
                           f'check for valid ontology_dag_input parameter given.')
@@ -381,12 +381,14 @@ def get_ontology_dag_dict(ontology: OntologyName | None,
                                     f'check for valid ontology_dag_input parameter given.')
     # Case ontology_dag_input parameter is a dictionary (dict)
     elif type(ontology_dag_input) == dict:
-        return ontology_dag_input
+        ontology_dag = ontology_dag_input
     # Case ontology_dag_input parameter is not a dictionary (dict), neither a file path (str) :
     # raises an error
     else:
         raise ValueError('ontology_dag_input parameter must be a json file path (str) or a '
                          'dictionary')
+    check_type(ontology_dag, OntologyDAG)
+    return ontology_dag
 
 
 def detect_cycles(onto_dag: OntologyDAG):
@@ -472,10 +474,11 @@ def get_ontology_root(onto_dag: OntologyDAG) -> Tuple[str, Dict[str, List[str]]]
     return unique_root, onto_dag
 
 
-def get_id_to_label_dict(id_to_label_input: Dict[str, str] | str | None,
-                         ontology: OntologyName | None):
+def get_id_to_label_dict(id_to_label_input: IdToLabel | str | None,
+                         ontology: OntologyName | None) -> IdToLabel:
     # Case default ontology AND use of default labels file
     if ontology is not None and id_to_label_input is None:
+        check_valid_literal(ontology, OntologyName)
         if ontology == GO:
             return merge_go_ontologies(LABELS_SUFFIX)
         id_to_label_input = get_file(ontology, LABELS_SUFFIX)
@@ -483,17 +486,25 @@ def get_id_to_label_dict(id_to_label_input: Dict[str, str] | str | None,
     if id_to_label_input is not None:
         # Case id_to_label_input parameter is a file path (str)
         if type(id_to_label_input) == str:
-            with open(id_to_label_input, 'r') as f:
-                id_to_label = json.load(f)
-                return id_to_label
+            if os.path.exists(id_to_label_input):
+                with open(id_to_label_input, 'r') as f:
+                    id_to_label = json.load(f)
+            else:
+                logging.error(f'No file {id_to_label_input} found, '
+                              f'check for valid id_to_label_input parameter given.')
+                raise FileNotFoundError(f'No file {id_to_label_input} found, '
+                                        f'check for valid id_to_label_input parameter given.')
         # Case id_to_label_input parameter is a dictionary (dict)
         elif type(id_to_label_input) == dict:
-            return id_to_label_input
+            id_to_label = id_to_label_input
         # Case id_to_label_input parameter is not a dictionary (dict), neither a file
         # path (str) : raises an error
         else:
             raise ValueError('id_to_label_input parameter must be a json file path (str) or a '
                              'dictionary')
+        if type(id_to_label) != IdToLabel:
+            raise ValueError(f'id_to_label dict must be of form {IdToLabel}')
+        return id_to_label
 
 
 def write_concepts_classes(ontology: str, all_classes: Dict[str, Set[str]], output: str,

@@ -178,6 +178,13 @@ class TestInputs(unittest.TestCase):
         onto_file = os.path.join('test_files', 'toy_onto_bad_file.txt')
         self.assertRaises(json.decoder.JSONDecodeError, get_ontology_dag_dict, None, onto_file)
 
+    @test_for(get_ontology_dag_dict)
+    def test_get_ontology_dag_dict_wrong_dict(self):
+        onto_dict = {'a': ['b'], 'c': ['b', 'f'], 'd': 'a'}
+        o = get_ontology_dag_dict(None, onto_dict)
+        print(o)
+        # self.assertRaises(json.decoder.JSONDecodeError, get_ontology_dag_dict, None, onto_file)
+
     @test_for(detect_cycles)
     def test_detect_cycles_ok(self):
         cycles = detect_cycles(ONTO)
