@@ -5,7 +5,7 @@ import os
 import networkx
 from time import time
 from typing import Tuple, TypeAlias, Literal, cast, get_args
-from typeguard import check_type, CollectionCheckStrategy, typechecked
+from typeguard import CollectionCheckStrategy, typechecked
 
 import plotly.graph_objects as go
 
@@ -351,7 +351,7 @@ def get_ontology_dag_dict(ontology: OntologyName | None,
         # Case default ontology : get default ontology file path
         else:
             if ontology == GO:
-                ontology_dag = merge_go_ontologies(CLASSES_SUFFIX)
+                return merge_go_ontologies(CLASSES_SUFFIX)
             else:
                 ontology_dag_input = get_file(ontology, CLASSES_SUFFIX)
                 logging.info(f'Using {ontology_dag_input} file as ontology DAG.')
@@ -460,6 +460,7 @@ def get_ontology_root(onto_dag: OntologyDAG) -> Tuple[str, Dict[str, List[str]]]
 @typechecked(collection_check_strategy=CollectionCheckStrategy.ALL_ITEMS)
 def get_id_to_label_dict(ontology: OntologyName | None,
                          id_to_label_input: IdToLabel | str | None) -> IdToLabel:
+    id_to_label = dict()
     # Case default ontology AND use of default labels file
     if ontology is not None and id_to_label_input is None:
         if ontology == GO:
@@ -484,8 +485,6 @@ def get_id_to_label_dict(ontology: OntologyName | None,
         else:
             raise ValueError('id_to_label_input parameter must be a json file path (str) or a '
                              'dictionary')
-    else:
-        id_to_label = dict()
     return id_to_label
 
 

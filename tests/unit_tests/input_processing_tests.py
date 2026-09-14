@@ -186,6 +186,13 @@ class TestInputs(unittest.TestCase):
         onto_dict = {'a': ['b'], 'c': ['b', 'f'], 'd': 'a'}
         self.assertRaises(typeguard.TypeCheckError, get_ontology_dag_dict, None, onto_dict)
 
+    @test_for(get_ontology_dag_dict)
+    def test_get_ontology_dag_dict_go(self):
+        onto_dag = get_ontology_dag_dict('go', None)
+        self.assertIn('GO:0018513', onto_dag)  # in go_mf
+        self.assertIn('GO:0005846', onto_dag)  # in go_cc
+        self.assertIn('GO:0090351', onto_dag)  # in go_bp
+
     @test_for(detect_cycles)
     def test_detect_cycles_ok(self):
         cycles = detect_cycles(ONTO)
@@ -285,3 +292,15 @@ class TestInputs(unittest.TestCase):
     def test_get_id_to_label_dict_wrong_dict(self):
         id_to_label = {'a': ['b'], 'c': ['b', 'f'], 'd': 'a'}
         self.assertRaises(typeguard.TypeCheckError, get_id_to_label_dict, None, id_to_label)
+
+    @test_for(get_id_to_label_dict)
+    def test_get_id_to_label_dict_go(self):
+        id_to_label = get_id_to_label_dict('go', None)
+        self.assertIn('GO:0018513', id_to_label)  # in go_mf
+        self.assertIn('GO:0005846', id_to_label)  # in go_cc
+        self.assertIn('GO:0090351', id_to_label)  # in go_bp
+
+    @test_for(get_id_to_label_dict)
+    def test_get_id_to_label_dict_none(self):
+        id_to_label = get_id_to_label_dict(None, None)
+        self.assertDictEqual(id_to_label, dict())
