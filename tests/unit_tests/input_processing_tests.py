@@ -6,6 +6,9 @@ from unittest.mock import patch
 import io
 import sys
 from functools import wraps
+
+import typeguard
+
 from ontosunburst.ontosunburst import *
 
 """
@@ -163,11 +166,11 @@ class TestInputs(unittest.TestCase):
 
     @test_for(get_ontology_dag_dict)
     def test_get_ontology_dag_dict_wrong_name(self):
-        self.assertRaises(ValueError, get_ontology_dag_dict, 'onto', None)
+        self.assertRaises(typeguard.TypeCheckError, get_ontology_dag_dict, 'onto', None)
 
     @test_for(get_ontology_dag_dict)
     def test_get_ontology_dag_dict_wrong_type(self):
-        self.assertRaises(ValueError, get_ontology_dag_dict, None, ['a', 'b', 'c'])
+        self.assertRaises(typeguard.TypeCheckError, get_ontology_dag_dict, None, ['a', 'b', 'c'])
 
     @test_for(get_ontology_dag_dict)
     def test_get_ontology_dag_dict_not_a_file(self):
@@ -181,9 +184,7 @@ class TestInputs(unittest.TestCase):
     @test_for(get_ontology_dag_dict)
     def test_get_ontology_dag_dict_wrong_dict(self):
         onto_dict = {'a': ['b'], 'c': ['b', 'f'], 'd': 'a'}
-        o = get_ontology_dag_dict(None, onto_dict)
-        print(o)
-        # self.assertRaises(json.decoder.JSONDecodeError, get_ontology_dag_dict, None, onto_file)
+        self.assertRaises(typeguard.TypeCheckError, get_ontology_dag_dict, None, onto_dict)
 
     @test_for(detect_cycles)
     def test_detect_cycles_ok(self):
@@ -239,3 +240,48 @@ class TestInputs(unittest.TestCase):
                     roots.add(p)
         self.assertEqual(len(roots), 1)
 
+    @test_for(get_id_to_label_dict)
+    def test_get_id_to_label_dict_name(self):
+        id_to_label = get_id_to_label_dict('ec', None)
+        file_lab = os.path.join('..', '..', 'ontosunburst', 'Inputs', 'ec__18jun25__labels.json')
+        with open(file_lab, 'r') as f:
+            expected = json.load(f)
+        self.assertDictEqual(id_to_label, expected)
+
+    @test_for(get_id_to_label_dict)
+    def test_get_id_to_label_dict_dict(self):
+        id_to_label = get_id_to_label_dict(None, LABELS)
+        self.assertDictEqual(id_to_label, LABELS)
+
+    @test_for(get_id_to_label_dict)
+    def test_get_id_to_label_dict_name_dict(self):
+        id_to_label = get_id_to_label_dict('ec', LABELS)
+        self.assertDictEqual(id_to_label, LABELS)
+
+    @test_for(get_id_to_label_dict)
+    def test_get_id_to_label_dict_file(self):
+        id2lab_file = os.path.join('test_files', 'toy_labels.json')
+        id_to_label = get_id_to_label_dict(None, id2lab_file)
+        self.assertDictEqual(id_to_label, LABELS)
+
+    @test_for(get_id_to_label_dict)
+    def test_get_id_to_label_dict_wrong_name(self):
+        self.assertRaises(typeguard.TypeCheckError, get_id_to_label_dict, 'onto', None)
+
+    @test_for(get_id_to_label_dict)
+    def test_get_id_to_label_dict_wrong_type(self):
+        self.assertRaises(typeguard.TypeCheckError, get_id_to_label_dict, None, ['a', 'b', 'c'])
+
+    @test_for(get_id_to_label_dict)
+    def test_get_id_to_label_dict_not_a_file(self):
+        self.assertRaises(FileNotFoundError, get_id_to_label_dict, None, 'this_is_a_file.txt')
+
+    @test_for(get_id_to_label_dict)
+    def test_get_id_to_label_dict_wrong_file(self):
+        id2lab_file = os.path.join('test_files', 'toy_onto_bad_file.txt')
+        self.assertRaises(json.decoder.JSONDecodeError, get_id_to_label_dict, None, id2lab_file)
+
+    @test_for(get_id_to_label_dict)
+    def test_get_id_to_label_dict_wrong_dict(self):
+        id_to_label = {'a': ['b'], 'c': ['b', 'f'], 'd': 'a'}
+        self.assertRaises(typeguard.TypeCheckError, get_id_to_label_dict, None, id_to_label)

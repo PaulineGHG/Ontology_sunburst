@@ -5,7 +5,7 @@ import os
 import networkx
 from time import time
 from typing import Tuple, TypeAlias, Literal, cast, get_args
-from typeguard import check_type
+from typeguard import check_type, CollectionCheckStrategy, typechecked
 
 import plotly.graph_objects as go
 
@@ -126,8 +126,7 @@ def ontosunburst(interest: Input,
     # GET ROOT -------------------------------------------------------------------------------------
     root, ontology_dag = get_ontology_root(ontology_dag)
     # LOAD ID TO LABELS DICTIONARY -----------------------------------------------------------------
-    id_to_label = get_id_to_label_dict(id_to_label_input, ontology)
-
+    id_to_label = get_id_to_label_dict(ontology, id_to_label_input)
     # WORKFLOW -------------------------------------------------------------------------------------
 
     end_time = time()
@@ -225,11 +224,6 @@ def _global_analysis(analysis, interest_concepts, abundances, scores, reference_
 #                                             FUNCTIONS
 # ==================================================================================================
 # Interest and reference inputs management
-def check_valid_literal(item: str, lit):
-    if item not in get_args(lit):
-        raise ValueError(f'Invalid {item} argument. Must be in : {get_args(lit)}')
-
-
 def check_inputs_sets(interest: Input, reference: Input | None) -> Tuple[Input, Input]:
     """ Checks for valid interest and reference parameters and raises ValueError if not.
     Converts to dictionary associating each ID to its weight (set to 1 by default).
@@ -245,7 +239,6 @@ def check_inputs_sets(interest: Input, reference: Input | None) -> Tuple[Input, 
     tuple[list[str] | set[str] | dict[str, float], list[str] | set[str] | dict[str, float]]
     """
     if interest is None:
-        logging.critical('No interest set given in "interest" field.')
         raise ValueError('No interest set given in "interest" field.')
     elif type(interest) == list or type(interest) == set:
         logging.info('No abundances for interest set, '
@@ -255,13 +248,10 @@ def check_inputs_sets(interest: Input, reference: Input | None) -> Tuple[Input, 
         # Test weights values
         for c, w in interest.items():
             if (type(w) != float and type(w) != int) or w <= 0:
-                logging.error(f'Invalid weight "{w}" for "{c}" concept in interest. '
-                              f'All weights must be strictly positive numerals.')
                 raise ValueError(f'Invalid weight "{w}" for "{c}" concept in interest. '
                                  f'All weights must be strictly positive numerals.')
         interest = {str(x): y for x, y in interest.items()}
     else:
-        logging.error('No valid interest set given.')
         raise ValueError('No valid interest set given.')
 
     # Reference
@@ -276,13 +266,10 @@ def check_inputs_sets(interest: Input, reference: Input | None) -> Tuple[Input, 
         # Test weights values
         for c, w in reference.items():
             if (type(w) != float and type(w) != int) or w <= 0:
-                logging.error(f'Invalid weight "{w}" for "{c}" concept in reference. '
-                              f'All weights must be strictly positive numerals.')
                 raise ValueError(f'Invalid weight "{w}" for "{c}" concept in reference. '
                                  f'All weights must be strictly positive numerals.')
         reference = {str(x): y for x, y in reference.items()}
     else:
-        logging.error('No valid reference set given.')
         raise ValueError('No valid reference set given.')
 
     return interest, reference
@@ -309,7 +296,6 @@ def get_file(ontology: OntologyName, suffix: FileSuffix) -> FilePath:
         if file.startswith(ontology + '__') and file.endswith('__' + suffix):
             return os.path.join(DEFAULT_PATH, file)
     expected_file = f'{ontology}__[version]__{suffix}'
-    logging.error(f'Cannot find {expected_file} file like in {DEFAULT_PATH} path.')
     raise FileNotFoundError(f'Cannot find {expected_file} file like in {DEFAULT_PATH} path.')
 
 
@@ -339,6 +325,7 @@ def merge_go_ontologies(suffix: FileSuffix) -> OntologyDAG | IdToLabel:
     return go_aggregated
 
 
+@typechecked(collection_check_strategy=CollectionCheckStrategy.ALL_ITEMS)
 def get_ontology_dag_dict(ontology: OntologyName | None,
                           ontology_dag_input: OntologyDAG | str | None) -> OntologyDAG:
     """ Return the ontology DAG as a dict depending on the inputs given (ontology name, custom
@@ -360,23 +347,20 @@ def get_ontology_dag_dict(ontology: OntologyName | None,
     if ontology_dag_input is None:
         # Case no default ontology : raises an error
         if ontology is None:
-            logging.error('If no default ontology, must fill ontology_dag_input parameter')
             raise ValueError('If no default ontology, must fill ontology_dag_input parameter')
         # Case default ontology : get default ontology file path
         else:
-            check_valid_literal(ontology, OntologyName)
             if ontology == GO:
                 ontology_dag = merge_go_ontologies(CLASSES_SUFFIX)
-            ontology_dag_input = get_file(ontology, CLASSES_SUFFIX)
-            logging.info(f'Using {ontology_dag_input} file as ontology DAG.')
+            else:
+                ontology_dag_input = get_file(ontology, CLASSES_SUFFIX)
+                logging.info(f'Using {ontology_dag_input} file as ontology DAG.')
     # Case ontology_dag_input parameter is a file path (str)
     if type(ontology_dag_input) == str:
         if os.path.exists(ontology_dag_input):
             with open(ontology_dag_input, 'r') as f:
                 ontology_dag = json.load(f)
         else:
-            logging.error(f'No file {ontology_dag_input} found, '
-                          f'check for valid ontology_dag_input parameter given.')
             raise FileNotFoundError(f'No file {ontology_dag_input} found, '
                                     f'check for valid ontology_dag_input parameter given.')
     # Case ontology_dag_input parameter is a dictionary (dict)
@@ -387,7 +371,6 @@ def get_ontology_dag_dict(ontology: OntologyName | None,
     else:
         raise ValueError('ontology_dag_input parameter must be a json file path (str) or a '
                          'dictionary')
-    check_type(ontology_dag, OntologyDAG)
     return ontology_dag
 
 
@@ -474,14 +457,15 @@ def get_ontology_root(onto_dag: OntologyDAG) -> Tuple[str, Dict[str, List[str]]]
     return unique_root, onto_dag
 
 
-def get_id_to_label_dict(id_to_label_input: IdToLabel | str | None,
-                         ontology: OntologyName | None) -> IdToLabel:
+@typechecked(collection_check_strategy=CollectionCheckStrategy.ALL_ITEMS)
+def get_id_to_label_dict(ontology: OntologyName | None,
+                         id_to_label_input: IdToLabel | str | None) -> IdToLabel:
     # Case default ontology AND use of default labels file
     if ontology is not None and id_to_label_input is None:
-        check_valid_literal(ontology, OntologyName)
         if ontology == GO:
-            return merge_go_ontologies(LABELS_SUFFIX)
-        id_to_label_input = get_file(ontology, LABELS_SUFFIX)
+            id_to_label = merge_go_ontologies(LABELS_SUFFIX)
+        else:
+            id_to_label_input = get_file(ontology, LABELS_SUFFIX)
     # Case id_to_label_input parameter filled
     if id_to_label_input is not None:
         # Case id_to_label_input parameter is a file path (str)
@@ -490,8 +474,6 @@ def get_id_to_label_dict(id_to_label_input: IdToLabel | str | None,
                 with open(id_to_label_input, 'r') as f:
                     id_to_label = json.load(f)
             else:
-                logging.error(f'No file {id_to_label_input} found, '
-                              f'check for valid id_to_label_input parameter given.')
                 raise FileNotFoundError(f'No file {id_to_label_input} found, '
                                         f'check for valid id_to_label_input parameter given.')
         # Case id_to_label_input parameter is a dictionary (dict)
@@ -502,9 +484,9 @@ def get_id_to_label_dict(id_to_label_input: IdToLabel | str | None,
         else:
             raise ValueError('id_to_label_input parameter must be a json file path (str) or a '
                              'dictionary')
-        if type(id_to_label) != IdToLabel:
-            raise ValueError(f'id_to_label dict must be of form {IdToLabel}')
-        return id_to_label
+    else:
+        id_to_label = dict()
+    return id_to_label
 
 
 def write_concepts_classes(ontology: str, all_classes: Dict[str, Set[str]], output: str,
