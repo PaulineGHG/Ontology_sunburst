@@ -1,29 +1,30 @@
-from typing import List, Set, Dict, Any
+import logging
+from typing import List, Set, Dict, Any, TypeAlias, Literal
 import numpy
+from ontosunburst.input_preprocessing import OntologyDAG, IdToLabel, InputsAb
 
 
-class StdDAG:
-    def __init__(self, concepts, abundances, ref_concepts, ref_abundances, ontology_dag, root, labels):
+class SubDAG:
+    def __init__(self, interest: InputsAb, reference: InputsAb, all_concepts: set[str],
+                 ontology_dag: OntologyDAG, root: str, id_to_labels: IdToLabel):
         self.nodes = []
-        self.root = None
+        self.root = root
         self.leaves = []
 
-        classified_concepts = classify_concepts(concepts=list(set(concepts).union(set(ref_concepts))),
-                                                ontology_dag=ontology_dag)
-        concepts_all_classes = get_all_classes(classified_concepts, ontology_dag, root)
+        concepts_all_parents = get_all_parents(all_concepts, ontology_dag, root)
 
-        abundances_dict = get_abundance_dict(abundances, concepts)
-        ref_abundances_dict = get_abundance_dict(ref_abundances, ref_concepts)
-
-        cum_w = get_cumulative_w(concepts_all_classes, abundances_dict)
-        r_cum_w = get_cumulative_w(concepts_all_classes, ref_abundances_dict)
-
-
-        for c in concepts:
-            if c in ref_abundances_dict:
-                node = NodeDAG(onto_id=c, label=labels[c],
-                               exp_w=abundances_dict[c], cum_w=cum_w[c], max_w=cum_w[root],
-                               r_exp_w=ref_abundances_dict[c], r_cum_w=r_cum_w[c], r_max_w=r_cum_w[root])
+        # abundances_dict = get_abundance_dict(abundances, concepts)
+        # ref_abundances_dict = get_abundance_dict(ref_abundances, ref_concepts)
+        #
+        # cum_w = get_cumulative_w(concepts_all_classes, abundances_dict)
+        # r_cum_w = get_cumulative_w(concepts_all_classes, ref_abundances_dict)
+        #
+        # for c in concepts:
+        #     if c in ref_abundances_dict:
+        #         node = NodeDAG(onto_id=c, label=id_to_labels[c],
+        #                        exp_w=abundances_dict[c], cum_w=cum_w[c], max_w=cum_w[root],
+        #                        r_exp_w=ref_abundances_dict[c], r_cum_w=r_cum_w[c],
+        #                        r_max_w=r_cum_w[root])
 
 
 class NodeDAG:
@@ -49,14 +50,6 @@ class NodeDAG:
 
 # Main ontology to reduced dag functions
 # --------------------------------------------------------------------------------------------------
-def ontology_to_weighted_dag(concepts, abundances, root, ontology_dag, show_lvs):
-    classified_concepts = classify_concepts(concepts, ontology_dag)
-    concepts_all_classes = get_all_classes(classified_concepts, ontology_dag, root)
-    abundances_dict = get_abundance_dict(abundances, concepts)
-    calculated_weights = calculate_weights(concepts_all_classes, abundances_dict, show_lvs)
-    return calculated_weights
-
-
 def reduce_d_ontology(complete_dictionary: Dict[str, Any],
                       classes_abundance: Dict[str, float]) -> Dict[str, Any]:
     """ Extract the sub-graph of the d_classes_ontology dictionary conserving only nodes implicated
@@ -87,66 +80,25 @@ def reduce_d_ontology(complete_dictionary: Dict[str, Any],
 # REDUCE DAG FUNCTIONS
 # ==================================================================================================
 
-def classify_concepts(concepts: List[str], ontology_dag: Dict[str, List[str]]) \
-        -> Dict[str, List[str]]:
-    """ Extract concepts able to be classified in the ontology.
-
-    Parameters
-    ----------
-    concepts: List[str]
-        List of concepts to classify
-    ontology_dag: Dict[str, List[str]]
-        Dictionary of the classes ontology associating for each concept its +1 parent classes.
-
-    Returns
-    -------
-    Dict[str, List[str]]
-        Dictionary associating to each classified concept all its +1 parent classes.
-    """
-    classified_concepts = dict()
-    print(f'{len(concepts)} concepts to classify')
-    for cpt in concepts:
-        try:
-            classified_concepts[cpt] = ontology_dag[cpt]
-            classified = True
-        except KeyError:
-            classified = False
-        if not classified:
-            print(f'{cpt} not classified.')
-    print(f'{len(classified_concepts)}/{len(concepts)} concepts classified')
-    return classified_concepts
-
 
 # Recursive class extraction function
 # --------------------------------------------------------------------------------------------------
-def get_all_classes(obj_classes: Dict[str, List[str]], d_classes_ontology: Dict[str, List[str]],
-                    root_item: str) -> Dict[str, Set[str]]:
-    """ Extract all parent classes for each metabolite.
-
-    Parameters
-    ----------
-    obj_classes: Dict[str, List[str]] (Dict[metabolite, List[class]])
-        Dictionary associating for each object the list of +1 parent classes it belongs to.
-    d_classes_ontology: Dict[str, List[str]]
-        Dictionary of the classes ontology associating for each class its +1 parent classes.
-    root_item: str
-        Name of the root item of the ontology.
-
-    Returns
-    -------
-    Dict[str, Set[str]] (Dict[metabolite, Set[class]])
-        Dictionary associating for each metabolite the list of all parent classes it belongs to.
-    """
-    all_classes_met = dict()
-    for met, classes in obj_classes.items():
-        all_classes = set(classes)
-        for c in classes:
-            if c != root_item:
-                m_classes = get_parents(c, set(d_classes_ontology[c]), d_classes_ontology,
-                                        root_item)
-                all_classes = all_classes.union(m_classes)
-        all_classes_met[met] = all_classes
-    return all_classes_met
+def get_all_parents(all_concepts: Set[str], ontology_dag: OntologyDAG, root: str) \
+        -> Dict[str, Set[str]]:
+    all_parents_dict = dict()
+    # for met, classes in obj_classes.items():
+    #     all_classes = set(classes)
+    #     for c in classes:
+    #         if c != root_item:
+    #             m_classes = get_parents(c, set(d_classes_ontology[c]), d_classes_ontology,
+    #                                     root_item)
+    #             all_classes = all_classes.union(m_classes)
+    #     all_parents[met] = all_classes
+    for cpt in all_concepts:
+        parents = set(ontology_dag[cpt])
+        all_parents = get_parents(cpt, parents, ontology_dag, root)
+        all_parents_dict[cpt] = all_parents
+    return all_parents_dict
 
 
 def get_parents(child: str, parent_set: Set[str], d_classes_ontology: Dict[str, List[str]],

@@ -8,8 +8,7 @@ import sys
 from functools import wraps
 
 import typeguard
-
-from ontosunburst.ontosunburst import *
+from ontosunburst.input_preprocessing import *
 
 """
 Tests manually good file creation.
@@ -208,18 +207,38 @@ class TestInputs(unittest.TestCase):
         self.assertRaises(ValueError, detect_cycles, onto_with_cycles)
 
     @test_for(check_input_ids_to_ontology_mapping)
-    def test_check_classes_concordance_ok(self):
+    def test_check_classes_mapping_ok(self):
         all_classes = set(R_LST)
         unmapped = check_input_ids_to_ontology_mapping(ONTO, all_classes)
         self.assertEqual(set(), unmapped)
 
     @test_for(check_input_ids_to_ontology_mapping)
-    def test_check_classes_concordance_not_found(self):
+    def test_check_classes_mapping_not_found(self):
         all_classes = set(R_LST)
         all_classes.add('truc')
         all_classes.add('autre truc')
         unmapped = check_input_ids_to_ontology_mapping(ONTO, all_classes)
         self.assertEqual(unmapped, {'truc', 'autre truc'})
+
+    @test_for(manage_unmapped)
+    def test_manage_unmapped(self):
+        r_inp = copy.deepcopy(R_DCT)
+        i_inp = copy.deepcopy(I_DCT)
+        r_inp['truc'] = 1
+        r_inp['autre_truc'] = 1
+        i_inp['bidule'] = 1
+        all_classes = set(r_inp.keys()).union(set(i_inp.keys()))
+        self.assertDictEqual(i_inp, {'a': 23, 'b': 20, 'c': 5, 'bidule': 1})
+        self.assertDictEqual(r_inp, {'a': 14, 'b': 26, 'c': 20, 'd': 10, 'e': 20, 'f': 5, 'g': 4,
+                                     'h': 3, 'i': 1, 'truc': 1, 'autre_truc': 1})
+        self.assertEqual(all_classes, {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i',
+                                       'truc', 'autre_truc', 'bidule'})
+        unmapped = check_input_ids_to_ontology_mapping(ONTO, all_classes)
+        i_inp, r_inp, all_classes = manage_unmapped(i_inp, r_inp, unmapped)
+        self.assertDictEqual(i_inp, {'a': 23, 'b': 20, 'c': 5})
+        self.assertDictEqual(r_inp, {'a': 14, 'b': 26, 'c': 20, 'd': 10, 'e': 20, 'f': 5, 'g': 4,
+                                     'h': 3, 'i': 1})
+        self.assertEqual(all_classes, {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'})
 
     @test_for(get_ontology_root)
     def test_get_ontology_root_1root(self):
