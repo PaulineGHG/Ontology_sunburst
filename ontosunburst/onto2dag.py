@@ -19,23 +19,26 @@ class SubDAG:
         all_classes = set(i_cum_w.keys()).union(set(r_cum_w.keys()))
         ontology_dag = reduce_dag(ontology_dag, all_classes)
         ontology_children_dag = get_children_dict(ontology_dag)
+        NodeDAG.max_w = i_cum_w[root]
+        NodeDAG.r_max_w = r_cum_w[root]
         for c in all_classes:
             node = NodeDAG(onto_id=c,
                            label=dict_value_or(id_to_labels, c, c),
                            exp_w=dict_value_or(interest, c, numpy.nan),
                            cum_w=dict_value_or(i_cum_w, c, numpy.nan),
-                           max_w=i_cum_w[root],
                            r_exp_w=dict_value_or(reference, c, numpy.nan),
                            r_cum_w=dict_value_or(r_cum_w, c, numpy.nan),
-                           r_max_w=r_cum_w[root],
                            parents=dict_value_or(ontology_dag, c, []),
                            children=dict_value_or(ontology_children_dag, c, []))
             self.nodes.append(node)
 
 
 class NodeDAG:
-    def __init__(self, onto_id: str, label: str, exp_w: Weight, cum_w: Weight, max_w: Weight,
-                 r_exp_w: Weight, r_cum_w: Weight, r_max_w: Weight,
+    max_w = 0
+    r_max_w = 0
+
+    def __init__(self, onto_id: str, label: str, exp_w: Weight, cum_w: Weight,
+                 r_exp_w: Weight, r_cum_w: Weight,
                  parents: List[str], children: List[str]):
         # ID and label
         self.onto_id = onto_id
@@ -43,13 +46,11 @@ class NodeDAG:
         # Weights
         self.experimental_weight = exp_w
         self.cumulative_weight = cum_w
-        self.proportion = cum_w / max_w
-        self.max_w = max_w
+        self.proportion = cum_w / self.max_w
         # Reference weights
         self.ref_experimental_weight = r_exp_w
         self.ref_cumulative_weight = r_cum_w
-        self.ref_proportion = r_cum_w / r_max_w
-        self.r_max_w = r_max_w
+        self.ref_proportion = r_cum_w / self.r_max_w
         # Comparison calculations
         self.enrichment_p_val = None
         self.enrichment_log10_p_val = None
