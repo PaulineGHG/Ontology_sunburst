@@ -9,8 +9,9 @@ from typeguard import CollectionCheckStrategy, typechecked
 # ==================================================================================================
 #                                             TYPES
 # ==================================================================================================
-Input: TypeAlias = List[str] | Set[str] | Dict[str, float]
-InputsAb: TypeAlias = Dict[str, float]
+Weight: TypeAlias = int | float
+Input: TypeAlias = List[str] | Set[str] | Dict[str, Weight]
+InputsAb: TypeAlias = Dict[str, Weight]
 OntologyName: TypeAlias = Literal['metacyc', 'ec', 'chebi', 'chebi_r', 'go_cc', 'go_mf', 'go_bp',
                                   'go', 'kegg']
 FileSuffix: TypeAlias = Literal['classes.json', 'labels.json']
@@ -48,12 +49,12 @@ def check_inputs_sets(interest: Input, reference: Input | None) -> Tuple[InputsA
 
     Parameters
     ----------
-    interest: list[str] | set[str] | dict[str, float]
-    reference: list[str] | set[str] | dict[str, float] | None
+    interest: list[str] | set[str] | dict[str, int | float]
+    reference: list[str] | set[str] | dict[str, int | float] | None
 
     Returns
     -------
-    tuple[dict[str, float], dict[str, float]]
+    tuple[dict[str, int | float], dict[str, int | float]]
     """
     if interest is None:
         raise ValueError('No interest set given in "interest" field.')

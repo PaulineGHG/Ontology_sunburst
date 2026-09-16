@@ -1,7 +1,7 @@
 import logging
 from typing import List, Set, Dict, Any, TypeAlias, Literal
 import numpy
-from ontosunburst.input_preprocessing import OntologyDAG, IdToLabel, InputsAb
+from ontosunburst.input_preprocessing import OntologyDAG, IdToLabel, InputsAb, Weight
 
 
 class SubDAG:
@@ -10,21 +10,28 @@ class SubDAG:
         self.nodes = []
         self.root = root
         self.leaves = []
-
+        ontology_children_dag = get_children_dict(ontology_dag)
         concepts_ancestors = get_ancestors(all_concepts, ontology_dag, root)
         i_cum_w = get_cumulative_w(concepts_ancestors, interest)
         r_cum_w = get_cumulative_w(concepts_ancestors, reference)
-
-        # for c in concepts:
-        #     if c in ref_abundances_dict:
-        #         node = NodeDAG(onto_id=c, label=id_to_labels[c],
-        #                        exp_w=abundances_dict[c], cum_w=cum_w[c], max_w=cum_w[root],
-        #                        r_exp_w=ref_abundances_dict[c], r_cum_w=r_cum_w[c],
-        #                        r_max_w=r_cum_w[root])
+        for c in all_concepts:
+            node = NodeDAG(onto_id=c,
+                           label=dict_value_or(id_to_labels, c, c),
+                           exp_w=dict_value_or(interest, c, numpy.nan),
+                           cum_w=dict_value_or(i_cum_w, c, numpy.nan),
+                           max_w=i_cum_w[root],
+                           r_exp_w=dict_value_or(reference, c, numpy.nan),
+                           r_cum_w=dict_value_or(r_cum_w, c, numpy.nan),
+                           r_max_w=r_cum_w[root],
+                           parents=dict_value_or(ontology_dag, c, []),
+                           children=dict_value_or(ontology_children_dag, c, []))
+            self.nodes.append(node)
 
 
 class NodeDAG:
-    def __init__(self, onto_id, label, exp_w, cum_w, max_w, r_exp_w, r_cum_w, r_max_w):
+    def __init__(self, onto_id: str, label: str, exp_w: Weight, cum_w: Weight, max_w: Weight,
+                 r_exp_w: Weight, r_cum_w: Weight, r_max_w: Weight,
+                 parents: List[str], children: List[str]):
         # ID and label
         self.onto_id = onto_id
         self.label = label
@@ -37,11 +44,11 @@ class NodeDAG:
         self.ref_cumulative_weight = r_cum_w
         self.ref_proportion = r_cum_w / r_max_w
         # Comparison calculations
-        self.intensity = None
+        self.enrichment_p_val = None
         self.difference = cum_w - r_cum_w
         # Hierarchy
-        self.parents = []
-        self.children = []
+        self.parents = parents
+        self.children = children
 
 
 # Main ontology to reduced dag functions
@@ -137,39 +144,6 @@ def get_ancestors_recursively(child: str, parents_set: Set[str], ontology_dag: O
 # ==================================================================================================
 # WEIGHTS CALCULATION
 # ==================================================================================================
-# def calculate_weights(all_classes: Dict[str, Set[str]], abundances_dict: Dict[str, float],
-#                       show_leaves: bool) -> Dict[str, float]:
-#     """ Indicate for each class the number of base object found belonging to the class
-#
-#     Parameters
-#     ----------
-#     all_classes: Dict[str, Set[str]] (Dict[metabolite, Set[class]])
-#         Dictionary associating for each concept the list of all parent classes it belongs to.
-#     abundances_dict: Dict[str, float]
-#         Dictionary associating for each concept, its abundance value
-#     show_leaves: bool
-#         True to show input metabolic objets at sunburst leaves
-#
-#     Returns
-#     -------
-#     Dict[str, float]
-#         Dictionary associating for each class the weight of concepts found belonging to the class.
-#     """
-#     classes_abondance = dict()
-#     for met, classes in all_classes.items():
-#         if show_leaves:
-#             if met not in classes_abondance.keys():
-#                 classes_abondance[met] = abundances_dict[met]
-#             else:
-#                 classes_abondance[met] += abundances_dict[met]
-#         for c in classes:
-#             if c not in classes_abondance.keys():
-#                 classes_abondance[c] = abundances_dict[met]
-#             else:
-#                 classes_abondance[c] += abundances_dict[met]
-#     return dict(reversed(sorted(classes_abondance.items(), key=lambda item: item[1])))
-
-
 def get_cumulative_w(concepts_ancestors: Dict[str, Set[str]], inputs_ab: InputsAb) -> \
         Dict[str, float]:
     """ Calculate the cumulative weight of each class depending on the inputs abundances
@@ -180,25 +154,54 @@ def get_cumulative_w(concepts_ancestors: Dict[str, Set[str]], inputs_ab: InputsA
     concepts_ancestors: Dict[str, Set[str]] (Dict[metabolite, Set[class]])
         Dictionary associating for each concept the list of all parent classes it belongs to.
     inputs_ab: Dict[str, float]
-        Dictionary associating for each concept, its abundance value
+        Dictionary associating for each concept, its abundance value.
 
     Returns
     -------
     Dict[str, float]
-        Dictionary associating for each class the weight of concepts found belonging to the class.
+        Dictionary associating for each class ist cumulative weight.
     """
-    classes_abondance = dict()
+    cumulative_weights = dict()
     for cpt, ab in inputs_ab.items():
-        if cpt not in classes_abondance.keys():
-            classes_abondance[cpt] = ab
+        if cpt not in cumulative_weights.keys():
+            cumulative_weights[cpt] = ab
         else:
-            classes_abondance[cpt] += ab
+            cumulative_weights[cpt] += ab
         for c in concepts_ancestors[cpt]:
-            if c not in classes_abondance.keys():
-                classes_abondance[c] = ab
+            if c not in cumulative_weights.keys():
+                cumulative_weights[c] = ab
             else:
-                classes_abondance[c] += ab
-    return dict(reversed(sorted(classes_abondance.items(), key=lambda item: item[1])))
+                cumulative_weights[c] += ab
+    return dict(reversed(sorted(cumulative_weights.items(), key=lambda item: item[1])))
+
+
+def dict_value_or(dictionary: dict, value: str, alternative: Any):
+    try:
+        return dictionary[value]
+    except KeyError:
+        return alternative
+
+
+def get_children_dict(parent_dict: OntologyDAG) -> OntologyDAG:
+    """ Create the children dictionary from the parents dictionary.
+    Parameters
+    ----------
+    parent_dict: dict[str, list[str]]
+        Dictionary associating for each class, its parents classes
+    Returns
+    -------
+    dict[str, list[str]]
+        Dictionary associating for each class, its children classes
+    """
+    children_dict = dict()
+    for c, ps in parent_dict.items():
+        for p in ps:
+            if p not in children_dict.keys():
+                children_dict[p] = list()
+            if c not in children_dict.keys():
+                children_dict[c] = list()
+            children_dict[p].append(c)
+    return children_dict
 
 
 def get_classes_scores(all_classes, scores_dict, root):

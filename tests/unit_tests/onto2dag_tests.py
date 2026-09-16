@@ -32,6 +32,19 @@ LABELS = {'r': 'Root', 'v': 'V', 'o': 'O', 'n': 'N', 'm': 'M',
           'l': 'L', 'j': 'J', 'k': 'K', 'h': 'H', 'g': 'G', 'f': 'F', 'e': 'E', 'd': 'D',
           'c': 'C', 'i': 'I', 'b': 'B'}
 ROOT = 'r'
+ANCESTORS = {'a': {'x', 'r', 'i'},
+             'b': {'x', 'r', 'i'},
+             'c': {'v', 'r', 'w', 'o', 'j', 'x', 'k', 'n'},
+             'd': {'v', 'r', 'w', 'o', 'j', 'x', 'n'},
+             'e': {'v', 'r', 'w', 'o', 'j', 'x', 'n', 'l'},
+             'f': {'n', 'x', 'k', 'r'},
+             'g': {'v', 'r', 'w', 'm', 'o', 'x', 'l'},
+             'h': {'x', 'm', 'r'},
+             'i': {'x', 'r'}}
+CML_W = {'x': 48, 'r': 48, 'i': 43, 'a': 23, 'b': 20, 'j': 5,
+         'k': 5, 'v': 5, 'n': 5, 'w': 5, 'o': 5, 'c': 5}
+R_CML_W = {'r': 103, 'x': 103, 'n': 55, 'w': 54, 'o': 54, 'v': 54, 'j': 50, 'i': 41, 'b': 26,
+           'k': 25, 'l': 24, 'e': 20, 'c': 20, 'a': 14, 'd': 10, 'm': 7, 'f': 5, 'g': 4, 'h': 3}
 
 
 # ==================================================================================================
@@ -78,16 +91,17 @@ class TestOntoToDag(unittest.TestCase):
     @test_for(get_ancestors_recursively)
     def test_get_ancestors(self):
         all_parents = get_ancestors(ALL_CPT, ONTO, ROOT)
-        expected = {'a': {'x', 'r', 'i'},
-                    'b': {'x', 'r', 'i'},
-                    'c': {'v', 'r', 'w', 'o', 'j', 'x', 'k', 'n'},
-                    'd': {'v', 'r', 'w', 'o', 'j', 'x', 'n'},
-                    'e': {'v', 'r', 'w', 'o', 'j', 'x', 'n', 'l'},
-                    'f': {'n', 'x', 'k', 'r'},
-                    'g': {'v', 'r', 'w', 'm', 'o', 'x', 'l'},
-                    'h': {'x', 'm', 'r'},
-                    'i': {'x', 'r'}}
-        self.assertDictEqual(all_parents, expected)
+        self.assertDictEqual(all_parents, ANCESTORS)
+
+    @test_for(get_cumulative_w)
+    def test_get_cumulative_w(self):
+        i_cml_w = get_cumulative_w(ANCESTORS, I_DCT)
+        self.assertDictEqual(i_cml_w, CML_W)
+
+    @test_for(get_cumulative_w)
+    def test_get_cumulative_w(self):
+        r_cml_w = get_cumulative_w(ANCESTORS, R_DCT)
+        self.assertDictEqual(r_cml_w, R_CML_W)
 
 # TESTS REDUCE DAG FUNCTIONS
 # --------------------------------------------------------------------------------------------------
