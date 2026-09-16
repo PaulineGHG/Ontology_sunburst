@@ -1,7 +1,11 @@
 import logging
 from typing import List, Set, Dict, Any, TypeAlias, Literal
 import numpy
+import scipy.stats as stats
 from ontosunburst.input_preprocessing import OntologyDAG, IdToLabel, InputsAb, Weight
+
+BINOMIAL_TEST = 'binomial'
+HYPERGEO_TEST = 'hypergeo'
 
 
 class SubDAG:
@@ -9,12 +13,13 @@ class SubDAG:
                  ontology_dag: OntologyDAG, root: str, id_to_labels: IdToLabel):
         self.nodes = []
         self.root = root
-        self.leaves = []
-        ontology_children_dag = get_children_dict(ontology_dag)
         concepts_ancestors = get_ancestors(all_concepts, ontology_dag, root)
         i_cum_w = get_cumulative_w(concepts_ancestors, interest)
         r_cum_w = get_cumulative_w(concepts_ancestors, reference)
-        for c in all_concepts:
+        all_classes = set(i_cum_w.keys()).union(set(r_cum_w.keys()))
+        ontology_dag = reduce_dag(ontology_dag, all_classes)
+        ontology_children_dag = get_children_dict(ontology_dag)
+        for c in all_classes:
             node = NodeDAG(onto_id=c,
                            label=dict_value_or(id_to_labels, c, c),
                            exp_w=dict_value_or(interest, c, numpy.nan),
@@ -39,44 +44,59 @@ class NodeDAG:
         self.experimental_weight = exp_w
         self.cumulative_weight = cum_w
         self.proportion = cum_w / max_w
+        self.max_w = max_w
         # Reference weights
         self.ref_experimental_weight = r_exp_w
         self.ref_cumulative_weight = r_cum_w
         self.ref_proportion = r_cum_w / r_max_w
+        self.r_max_w = r_max_w
         # Comparison calculations
         self.enrichment_p_val = None
+        self.enrichment_log10_p_val = None
         self.difference = cum_w - r_cum_w
         # Hierarchy
         self.parents = parents
         self.children = children
 
+    def calculate_enrichment(self, test):
+        # Set enrichment P-value calculation
+        if self.cumulative_weight != numpy.nan:  # If count not nan (= if concept in interest set)
+            # Binomial Test
+            if test == BINOMIAL_TEST:
+                self.enrichment_p_val = stats.binomtest(self.cumulative_weight, self.max_w,
+                                                        self.ref_cumulative_weight / self.r_max_w,
+                                                        alternative='two-sided').pvalue
+                # Hypergeometric Test
+            elif test == HYPERGEO_TEST:
+                p_val_upper = stats.hypergeom.sf(self.cumulative_weight - 1, self.r_max_w,
+                                                 self.ref_cumulative_weight, self.max_w)
+                p_val_lower = stats.hypergeom.cdf(self.cumulative_weight - 1, self.r_max_w,
+                                                  self.ref_cumulative_weight, self.max_w)
+                self.enrichment_p_val = 2 * min(p_val_lower, p_val_upper)  # bilateral
+
+        # Set Log10 P-value values
+        if self.proportion - self.ref_proportion > 0:  # If over-represented :
+            if self.enrichment_p_val == 0:
+                self.enrichment_log10_p_val = 400  # Simulate log10 of 400 decimal float
+            else:
+                self.enrichment_log10_p_val = -numpy.log10(
+                    self.enrichment_p_val)  # Positive log10(p-value)
+        else:  # If under-represented :
+            if self.enrichment_p_val == 0:
+                self.enrichment_log10_p_val = -400  # Simulate log10 of 400 decimal float
+            else:
+                self.enrichment_log10_p_val = numpy.log10(
+                    self.enrichment_p_val)  # Negative log10(p-value)
+
 
 # Main ontology to reduced dag functions
 # --------------------------------------------------------------------------------------------------
-def reduce_d_ontology(complete_dictionary: Dict[str, Any],
-                      classes_abundance: Dict[str, float]) -> Dict[str, Any]:
-    """ Extract the sub-graph of the d_classes_ontology dictionary conserving only nodes implicated
-    with the concepts studied.
-
-    Parameters
-    ----------
-    complete_dictionary: Dict[str, Any]
-        Dictionary of the ontology complete graph
-    classes_abundance: Dict[str, float]
-        Dictionary of abundances (keys are all nodes implicated to be conserved)
-
-    Returns
-    -------
-    Dict[str, Any]
-        Dictionary of the ontology sub-graph conserving only nodes implicated with the concepts
-        studied.
-    """
-    if complete_dictionary is not None:
-        reduced_dictionary = dict()
-        for k, v in complete_dictionary.items():
-            if k in classes_abundance:
-                reduced_dictionary[k] = v
-        return reduced_dictionary
+def reduce_dag(ontology_dag: OntologyDAG, all_classes: Set[str]) -> OntologyDAG:
+    reduced_dictionary = dict()
+    for k, v in ontology_dag.items():
+        if k in all_classes:
+            reduced_dictionary[k] = v
+    return reduced_dictionary
 
 
 # ==================================================================================================

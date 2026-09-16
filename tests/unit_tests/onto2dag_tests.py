@@ -103,6 +103,14 @@ class TestOntoToDag(unittest.TestCase):
         r_cml_w = get_cumulative_w(ANCESTORS, R_DCT)
         self.assertDictEqual(r_cml_w, R_CML_W)
 
+    def test_sub_dag(self):
+        sub_dag = SubDAG(I_DCT, R_DCT, ALL_CPT, ONTO, ROOT, LABELS)
+        for node in sub_dag.nodes:
+            print(node.onto_id, node.label, node.experimental_weight, node.cumulative_weight,
+                  node.proportion, node.ref_experimental_weight, node.ref_cumulative_weight,
+                  node.ref_proportion, node.parents, node.children, node.difference,
+                  node.enrichment_p_val)
+
 # TESTS REDUCE DAG FUNCTIONS
 # --------------------------------------------------------------------------------------------------
 # class TestReduceDAG(unittest.TestCase):
