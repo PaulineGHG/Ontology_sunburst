@@ -11,14 +11,10 @@ class SubDAG:
         self.root = root
         self.leaves = []
 
-        concepts_all_parents = get_all_parents(all_concepts, ontology_dag, root)
+        concepts_ancestors = get_ancestors(all_concepts, ontology_dag, root)
+        i_cum_w = get_cumulative_w(concepts_ancestors, interest)
+        r_cum_w = get_cumulative_w(concepts_ancestors, reference)
 
-        # abundances_dict = get_abundance_dict(abundances, concepts)
-        # ref_abundances_dict = get_abundance_dict(ref_abundances, ref_concepts)
-        #
-        # cum_w = get_cumulative_w(concepts_all_classes, abundances_dict)
-        # r_cum_w = get_cumulative_w(concepts_all_classes, ref_abundances_dict)
-        #
         # for c in concepts:
         #     if c in ref_abundances_dict:
         #         node = NodeDAG(onto_id=c, label=id_to_labels[c],
@@ -81,130 +77,109 @@ def reduce_d_ontology(complete_dictionary: Dict[str, Any],
 # ==================================================================================================
 
 
-# Recursive class extraction function
+# Recursive ancestors extraction functions
 # --------------------------------------------------------------------------------------------------
-def get_all_parents(all_concepts: Set[str], ontology_dag: OntologyDAG, root: str) \
+def get_ancestors(all_concepts: Set[str], ontology_dag: OntologyDAG, root: str) \
         -> Dict[str, Set[str]]:
-    all_parents_dict = dict()
-    # for met, classes in obj_classes.items():
-    #     all_classes = set(classes)
-    #     for c in classes:
-    #         if c != root_item:
-    #             m_classes = get_parents(c, set(d_classes_ontology[c]), d_classes_ontology,
-    #                                     root_item)
-    #             all_classes = all_classes.union(m_classes)
-    #     all_parents[met] = all_classes
+    """ Return a dictionary associating to each input concept the list of all its ancestors
+    (parents + parents of parents... recursively to the root)
+
+    Parameters
+    ----------
+    all_concepts: set[str]
+        Set of all concepts from interest and reference
+    ontology_dag: dict[str, list[str]]
+    root: str
+        Root of the ontology DAG
+
+    Returns
+    -------
+    dict[str, set[str]]
+        Dictionary associating to each input concept the list of all its ancestors
+        (parents + parents of parents... recursively to the root)
+    """
+    ancestors_dict = dict()
     for cpt in all_concepts:
         parents = set(ontology_dag[cpt])
-        all_parents = get_parents(cpt, parents, ontology_dag, root)
-        all_parents_dict[cpt] = all_parents
-    return all_parents_dict
+        ancestors = get_ancestors_recursively(cpt, parents, ontology_dag, root)
+        ancestors_dict[cpt] = ancestors
+    return ancestors_dict
 
 
-def get_parents(child: str, parent_set: Set[str], d_classes_ontology: Dict[str, List[str]],
-                root_item) -> Set[str]:
-    """ Get recursively from a child class, all its parents classes found in ontology.
+def get_ancestors_recursively(child: str, parents_set: Set[str], ontology_dag: OntologyDAG,
+                              root_item) -> Set[str]:
+    """ Get recursively from a child ID, all its ancestors IDs found in ontology.
 
     Parameters
     ----------
     child: str
-        Child class
-    parent_set: Set[str]
-        Set of all parents from previous classes
-    d_classes_ontology: Dict[str, List[str]]
-        Dictionary of the classes ontology of MetaCyc associating for each class its parent classes.
+        Child ID
+    parents_set: set[str]
+        Set of all parents from previous child ID
+    ontology_dag: dict[str, list[str]]
     root_item: str
-        Name of the root item of the ontology
+        Root of the ontology DAG
 
     Returns
     -------
     Set[str]
-        Set of the union of the set  of child parent classes and the set of all previous parents.
+        Set of the union of the set of child parent classes and the set of all previous parents.
     """
-    parents = d_classes_ontology[child]
+    parents = ontology_dag[child]
     for p in parents:
-        parent_set.add(p)
+        parents_set.add(p)
     for p in parents:
         if p != root_item:
-            parent_set = get_parents(p, parent_set, d_classes_ontology, root_item)
-    return parent_set
+            parents_set = get_ancestors_recursively(p, parents_set, ontology_dag, root_item)
+    return parents_set
 
 
 # ==================================================================================================
 # WEIGHTS CALCULATION
 # ==================================================================================================
+# def calculate_weights(all_classes: Dict[str, Set[str]], abundances_dict: Dict[str, float],
+#                       show_leaves: bool) -> Dict[str, float]:
+#     """ Indicate for each class the number of base object found belonging to the class
+#
+#     Parameters
+#     ----------
+#     all_classes: Dict[str, Set[str]] (Dict[metabolite, Set[class]])
+#         Dictionary associating for each concept the list of all parent classes it belongs to.
+#     abundances_dict: Dict[str, float]
+#         Dictionary associating for each concept, its abundance value
+#     show_leaves: bool
+#         True to show input metabolic objets at sunburst leaves
+#
+#     Returns
+#     -------
+#     Dict[str, float]
+#         Dictionary associating for each class the weight of concepts found belonging to the class.
+#     """
+#     classes_abondance = dict()
+#     for met, classes in all_classes.items():
+#         if show_leaves:
+#             if met not in classes_abondance.keys():
+#                 classes_abondance[met] = abundances_dict[met]
+#             else:
+#                 classes_abondance[met] += abundances_dict[met]
+#         for c in classes:
+#             if c not in classes_abondance.keys():
+#                 classes_abondance[c] = abundances_dict[met]
+#             else:
+#                 classes_abondance[c] += abundances_dict[met]
+#     return dict(reversed(sorted(classes_abondance.items(), key=lambda item: item[1])))
 
-def get_abundance_dict(abundances: List[float] or None, concepts: List[str]) \
-        -> Dict[str, float]:
-    """ Generate abundances dictionary.
+
+def get_cumulative_w(concepts_ancestors: Dict[str, Set[str]], inputs_ab: InputsAb) -> \
+        Dict[str, float]:
+    """ Calculate the cumulative weight of each class depending on the inputs abundances
+    (interest or reference).
 
     Parameters
     ----------
-    abundances: List[float] (size N) or None
-        List of concepts abundances (or None if no abundances associated --> will associate
-        an abundance of 1 for each concept)
-    concepts: List[str] (size N)
-        List of concepts ID.
-
-    Returns
-    -------
-    Dict[str, float]
-        Dictionary associating to each concept its abundance.
-    """
-    if abundances is None:
-        abundances = len(concepts) * [1]
-    if len(concepts) == len(abundances):
-        abundances_dict = {}
-        for i in range(len(concepts)):
-            abundances_dict[concepts[i]] = abundances[i]
-    else:
-        raise AttributeError(f'Length of concepts IDs list must be equal to '
-                             f'its abundances list length : {len(concepts)} '
-                             f'!= {len(abundances)}')
-    return abundances_dict
-
-
-def calculate_weights(all_classes: Dict[str, Set[str]], abundances_dict: Dict[str, float],
-                      show_leaves: bool) -> Dict[str, float]:
-    """ Indicate for each class the number of base object found belonging to the class
-
-    Parameters
-    ----------
-    all_classes: Dict[str, Set[str]] (Dict[metabolite, Set[class]])
+    concepts_ancestors: Dict[str, Set[str]] (Dict[metabolite, Set[class]])
         Dictionary associating for each concept the list of all parent classes it belongs to.
-    abundances_dict: Dict[str, float]
-        Dictionary associating for each concept, its abundance value
-    show_leaves: bool
-        True to show input metabolic objets at sunburst leaves
-
-    Returns
-    -------
-    Dict[str, float]
-        Dictionary associating for each class the weight of concepts found belonging to the class.
-    """
-    classes_abondance = dict()
-    for met, classes in all_classes.items():
-        if show_leaves:
-            if met not in classes_abondance.keys():
-                classes_abondance[met] = abundances_dict[met]
-            else:
-                classes_abondance[met] += abundances_dict[met]
-        for c in classes:
-            if c not in classes_abondance.keys():
-                classes_abondance[c] = abundances_dict[met]
-            else:
-                classes_abondance[c] += abundances_dict[met]
-    return dict(reversed(sorted(classes_abondance.items(), key=lambda item: item[1])))
-
-
-def get_cumulative_w(all_classes: Dict[str, Set[str]], abundances_dict: Dict[str, float]) -> Dict[str, float]:
-    """ Indicate for each class the number of base object found belonging to the class
-
-    Parameters
-    ----------
-    all_classes: Dict[str, Set[str]] (Dict[metabolite, Set[class]])
-        Dictionary associating for each concept the list of all parent classes it belongs to.
-    abundances_dict: Dict[str, float]
+    inputs_ab: Dict[str, float]
         Dictionary associating for each concept, its abundance value
 
     Returns
@@ -213,12 +188,12 @@ def get_cumulative_w(all_classes: Dict[str, Set[str]], abundances_dict: Dict[str
         Dictionary associating for each class the weight of concepts found belonging to the class.
     """
     classes_abondance = dict()
-    for met, ab in abundances_dict.items():
-        if met not in classes_abondance.keys():
-            classes_abondance[met] = ab
+    for cpt, ab in inputs_ab.items():
+        if cpt not in classes_abondance.keys():
+            classes_abondance[cpt] = ab
         else:
-            classes_abondance[met] += ab
-        for c in all_classes[met]:
+            classes_abondance[cpt] += ab
+        for c in concepts_ancestors[cpt]:
             if c not in classes_abondance.keys():
                 classes_abondance[c] = ab
             else:

@@ -80,6 +80,8 @@ def ontosunburst(interest: Input,
         Plotly graph_objects figure of the sunburst
     """
     start_time = time()
+
+    # ================================== INPUT PREPROCESSING =======================================
     # MANAGE INPUTS --------------------------------------------------------------------------------
     interest, reference = check_inputs_sets(interest, reference)
     all_concepts = set(interest.keys()).union(set(reference.keys()))
@@ -92,6 +94,8 @@ def ontosunburst(interest: Input,
     root, ontology_dag = get_ontology_root(ontology_dag)
     # LOAD ID TO LABELS DICTIONARY -----------------------------------------------------------------
     id_to_label = get_id_to_label_dict(ontology, id_to_label_input)
+
+    # ===================================== ONTO TO DAG ============================================
     # GENERATE SUB-DAG FROM INPUT ------------------------------------------------------------------
     sub_dag = SubDAG(interest, reference, all_concepts, ontology_dag, root, id_to_label)
 
