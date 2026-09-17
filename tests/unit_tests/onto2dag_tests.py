@@ -106,7 +106,8 @@ class TestOntoToDag(unittest.TestCase):
     def test_sub_dag(self):
         sub_dag = SubDAG(I_DCT, R_DCT, ALL_CPT, ONTO, ROOT, LABELS, BINOMIAL_TEST)
         for node in sub_dag.nodes:
-            node._print_arguments()
+            # node._print_arguments()
+            print(node.onto_id, node.difference)
 
 # TESTS REDUCE DAG FUNCTIONS
 # --------------------------------------------------------------------------------------------------
