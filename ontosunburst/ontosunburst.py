@@ -4,7 +4,7 @@ import plotly.graph_objects as go
 from ontosunburst.input_preprocessing import *
 from ontosunburst.dag2tree import *
 from ontosunburst.onto2dag import *
-from ontosunburst.tree2sunburst import generate_sunburst_fig, TOPOLOGY_A, ENRICHMENT_A
+# from ontosunburst.tree2sunburst import *
 
 
 logging.basicConfig(level=logging.INFO)
@@ -23,7 +23,7 @@ def ontosunburst(interest: Input,
                  ontology_dag_input: str | OntologyDAG = None,
                  id_to_label_input: str | IdToLabel = None,
                  use_labels: bool = True,
-                 test: str = BINOMIAL_TEST,
+                 test: EnrichmentTest = HYPERGEO_TEST,
                  root_cut: str = ROOT_CUT,
                  path_cut: str = PATH_UNCUT,
                  ref_base: bool = False,
@@ -97,7 +97,7 @@ def ontosunburst(interest: Input,
 
     # ===================================== ONTO TO DAG ============================================
     # GENERATE SUB-DAG FROM INPUT ------------------------------------------------------------------
-    sub_dag = SubDAG(interest, reference, all_concepts, ontology_dag, root, id_to_label)
+    sub_dag = SubDAG(interest, reference, all_concepts, ontology_dag, root, id_to_label, test)
 
     end_time = time()
     logging.info(f'Execution time : {end_time - start_time} seconds')

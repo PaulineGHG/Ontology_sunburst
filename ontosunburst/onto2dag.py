@@ -1,16 +1,17 @@
 import logging
-from typing import List, Set, Dict, Any, TypeAlias, Literal
+from typing import List, Set, Dict, Any, TypeAlias, Literal, get_args
 import numpy
 import scipy.stats as stats
 from ontosunburst.input_preprocessing import OntologyDAG, IdToLabel, InputsAb, Weight
 
-BINOMIAL_TEST = 'binomial'
-HYPERGEO_TEST = 'hypergeo'
+EnrichmentTest: TypeAlias = Literal['binomial', 'hypergeo']
+BINOMIAL_TEST, HYPERGEO_TEST = get_args(EnrichmentTest)
 
 
 class SubDAG:
     def __init__(self, interest: InputsAb, reference: InputsAb, all_concepts: set[str],
-                 ontology_dag: OntologyDAG, root: str, id_to_labels: IdToLabel):
+                 ontology_dag: OntologyDAG, root: str, id_to_labels: IdToLabel,
+                 test: EnrichmentTest):
         self.nodes = []
         self.root = root
         concepts_ancestors = get_ancestors(all_concepts, ontology_dag, root)
@@ -29,7 +30,9 @@ class SubDAG:
                            r_exp_w=dict_value_or(reference, c, numpy.nan),
                            r_cum_w=dict_value_or(r_cum_w, c, numpy.nan),
                            parents=dict_value_or(ontology_dag, c, []),
+                           ancestors=dict_value_or(concepts_ancestors, c, set()),
                            children=dict_value_or(ontology_children_dag, c, []))
+            node.calculate_enrichment(test)
             self.nodes.append(node)
 
 
@@ -39,7 +42,7 @@ class NodeDAG:
 
     def __init__(self, onto_id: str, label: str, exp_w: Weight, cum_w: Weight,
                  r_exp_w: Weight, r_cum_w: Weight,
-                 parents: List[str], children: List[str]):
+                 parents: List[str], ancestors: Set[str], children: List[str]):
         # ID and label
         self.onto_id = onto_id
         self.label = label
@@ -54,29 +57,36 @@ class NodeDAG:
         # Comparison calculations
         self.enrichment_p_val = None
         self.enrichment_log10_p_val = None
-        self.difference = cum_w - r_cum_w
+        self.difference = self.proportion - self.ref_proportion
         # Hierarchy
         self.parents = parents
+        self.ancestors = ancestors
         self.children = children
 
-    def calculate_enrichment(self, test):
+    def calculate_enrichment(self, test: EnrichmentTest):
         # Set enrichment P-value calculation
-        if self.cumulative_weight != numpy.nan:  # If count not nan (= if concept in interest set)
+        if not numpy.isnan(self.cumulative_weight) and not numpy.isnan(self.ref_cumulative_weight):
+            if type(self.cumulative_weight) == float or type(self.ref_cumulative_weight) == float:
+                logging.warning(f'Cannot perform enrichment on float values (only int). '
+                                f'P-value set to nan for "{self.onto_id}".')
+                self.enrichment_p_val = numpy.nan
             # Binomial Test
-            if test == BINOMIAL_TEST:
-                self.enrichment_p_val = stats.binomtest(self.cumulative_weight, self.max_w,
-                                                        self.ref_cumulative_weight / self.r_max_w,
+            elif test == BINOMIAL_TEST:
+                self.enrichment_p_val = stats.binomtest(k=self.cumulative_weight, n=self.max_w,
+                                                        p=self.ref_cumulative_weight / self.r_max_w,
                                                         alternative='two-sided').pvalue
                 # Hypergeometric Test
             elif test == HYPERGEO_TEST:
-                p_val_upper = stats.hypergeom.sf(self.cumulative_weight - 1, self.r_max_w,
-                                                 self.ref_cumulative_weight, self.max_w)
-                p_val_lower = stats.hypergeom.cdf(self.cumulative_weight - 1, self.r_max_w,
-                                                  self.ref_cumulative_weight, self.max_w)
+                p_val_upper = stats.hypergeom.sf(k=self.cumulative_weight - 1, M=self.r_max_w,
+                                                 n=self.ref_cumulative_weight, N=self.max_w)        # k=k K=n n=N N=M
+                p_val_lower = stats.hypergeom.cdf(k=self.cumulative_weight - 1, M=self.r_max_w,     # k=cw n=max K=r_cw N=r_max
+                                                  n=self.ref_cumulative_weight, N=self.max_w)       # k=cw N=max n=r_cw M=r_max
                 self.enrichment_p_val = 2 * min(p_val_lower, p_val_upper)  # bilateral
+        else:
+            self.enrichment_p_val = numpy.nan
 
         # Set Log10 P-value values
-        if self.proportion - self.ref_proportion > 0:  # If over-represented :
+        if self.difference > 0:  # If over-represented :
             if self.enrichment_p_val == 0:
                 self.enrichment_log10_p_val = 400  # Simulate log10 of 400 decimal float
             else:
@@ -88,6 +98,22 @@ class NodeDAG:
             else:
                 self.enrichment_log10_p_val = numpy.log10(
                     self.enrichment_p_val)  # Negative log10(p-value)
+
+    def _print_arguments(self):
+        print({'ID': self.onto_id,
+               'Label': self.label,
+               'Experimental Weight': self.experimental_weight,
+               'Cumulative Weight': self.cumulative_weight,
+               'Proportion': self.proportion,
+               'Reference Experimental Weight': self.ref_experimental_weight,
+               'Reference Cumulative Weight': self.ref_cumulative_weight,
+               'Reference Proportion': self.ref_proportion,
+               'Difference': self.difference,
+               'Enrichment P-value': self.enrichment_p_val,
+               'Enrichment Log10 P-value': self.enrichment_log10_p_val,
+               'Parents': self.parents,
+               'Ancestors': self.ancestors,
+               'Children': self.children})
 
 
 # Main ontology to reduced dag functions
