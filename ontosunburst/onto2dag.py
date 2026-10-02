@@ -222,9 +222,17 @@ def get_cumulative_w(concepts_ancestors: Dict[str, Set[str]], inputs_ab: InputsA
     return dict(reversed(sorted(cumulative_weights.items(), key=lambda item: item[1])))
 
 
-def dict_value_or(dictionary: dict, value: str, alternative: Any):
+def dict_value_or(dictionary: dict, key: str, alternative: Any):
+    """ Returns the value of a key in a dictionary or a default value if the key doesn't exist.
+
+    Parameters
+    ----------
+    dictionary: dict
+    key: str
+    alternative: Any
+    """
     try:
-        return dictionary[value]
+        return dictionary[key]
     except KeyError:
         return alternative
 
