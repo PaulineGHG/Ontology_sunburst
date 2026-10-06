@@ -8,33 +8,6 @@ EnrichmentTest: TypeAlias = Literal['binomial', 'hypergeo']
 BINOMIAL_TEST, HYPERGEO_TEST = get_args(EnrichmentTest)
 
 
-class SubDAG:
-    def __init__(self, interest: InputsAb, reference: InputsAb, all_concepts: set[str],
-                 ontology_dag: OntologyDAG, root: str, id_to_labels: IdToLabel,
-                 test: EnrichmentTest):
-        self.nodes = []
-        self.root = root
-        concepts_ancestors = get_ancestors(all_concepts, ontology_dag, root)
-        i_cum_w = get_cumulative_w(concepts_ancestors, interest)
-        r_cum_w = get_cumulative_w(concepts_ancestors, reference)
-        all_classes = set(i_cum_w.keys()).union(set(r_cum_w.keys()))
-        ontology_dag = reduce_dag(ontology_dag, all_classes)
-        ontology_children_dag = get_children_dict(ontology_dag)
-        NodeDAG.max_w = i_cum_w[root]
-        NodeDAG.r_max_w = r_cum_w[root]
-        for c in all_classes:
-            node = NodeDAG(onto_id=c,
-                           label=dict_value_or(id_to_labels, c, c),
-                           exp_w=dict_value_or(interest, c, numpy.nan),
-                           cum_w=dict_value_or(i_cum_w, c, numpy.nan),
-                           r_exp_w=dict_value_or(reference, c, numpy.nan),
-                           r_cum_w=dict_value_or(r_cum_w, c, numpy.nan),
-                           parents=dict_value_or(ontology_dag, c, []),
-                           ancestors=dict_value_or(concepts_ancestors, c, set()),
-                           children=dict_value_or(ontology_children_dag, c, []))
-            node.calculate_enrichment(test)
-            self.nodes.append(node)
-
 
 class NodeDAG:
     max_w = 0
@@ -44,24 +17,24 @@ class NodeDAG:
                  r_exp_w: Weight, r_cum_w: Weight,
                  parents: List[str], ancestors: Set[str], children: List[str]):
         # ID and label
-        self.onto_id = onto_id
-        self.label = label
+        self.onto_id: str = onto_id
+        self.label: str = label
         # Weights
-        self.experimental_weight = exp_w
-        self.cumulative_weight = cum_w
-        self.proportion = cum_w / self.max_w
+        self.experimental_weight: Weight = exp_w
+        self.cumulative_weight: Weight = cum_w
+        self.proportion: float = cum_w / self.max_w
         # Reference weights
-        self.ref_experimental_weight = r_exp_w
-        self.ref_cumulative_weight = r_cum_w
-        self.ref_proportion = r_cum_w / self.r_max_w
+        self.ref_experimental_weight: Weight = r_exp_w
+        self.ref_cumulative_weight: Weight = r_cum_w
+        self.ref_proportion: float = r_cum_w / self.r_max_w
         # Comparison calculations
         self.enrichment_p_val = None
         self.enrichment_log10_p_val = None
         self.difference = self.proportion - self.ref_proportion
         # Hierarchy
-        self.parents = parents
-        self.ancestors = ancestors
-        self.children = children
+        self.parents: List[str] = parents
+        self.ancestors: Set[str] = ancestors
+        self.children: List[str] = children
 
     def calculate_enrichment(self, test: EnrichmentTest):
         # Set enrichment P-value calculation
@@ -114,6 +87,40 @@ class NodeDAG:
                'Parents': self.parents,
                'Ancestors': self.ancestors,
                'Children': self.children})
+
+
+class SubDAG:
+    def __init__(self, interest: InputsAb, reference: InputsAb, all_concepts: set[str],
+                 ontology_dag: OntologyDAG, root: str, id_to_labels: IdToLabel,
+                 test: EnrichmentTest):
+        self.nodes: Dict[str, NodeDAG] = {}
+        self.root: str = root
+        concepts_ancestors = get_ancestors(all_concepts, ontology_dag, root)
+        i_cum_w = get_cumulative_w(concepts_ancestors, interest)
+        r_cum_w = get_cumulative_w(concepts_ancestors, reference)
+        all_classes = set(i_cum_w.keys()).union(set(r_cum_w.keys()))
+        ontology_dag = reduce_dag(ontology_dag, all_classes)
+        ontology_children_dag = get_children_dict(ontology_dag)
+        NodeDAG.max_w = i_cum_w[root]
+        NodeDAG.r_max_w = r_cum_w[root]
+        for c in all_classes:
+            node = NodeDAG(onto_id=c,
+                           label=dict_value_or(id_to_labels, c, c),
+                           exp_w=dict_value_or(interest, c, numpy.nan),
+                           cum_w=dict_value_or(i_cum_w, c, numpy.nan),
+                           r_exp_w=dict_value_or(reference, c, numpy.nan),
+                           r_cum_w=dict_value_or(r_cum_w, c, numpy.nan),
+                           parents=dict_value_or(ontology_dag, c, []),
+                           ancestors=dict_value_or(concepts_ancestors, c, set()),
+                           children=dict_value_or(ontology_children_dag, c, []))
+            node.calculate_enrichment(test)
+            self.nodes[c] = node
+
+    def node_by_id(self, node_id: str) -> NodeDAG:
+        return self.nodes[node_id]
+
+    def nodes_by_id(self, nodes_id: List[str]) -> List[NodeDAG]:
+        return [self.nodes[x] for x in nodes_id]
 
 
 # Main ontology to reduced dag functions
