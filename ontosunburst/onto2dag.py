@@ -34,6 +34,8 @@ class NodeDAG:
         self.parents: List[str] = parents
         self.ancestors: Set[str] = ancestors
         self.children: List[str] = children
+        # Duplication count
+        self.copies = 0
 
     def calculate_enrichment(self, test: EnrichmentTest):
         # Set enrichment P-value calculation
