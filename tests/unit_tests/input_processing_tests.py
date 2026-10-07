@@ -105,7 +105,7 @@ class TestInputs(unittest.TestCase):
     def test_check_inputs_sets_no_ref(self):
         itr, ref = check_inputs_sets(I_DCT, None)
         self.assertDictEqual(itr, I_DCT)
-        self.assertDictEqual(ref, I_DCT)
+        self.assertDictEqual(ref, {})
 
     @test_for(check_inputs_sets)
     def test_check_inputs_sets_no_itr(self):

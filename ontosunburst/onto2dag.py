@@ -8,7 +8,6 @@ EnrichmentTest: TypeAlias = Literal['binomial', 'hypergeo']
 BINOMIAL_TEST, HYPERGEO_TEST = get_args(EnrichmentTest)
 
 
-
 class NodeDAG:
     max_w = 0
     r_max_w = 0
@@ -51,9 +50,12 @@ class NodeDAG:
                 # Hypergeometric Test
             elif test == HYPERGEO_TEST:
                 p_val_upper = stats.hypergeom.sf(k=self.cumulative_weight - 1, M=self.r_max_w,
-                                                 n=self.ref_cumulative_weight, N=self.max_w)        # k=k K=n n=N N=M
-                p_val_lower = stats.hypergeom.cdf(k=self.cumulative_weight - 1, M=self.r_max_w,     # k=cw n=max K=r_cw N=r_max
-                                                  n=self.ref_cumulative_weight, N=self.max_w)       # k=cw N=max n=r_cw M=r_max
+                                                 n=self.ref_cumulative_weight,
+                                                 N=self.max_w)  # k=k K=n n=N N=M
+                p_val_lower = stats.hypergeom.cdf(k=self.cumulative_weight - 1, M=self.r_max_w,
+                                                  # k=cw n=max K=r_cw N=r_max
+                                                  n=self.ref_cumulative_weight,
+                                                  N=self.max_w)  # k=cw N=max n=r_cw M=r_max
                 self.enrichment_p_val = 2 * min(p_val_lower, p_val_upper)  # bilateral
         else:
             self.enrichment_p_val = numpy.nan
@@ -72,21 +74,21 @@ class NodeDAG:
                 self.enrichment_log10_p_val = numpy.log10(
                     self.enrichment_p_val)  # Negative log10(p-value)
 
-    def _print_arguments(self):
-        print({'ID': self.onto_id,
-               'Label': self.label,
-               'Experimental Weight': self.experimental_weight,
-               'Cumulative Weight': self.cumulative_weight,
-               'Proportion': self.proportion,
-               'Reference Experimental Weight': self.ref_experimental_weight,
-               'Reference Cumulative Weight': self.ref_cumulative_weight,
-               'Reference Proportion': self.ref_proportion,
-               'Difference': self.difference,
-               'Enrichment P-value': self.enrichment_p_val,
-               'Enrichment Log10 P-value': self.enrichment_log10_p_val,
-               'Parents': self.parents,
-               'Ancestors': self.ancestors,
-               'Children': self.children})
+    def _get_arguments(self):
+        return {'ID': self.onto_id,
+                'Label': self.label,
+                'Experimental Weight': self.experimental_weight,
+                'Cumulative Weight': self.cumulative_weight,
+                'Proportion': self.proportion,
+                'Reference Experimental Weight': self.ref_experimental_weight,
+                'Reference Cumulative Weight': self.ref_cumulative_weight,
+                'Reference Proportion': self.ref_proportion,
+                'Difference': self.difference,
+                'Enrichment P-value': self.enrichment_p_val,
+                'Enrichment Log10 P-value': self.enrichment_log10_p_val,
+                'Parents': self.parents,
+                'Ancestors': self.ancestors,
+                'Children': self.children}
 
 
 class SubDAG:
@@ -95,6 +97,7 @@ class SubDAG:
                  test: EnrichmentTest):
         self.nodes: Dict[str, NodeDAG] = {}
         self.root: str = root
+
         concepts_ancestors = get_ancestors(all_concepts, ontology_dag, root)
         i_cum_w = get_cumulative_w(concepts_ancestors, interest)
         r_cum_w = get_cumulative_w(concepts_ancestors, reference)
@@ -102,7 +105,7 @@ class SubDAG:
         ontology_dag = reduce_dag(ontology_dag, all_classes)
         ontology_children_dag = get_children_dict(ontology_dag)
         NodeDAG.max_w = i_cum_w[root]
-        NodeDAG.r_max_w = r_cum_w[root]
+        NodeDAG.r_max_w = dict_value_or(r_cum_w, root, numpy.nan)
         for c in all_classes:
             node = NodeDAG(onto_id=c,
                            label=dict_value_or(id_to_labels, c, c),

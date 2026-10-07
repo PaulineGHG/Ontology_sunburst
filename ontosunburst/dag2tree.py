@@ -64,7 +64,7 @@ class Tree:
 
     def dag_traversal_rec(self, parent, children):
         for child_node in self.sub_dag.nodes_by_id(children):
-
+            pass
 
 
 

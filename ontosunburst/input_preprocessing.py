@@ -75,7 +75,7 @@ def check_inputs_sets(interest: Input, reference: Input | None) -> Tuple[InputsA
     # Reference
     if reference is None:
         logging.info('Running ontosunburst with no reference.')
-        reference = copy.deepcopy(interest)  # Maybe no need deep copy
+        reference = {}
     elif type(reference) == list or type(reference) == set:
         logging.info('No abundances for reference set, '
                      'default value "1" will be used for each concept.')
