@@ -33,6 +33,29 @@ KWARGS_TYPE = {C_MIN: float, C_MAX: float, C_MID: float, MAX_DEPTH: int, COLORSC
 # ==================================================================================================
 # FUNCTIONS
 # ==================================================================================================
+def generate_sunburst_fig(tree: InducedTree, output: str, colorization: str, sector_sized: bool,
+                          write_fig: bool = True, **kwargs) -> go.Figure:
+    c_min, c_max, c_mid, max_depth, colorscale, title, colorbar_legend, background_color, \
+        font_color, font_size, table_title, table_legend, table_color = \
+        get_fig_kwargs(output, analysis, **kwargs)
+
+    fig = go.Figure(go.Sunburst(labels=data.labels, parents=data.parents,
+                                values=data.relative_prop, ids=data.ids,
+                                hoverinfo='label+text', maxdepth=max_depth,
+                                branchvalues='total',
+                                hovertext=get_hover_fig_text(data, TOPOLOGY_A, ref_set),
+                                marker=dict(colors=data.count, colorscale=colorscale,
+                                            cmin=c_min, cmax=c_max, cmid=c_mid, showscale=True,
+                                            colorbar=dict(title=dict(text=colorbar_legend)))))
+    fig.update_layout(title=dict(text=title, x=0.5, xanchor='center'))
+
+    fig.update_layout(paper_bgcolor=background_color, font_color=font_color, font_size=font_size)
+    fig.update_annotations(font_size=font_size * 1.5)
+    if write_fig:
+        fig.write_html(f'{output}.html')
+        # write_tsv_output(data, f'{output}.tsv')
+    return fig
+
 
 # Figure creation
 # --------------------------------------------------------------------------------------------------

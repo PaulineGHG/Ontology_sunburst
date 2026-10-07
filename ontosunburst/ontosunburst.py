@@ -16,7 +16,8 @@ logging.basicConfig(level=logging.INFO)
 def ontosunburst(interest: Input,
                  reference: Input | None = None,
                  ontology: OntologyName = None,
-                 analysis: str = TOPOLOGY_A,
+                 ref_base: bool = True,
+                 analysis: str = None,
                  output: FilePath = 'sunburst',
                  scores: Dict[str, float] = None,
                  write_output: bool = True,
@@ -26,7 +27,6 @@ def ontosunburst(interest: Input,
                  test: EnrichmentTest = HYPERGEO_TEST,
                  root_cut: str = ROOT_CUT,
                  path_cut: str = PATH_UNCUT,
-                 ref_base: bool = False,
                  hide_leaves: bool = False,
                  **kwargs) -> go.Figure:
     """ Main function to be called generating the sunburst figure
@@ -96,8 +96,12 @@ def ontosunburst(interest: Input,
     id_to_label = get_id_to_label_dict(ontology, id_to_label_input)
 
     # ===================================== ONTO TO DAG ============================================
-    # GENERATE SUB-DAG FROM INPUT ------------------------------------------------------------------
     sub_dag = SubDAG(interest, reference, all_concepts, ontology_dag, root, id_to_label, test)
+    # ===================================== DAG TO TREE ============================================
+    if reference is None:
+        ref_base = False
+    induced_tree = InducedTree(sub_dag, ref_base)
+    # =================================== TREE TO SUNBURST =========================================
 
     end_time = time()
     logging.info(f'Execution time : {end_time - start_time} seconds')
@@ -107,34 +111,34 @@ def ontosunburst(interest: Input,
 # ==================================================================================================
 #                                             FUNCTIONS
 # ==================================================================================================
-def write_concepts_classes(ontology: str, all_classes: Dict[str, Set[str]], output: str,
-                           id_to_label: Dict[str, str]):
-    """ Writes, for each input class, all its ancestors in a .tsv file.
-
-    Parameters
-    ----------
-    ontology
-    all_classes
-    output
-    id_to_label
-    """
-    if ontology is None:
-        ontology = ''
-    links_dict = {METACYC: 'https://metacyc.org/compound?orgid=META&id=',
-                  CHEBI: 'https://www.ebi.ac.uk/chebi/searchId.do?chebiId=CHEBI:',
-                  CHEBI_R: 'https://www.ebi.ac.uk/chebi/searchId.do?chebiId=CHEBI:',
-                  EC: 'https://enzyme.expasy.org/EC/',
-                  KEGG: 'https://www.genome.jp/entry/',
-                  GO_MF: 'https://amigo.geneontology.org/amigo/term/',
-                  GO_CC: 'https://amigo.geneontology.org/amigo/term/',
-                  GO_BP: 'https://amigo.geneontology.org/amigo/term/',
-                  GO: 'https://amigo.geneontology.org/amigo/term/',
-                  '': ''}
-    with open(f'{output}.tsv', 'w') as f:
-        f.write('\t'.join(['ID', 'Label', 'Classes ID', 'Classes Label', 'Link']) + '\n')
-        for met_id, classes_id, in all_classes.items():
-            link = links_dict[ontology] + met_id
-            met_lab = get_name(met_id, id_to_label)
-            classes_lab = [get_name(cl, id_to_label) for cl in classes_id]
-            f.write('\t'.join([met_id, met_lab, ', '.join(classes_id), ', '.join(classes_lab),
-                               link]) + '\n')
+# def write_concepts_classes(ontology: str, all_classes: Dict[str, Set[str]], output: str,
+#                            id_to_label: Dict[str, str]):
+#     """ Writes, for each input class, all its ancestors in a .tsv file.
+#
+#     Parameters
+#     ----------
+#     ontology
+#     all_classes
+#     output
+#     id_to_label
+#     """
+#     if ontology is None:
+#         ontology = ''
+#     links_dict = {METACYC: 'https://metacyc.org/compound?orgid=META&id=',
+#                   CHEBI: 'https://www.ebi.ac.uk/chebi/searchId.do?chebiId=CHEBI:',
+#                   CHEBI_R: 'https://www.ebi.ac.uk/chebi/searchId.do?chebiId=CHEBI:',
+#                   EC: 'https://enzyme.expasy.org/EC/',
+#                   KEGG: 'https://www.genome.jp/entry/',
+#                   GO_MF: 'https://amigo.geneontology.org/amigo/term/',
+#                   GO_CC: 'https://amigo.geneontology.org/amigo/term/',
+#                   GO_BP: 'https://amigo.geneontology.org/amigo/term/',
+#                   GO: 'https://amigo.geneontology.org/amigo/term/',
+#                   '': ''}
+#     with open(f'{output}.tsv', 'w') as f:
+#         f.write('\t'.join(['ID', 'Label', 'Classes ID', 'Classes Label', 'Link']) + '\n')
+#         for met_id, classes_id, in all_classes.items():
+#             link = links_dict[ontology] + met_id
+#             met_lab = get_name(met_id, id_to_label)
+#             classes_lab = [get_name(cl, id_to_label) for cl in classes_id]
+#             f.write('\t'.join([met_id, met_lab, ', '.join(classes_id), ', '.join(classes_lab),
+#                                link]) + '\n')
