@@ -94,7 +94,7 @@ class InducedTree:
                 c_r_prop = (c.ref_proportion / total) * p_r_prop
             else:
                 c_r_prop = (c.proportion / total) * p_r_prop
-            c_tree_node = TreeNode(c, parent, c.copies, c_r_prop)
+            c_tree_node = TreeNode(c, parent, c.copies, truncate(c_r_prop, 5))
             self.nodes[(c.onto_id, c.copies)] = c_tree_node
             c.copies += 1
             c_children = c.children
@@ -102,8 +102,8 @@ class InducedTree:
                 self.dag_traversal_rec(parent=c_tree_node, children=c_children, ref_base=ref_base)
 
 
-
-
+def truncate(n: float, dec: int) -> float:
+    return float(int(n * (10 ** dec)) / (10 ** dec))
 
 
 
