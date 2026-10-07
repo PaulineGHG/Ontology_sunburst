@@ -76,7 +76,7 @@ class NodeDAG:
                 self.enrichment_log10_p_val = numpy.log10(
                     self.enrichment_p_val)  # Negative log10(p-value)
 
-    def _get_arguments(self):
+    def get_arguments(self):
         return {'ID': self.onto_id,
                 'Label': self.label,
                 'Experimental Weight': self.experimental_weight,

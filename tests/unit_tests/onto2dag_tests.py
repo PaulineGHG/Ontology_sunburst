@@ -4,6 +4,7 @@ import io
 import sys
 from functools import wraps
 from ontosunburst.onto2dag import *
+from ontosunburst.dag2tree import *
 
 """
 Tests manually good file creation.
@@ -106,14 +107,18 @@ class TestOntoToDag(unittest.TestCase):
     def test_sub_dag(self):
         sub_dag = SubDAG(I_DCT, R_DCT, ALL_CPT, ONTO, ROOT, LABELS, BINOMIAL_TEST)
         for node in sub_dag.nodes.values():
-            arg = node._get_arguments()
-            print(arg)
+            arg = node.get_arguments()
+            # print(arg)
             # print(node.onto_id, node.difference)
+        tree = InducedTree(sub_dag, True)
+        for node in tree.nodes.values():
+            arg = node.get_arguments()
+            print(arg)
 
     def test_sub_dag_no_ref(self):
         sub_dag = SubDAG(I_DCT, {}, ALL_CPT, ONTO, ROOT, LABELS, BINOMIAL_TEST)
         for node in sub_dag.nodes.values():
-            arg = node._get_arguments()
+            arg = node.get_arguments()
             print(arg)
             # print(node.onto_id, node.difference)
 

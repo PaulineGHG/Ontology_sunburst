@@ -55,10 +55,20 @@ class TreeNode:
         self.node_id: Tuple[str, int] = (self.dag_node.onto_id, copy)
         self.relative_proportion: float = r_prop
 
+    def get_arguments(self):
+        dag_node_arg = self.dag_node.get_arguments()
+        parent = None
+        if self.parent is not None:
+            parent = self.parent.node_id
+        tree_node_arg = {'ID': self.node_id,
+                         'Parent': parent,
+                         'Relative proportion': self.relative_proportion}
+        return tree_node_arg
+
 
 class InducedTree:
 
-    def __init__(self, sub_dag: SubDAG):
+    def __init__(self, sub_dag: SubDAG, ref_base: bool):
         self.nodes = {}
         self.sub_dag = sub_dag
 
@@ -67,23 +77,29 @@ class InducedTree:
         r_children = root_dag_node.children
         root_tree_node = TreeNode(root_dag_node, None, 0, 1.0)
         self.nodes[(root_id, 0)] = root_tree_node
-        self.dag_traversal_rec(root_tree_node, r_children)
+        self.dag_traversal_rec(root_tree_node, r_children, ref_base)
 
-    def dag_traversal_rec(self, parent: TreeNode, children: List[str]):
+    def dag_traversal_rec(self, parent: TreeNode, children: List[str], ref_base: bool):
         p_r_prop = parent.relative_proportion
         child_nodes = self.sub_dag.nodes_by_id(children)
         c_nodes_prop_sum = sum([c.proportion for c in child_nodes])
-        total = parent.dag_node.proportion
+        if ref_base:
+            total = parent.dag_node.ref_proportion
+        else:
+            total = parent.dag_node.proportion
         if c_nodes_prop_sum > total:
             total = c_nodes_prop_sum
         for c in child_nodes:
-            c_r_prop = (c.proportion / total) * p_r_prop
+            if ref_base:
+                c_r_prop = (c.ref_proportion / total) * p_r_prop
+            else:
+                c_r_prop = (c.proportion / total) * p_r_prop
             c_tree_node = TreeNode(c, parent, c.copies, c_r_prop)
             self.nodes[(c.onto_id, c.copies)] = c_tree_node
             c.copies += 1
             c_children = c.children
             if c_children != []:
-                self.dag_traversal_rec(parent=c_tree_node, children=children)
+                self.dag_traversal_rec(parent=c_tree_node, children=c_children, ref_base=ref_base)
 
 
 
