@@ -9,6 +9,12 @@ from ontosunburst.dag2tree import *
 # CONSTANTS
 # ==================================================================================================
 
+# COLORIZATION
+C_WEIGHT = 'w'
+PERCENT = 'p'
+ENRICH = 'e'
+DIFF = 'd'
+
 # Kwargs
 C_MIN = 'c_min'
 C_MAX = 'c_max'
@@ -37,7 +43,7 @@ def generate_sunburst_fig(tree: InducedTree, output: str, colorization: str, sec
                           write_fig: bool = True, **kwargs) -> go.Figure:
     c_min, c_max, c_mid, max_depth, colorscale, title, colorbar_legend, background_color, \
         font_color, font_size, table_title, table_legend, table_color = \
-        get_fig_kwargs(output, analysis, **kwargs)
+        get_fig_kwargs(output, colorization, **kwargs)
 
     fig = go.Figure(go.Sunburst(labels=data.labels, parents=data.parents,
                                 values=data.relative_prop, ids=data.ids,
@@ -59,58 +65,64 @@ def generate_sunburst_fig(tree: InducedTree, output: str, colorization: str, sec
 
 # Figure creation
 # --------------------------------------------------------------------------------------------------
-# def get_fig_kwargs(output: str, analysis: str, **kwargs):
-#     """ Generate a Sunburst figure and save it to output path.
-#
-#         Parameters
-#         ----------
-#         output: str (optional, default=None)
-#             Path to output to save the figure without extension
-#         analysis: str (optional, default=topology)
-#             Analysis mode : topology or enrichment
-#         """
-#     check_kwargs(**kwargs)
-#     def_colorscale = {TOPOLOGY_A: 'Viridis',
-#                       ENRICHMENT_A: 'RdBu'}
-#     def_titles = {TOPOLOGY_A: f'{os.path.basename(output)} : Proportion of classes',
-#                   ENRICHMENT_A: f'{os.path.basename(output)} : Classes enrichment representation'}
-#     def_colorbar = {TOPOLOGY_A: 'Count',
-#                     ENRICHMENT_A: 'Log10(p-value)'}
-#     def_c_min = {TOPOLOGY_A: 1, ENRICHMENT_A: -10}
-#     def_c_max = {TOPOLOGY_A: None, ENRICHMENT_A: 10}
-#     def_c_mid = {TOPOLOGY_A: None, ENRICHMENT_A: 0}
-#
-#     c_min = kwargs.get(C_MIN, def_c_min[analysis])
-#     c_max = kwargs.get(C_MAX, def_c_max[analysis])
-#     c_mid = kwargs.get(C_MID, def_c_mid[analysis])
-#     max_depth = kwargs.get(MAX_DEPTH, 7)
-#     colorscale = px.colors.get_colorscale(kwargs.get(COLORSCALE, def_colorscale[analysis]))
-#     title = kwargs.get(TITLE, def_titles[analysis])
-#     colorbar_legend = kwargs.get(COLORBAR_LEGEND, def_colorbar[analysis])
-#     background_color = kwargs.get(BG_COLOR, 'rgba(255, 255, 255, 0)')
-#     font_color = kwargs.get(FONT_COLOR, '#111111')
-#     font_size = kwargs.get(FONT_SIZE, 20)
-#     table_title = kwargs.get(TABLE_TITLE, 'Significant p-values')
-#     table_legend = kwargs.get(TABLE_LEGEND, 'IDs')
-#     table_color = kwargs.get(TABLE_COLOR, '#666666')
-#
-#     return c_min, c_max, c_mid, max_depth, colorscale, title, colorbar_legend, background_color, \
-#         font_color, font_size, table_title, table_legend, table_color
-#
-#
-# def check_kwargs(**kwargs):
-#     close_matches = {x: difflib.get_close_matches(x, KWARGS, n=1, cutoff=0.5)[0] for x in kwargs
-#                      if difflib.get_close_matches(x, KWARGS, n=1, cutoff=0.5) and x not in KWARGS}
-#     for k in kwargs:
-#         if k not in KWARGS:
-#             if k in close_matches:
-#                 print(f'Unknown kwarg "{k}", did you mean "{close_matches[k]}" ?')
-#             else:
-#                 print(f'Unknown kwarg "{k}"')
-#         elif type(k) != KWARGS_TYPE[k]:
-#             print(f'"{k}" must be of type "{KWARGS_TYPE[k]}" not "{type(k)}"')
-#
-#
+def get_fig_kwargs(output: str, colorization: str, **kwargs):
+    """ Generate a Sunburst figure and save it to output path.
+
+        Parameters
+        ----------
+        output: str (optional, default=None)
+            Path to output to save the figure without extension
+        analysis: str (optional, default=topology)
+            Analysis mode : topology or enrichment
+        """
+    check_kwargs(**kwargs)
+    def_colorscale = {C_WEIGHT: 'Viridis',
+                      PERCENT: 'Viridis',
+                      ENRICH: 'RdBu',
+                      DIFF: 'RdBu'}
+    def_titles = {C_WEIGHT: f'{os.path.basename(output)} : Cumulative weight',
+                  PERCENT: f'{os.path.basename(output)} : Proportion',
+                  ENRICH: f'{os.path.basename(output)} : Enrichment representation',
+                  DIFF: f'{os.path.basename(output)} : Proportion difference'}
+    def_colorbar = {C_WEIGHT: 'Weight',
+                    PERCENT: '%age',
+                    ENRICH: 'Log10(p-value)',
+                    DIFF: '%age diff'}
+    def_c_min = {C_WEIGHT: 1, PERCENT: 0, ENRICH: -10, DIFF: -1}
+    def_c_max = {C_WEIGHT: None, PERCENT: 1,  ENRICH: 10, DIFF: 1}
+    def_c_mid = {C_WEIGHT: None, PERCENT: 0.5, ENRICH: 0, DIFF: 0}
+
+    c_min = kwargs.get(C_MIN, def_c_min[colorization])
+    c_max = kwargs.get(C_MAX, def_c_max[colorization])
+    c_mid = kwargs.get(C_MID, def_c_mid[colorization])
+    max_depth = kwargs.get(MAX_DEPTH, 7)
+    colorscale = px.colors.get_colorscale(kwargs.get(COLORSCALE, def_colorscale[colorization]))
+    title = kwargs.get(TITLE, def_titles[colorization])
+    colorbar_legend = kwargs.get(COLORBAR_LEGEND, def_colorbar[colorization])
+    background_color = kwargs.get(BG_COLOR, 'rgba(255, 255, 255, 0)')
+    font_color = kwargs.get(FONT_COLOR, '#111111')
+    font_size = kwargs.get(FONT_SIZE, 20)
+    table_title = kwargs.get(TABLE_TITLE, 'Significant p-values')
+    table_legend = kwargs.get(TABLE_LEGEND, 'IDs')
+    table_color = kwargs.get(TABLE_COLOR, '#666666')
+
+    return c_min, c_max, c_mid, max_depth, colorscale, title, colorbar_legend, background_color, \
+        font_color, font_size, table_title, table_legend, table_color
+
+
+def check_kwargs(**kwargs):
+    close_matches = {x: difflib.get_close_matches(x, KWARGS, n=1, cutoff=0.5)[0] for x in kwargs
+                     if difflib.get_close_matches(x, KWARGS, n=1, cutoff=0.5) and x not in KWARGS}
+    for k in kwargs:
+        if k not in KWARGS:
+            if k in close_matches:
+                print(f'Unknown kwarg "{k}", did you mean "{close_matches[k]}" ?')
+            else:
+                print(f'Unknown kwarg "{k}"')
+        elif type(k) != KWARGS_TYPE[k]:
+            print(f'"{k}" must be of type "{KWARGS_TYPE[k]}" not "{type(k)}"')
+
+
 # def generate_sunburst_fig(data: TreeData, output: str, analysis: str = TOPOLOGY_A,
 #                           test=BINOMIAL_TEST, significant: Dict[str, float] = None,
 #                           ref_set: bool = True, write_fig: bool = True, **kwargs) -> go.Figure:
