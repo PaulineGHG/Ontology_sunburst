@@ -7,6 +7,12 @@ from ontosunburst.input_preprocessing import OntologyDAG, IdToLabel, InputsAb, W
 EnrichmentTest: TypeAlias = Literal['binomial', 'hypergeo']
 BINOMIAL_TEST, HYPERGEO_TEST = get_args(EnrichmentTest)
 
+O_ID, LAB, EW, CW, PROP, R_EW, R_CW, R_PROP, DIFF, E_PV, E_L10PV, PARENTS, ANCESTORS, CHILDREN = \
+    ('Onto ID', 'Label', 'Experimental Weight', 'Cumulative Weight', 'Proportion',
+     'Reference Experimental Weight', 'Reference Cumulative Weight', 'Reference Proportion',
+     'Difference', 'Enrichment P-value', 'Enrichment Log10 P-value', 'Parents', 'Ancestors',
+     'Children')
+
 
 class NodeDAG:
     max_w = 0
@@ -77,20 +83,20 @@ class NodeDAG:
                     self.enrichment_p_val)  # Negative log10(p-value)
 
     def get_arguments(self):
-        return {'ID': self.onto_id,
-                'Label': self.label,
-                'Experimental Weight': self.experimental_weight,
-                'Cumulative Weight': self.cumulative_weight,
-                'Proportion': self.proportion,
-                'Reference Experimental Weight': self.ref_experimental_weight,
-                'Reference Cumulative Weight': self.ref_cumulative_weight,
-                'Reference Proportion': self.ref_proportion,
-                'Difference': self.difference,
-                'Enrichment P-value': self.enrichment_p_val,
-                'Enrichment Log10 P-value': self.enrichment_log10_p_val,
-                'Parents': self.parents,
-                'Ancestors': self.ancestors,
-                'Children': self.children}
+        return {O_ID: self.onto_id,
+                LAB: self.label,
+                EW: self.experimental_weight,
+                CW: self.cumulative_weight,
+                PROP: self.proportion,
+                R_EW: self.ref_experimental_weight,
+                R_CW: self.ref_cumulative_weight,
+                R_PROP: self.ref_proportion,
+                DIFF: self.difference,
+                E_PV: self.enrichment_p_val,
+                E_L10PV: self.enrichment_log10_p_val,
+                PARENTS: self.parents,
+                ANCESTORS: self.ancestors,
+                CHILDREN: self.children}
 
 
 class SubDAG:

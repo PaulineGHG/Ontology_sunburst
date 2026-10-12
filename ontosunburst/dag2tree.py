@@ -15,6 +15,8 @@ PATH_DEEPER = 'deeper'
 PATH_HIGHER = 'higher'
 PATH_BOUND = 'bound'
 
+ID, PARENT, R_PROP = ('ID', 'Parent', 'Relative proportion')
+
 
 # ==================================================================================================
 # CLASS
@@ -32,10 +34,10 @@ class TreeNode:
         parent = None
         if self.parent is not None:
             parent = self.parent.node_id
-        tree_node_arg = {'ID': self.node_id,
-                         'Parent': parent,
-                         'Relative proportion': self.relative_proportion}
-        return tree_node_arg
+        tree_node_arg = {ID: self.node_id,
+                         PARENT: parent,
+                         R_PROP: self.relative_proportion}
+        return {**dag_node_arg, **tree_node_arg}
 
 
 class InducedTree:

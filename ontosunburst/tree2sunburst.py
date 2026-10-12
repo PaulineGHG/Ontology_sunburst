@@ -1,19 +1,21 @@
 import os.path
 import difflib
+import inspect
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from ontosunburst.dag2tree import *
+from ontosunburst.onto2dag import *
 
 # ==================================================================================================
 # CONSTANTS
 # ==================================================================================================
 
 # COLORIZATION
-C_WEIGHT = 'w'
-PERCENT = 'p'
-ENRICH = 'e'
-DIFF = 'd'
+Colorization: TypeAlias = Literal['w', 'p', 'e', 'd']
+COL_W, COL_P, COL_E, COL_D = get_args(Colorization)
+COLOR_DATA = {COL_W: CW, COL_P: PROP, COL_E: E_L10PV, COL_D: DIFF}
+COLOR_DATA_REF = {COL_W: R_CW, COL_P: R_PROP, COL_E: E_L10PV, COL_D: DIFF}
 
 # Kwargs
 C_MIN = 'c_min'
@@ -44,13 +46,13 @@ def generate_sunburst_fig(tree: InducedTree, output: str, colorization: str, sec
     c_min, c_max, c_mid, max_depth, colorscale, title, colorbar_legend, background_color, \
         font_color, font_size, table_title, table_legend, table_color = \
         get_fig_kwargs(output, colorization, **kwargs)
-
-    fig = go.Figure(go.Sunburst(labels=data.labels, parents=data.parents,
-                                values=data.relative_prop, ids=data.ids,
+    data = get_tree_data(tree)
+    fig = go.Figure(go.Sunburst(labels=data[LAB], parents=data[PARENT],
+                                values=data[R_PROP], ids=data[ID],
                                 hoverinfo='label+text', maxdepth=max_depth,
                                 branchvalues='total',
-                                hovertext=get_hover_fig_text(data, TOPOLOGY_A, ref_set),
-                                marker=dict(colors=data.count, colorscale=colorscale,
+                                # hovertext=get_hover_fig_text(data, TOPOLOGY_A, ref_set),
+                                marker=dict(colors=data[CW], colorscale=colorscale,
                                             cmin=c_min, cmax=c_max, cmid=c_mid, showscale=True,
                                             colorbar=dict(title=dict(text=colorbar_legend)))))
     fig.update_layout(title=dict(text=title, x=0.5, xanchor='center'))
@@ -63,6 +65,17 @@ def generate_sunburst_fig(tree: InducedTree, output: str, colorization: str, sec
     return fig
 
 
+def get_tree_data(tree: InducedTree):
+    root_node = tree.nodes[tree.sub_dag.root]
+    data = {x: [] for x in root_node.get_arguments().keys()}
+
+    for node in tree.nodes.values():
+        node_args = node.get_arguments()
+        for arg, val in node_args.items():
+            data[arg].append(val)
+    return data
+
+
 # Figure creation
 # --------------------------------------------------------------------------------------------------
 def get_fig_kwargs(output: str, colorization: str, **kwargs):
@@ -72,25 +85,24 @@ def get_fig_kwargs(output: str, colorization: str, **kwargs):
         ----------
         output: str (optional, default=None)
             Path to output to save the figure without extension
-        analysis: str (optional, default=topology)
-            Analysis mode : topology or enrichment
+
         """
     check_kwargs(**kwargs)
-    def_colorscale = {C_WEIGHT: 'Viridis',
-                      PERCENT: 'Viridis',
-                      ENRICH: 'RdBu',
-                      DIFF: 'RdBu'}
-    def_titles = {C_WEIGHT: f'{os.path.basename(output)} : Cumulative weight',
-                  PERCENT: f'{os.path.basename(output)} : Proportion',
-                  ENRICH: f'{os.path.basename(output)} : Enrichment representation',
-                  DIFF: f'{os.path.basename(output)} : Proportion difference'}
-    def_colorbar = {C_WEIGHT: 'Weight',
-                    PERCENT: '%age',
-                    ENRICH: 'Log10(p-value)',
-                    DIFF: '%age diff'}
-    def_c_min = {C_WEIGHT: 1, PERCENT: 0, ENRICH: -10, DIFF: -1}
-    def_c_max = {C_WEIGHT: None, PERCENT: 1,  ENRICH: 10, DIFF: 1}
-    def_c_mid = {C_WEIGHT: None, PERCENT: 0.5, ENRICH: 0, DIFF: 0}
+    def_colorscale = {COL_W: 'Viridis',
+                      COL_P: 'Viridis',
+                      COL_E: 'RdBu',
+                      COL_D: 'RdBu'}
+    def_titles = {COL_W: f'{os.path.basename(output)} : Cumulative weight',
+                  COL_P: f'{os.path.basename(output)} : Proportion',
+                  COL_E: f'{os.path.basename(output)} : Enrichment representation',
+                  COL_D: f'{os.path.basename(output)} : Proportion difference'}
+    def_colorbar = {COL_W: 'Weight',
+                    COL_P: '%age',
+                    COL_E: 'Log10(p-value)',
+                    COL_D: '%age diff'}
+    def_c_min = {COL_W: 1, COL_P: 0, COL_E: -10, COL_D: -1}
+    def_c_max = {COL_W: None, COL_P: 1,  COL_E: 10, COL_D: 1}
+    def_c_mid = {COL_W: None, COL_P: 0.5, COL_E: 0, COL_D: 0}
 
     c_min = kwargs.get(C_MIN, def_c_min[colorization])
     c_max = kwargs.get(C_MAX, def_c_max[colorization])
