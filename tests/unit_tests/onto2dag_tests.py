@@ -5,6 +5,7 @@ import sys
 from functools import wraps
 from ontosunburst.onto2dag import *
 from ontosunburst.dag2tree import *
+from ontosunburst.ontosunburst import *
 
 """
 Tests manually good file creation.
@@ -122,3 +123,6 @@ class TestOntoToDag(unittest.TestCase):
             print(arg)
             # print(node.onto_id, node.difference)
 
+    def test_all(self):
+        ontosunburst(interest=R_DCT, reference=None, ontology_dag_input=ONTO,
+                     id_to_label_input=LABELS)

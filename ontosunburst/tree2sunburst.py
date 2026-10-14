@@ -42,16 +42,16 @@ KWARGS_TYPE = {C_MIN: float, C_MAX: float, C_MID: float, MAX_DEPTH: int, COLORSC
 # FUNCTIONS
 # ==================================================================================================
 def generate_sunburst_fig(tree: InducedTree, output: str, colorization: str, sector_sized: bool,
-                          write_fig: bool = True, **kwargs) -> go.Figure:
+                          ref_set: bool, write_fig: bool = True, **kwargs) -> go.Figure:
     c_min, c_max, c_mid, max_depth, colorscale, title, colorbar_legend, background_color, \
         font_color, font_size, table_title, table_legend, table_color = \
         get_fig_kwargs(output, colorization, **kwargs)
     data = get_tree_data(tree)
     fig = go.Figure(go.Sunburst(labels=data[LAB], parents=data[PARENT],
-                                values=data[R_PROP], ids=data[ID],
+                                values=data[RELAT_P], ids=data[ID],
                                 hoverinfo='label+text', maxdepth=max_depth,
                                 branchvalues='total',
-                                # hovertext=get_hover_fig_text(data, TOPOLOGY_A, ref_set),
+                                hovertext=get_hover_fig_text(data, ref_set),
                                 marker=dict(colors=data[CW], colorscale=colorscale,
                                             cmin=c_min, cmax=c_max, cmid=c_mid, showscale=True,
                                             colorbar=dict(title=dict(text=colorbar_legend)))))
@@ -66,13 +66,14 @@ def generate_sunburst_fig(tree: InducedTree, output: str, colorization: str, sec
 
 
 def get_tree_data(tree: InducedTree):
-    root_node = tree.nodes[tree.sub_dag.root]
+    root_node = tree.nodes[(tree.sub_dag.root, 0)]
     data = {x: [] for x in root_node.get_arguments().keys()}
 
     for node in tree.nodes.values():
         node_args = node.get_arguments()
         for arg, val in node_args.items():
             data[arg].append(val)
+    print(data)
     return data
 
 
@@ -215,50 +216,35 @@ def check_kwargs(**kwargs):
 #         fig.write_html(f'{output}.html')
 #         write_tsv_output(data, f'{output}.tsv')
 #     return fig
-#
-#
-# def get_hover_fig_text(data: TreeData, analysis: str, ref_set: bool) \
-#         -> List[str]:
-#     """
-#
-#     Parameters
-#     ----------
-#     data
-#     analysis
-#     ref_set
-#
-#     Returns
-#     -------
-#
-#     """
-#     if analysis == ENRICHMENT_A:
-#         return [f'P value: {10 ** (-data.p_val[i])}<br>'
-#                 f'{WEIGHT}: <b>{data.count[i]}</b><br>'
-#                 f'{REF_WEIGHT}: {data.ref_count[i]}<br>'
-#                 f'{PROP}: <b>{round(data.prop[i] * 100, 2)}%</b><br>'
-#                 f'{REF_PROP}: {round(data.ref_prop[i] * 100, 2)}%<br>'
-#                 f'{IDS}: {data.onto_ids[i]}'
-#                 if data.p_val[i] > 0 else
-#                 f'P value: {10 ** data.p_val[i]}<br>'
-#                 f'{WEIGHT}: <b>{data.count[i]}</b><br>'
-#                 f'{REF_WEIGHT}: {data.ref_count[i]}<br>'
-#                 f'{PROP}: <b>{round(data.prop[i] * 100, 2)}%</b><br>'
-#                 f'{REF_PROP}: {round(data.ref_prop[i] * 100, 2)}%<br>'
-#                 f'{IDS}: {data.onto_ids[i]}'
-#                 for i in range(data.len)]
-#     elif analysis == TOPOLOGY_A:
-#         if ref_set:
-#             return [f'{WEIGHT}: <b>{data.count[i]}</b><br>'
-#                     f'{REF_WEIGHT}: {data.ref_count[i]}<br>'
-#                     f'{PROP}: <b>{round(data.prop[i] * 100, 2)}%</b><br>'
-#                     f'{REF_PROP}: {round(data.ref_prop[i] * 100, 2)}%<br>'
-#                     f'{IDS}: {data.onto_ids[i]}'
-#                     for i in range(data.len)]
-#         else:
-#             return [f'{WEIGHT}: <b>{data.count[i]}</b><br>'
-#                     f'{PROP}: <b>{round(data.prop[i] * 100, 2)}%</b><br>'
-#                     f'{IDS}: {data.onto_ids[i]}'
-#                     for i in range(data.len)]
+
+
+def get_hover_fig_text(data: Dict, ref_set: bool) \
+        -> List[str]:
+    """
+
+    Parameters
+    ----------
+    data
+    ref_set
+
+    Returns
+    -------
+
+    """
+    data_len = len(data[CW])
+    if ref_set:
+        return [f'{CW}: <b>{data[CW][i]}</b><br>'
+                f'{R_CW}: {data[R_CW][i]}<br>'
+                f'{PROP}: <b>{round(data[PROP][i] * 100, 2)}%</b><br>'
+                f'{R_PROP}: {round(data[R_PROP][i] * 100, 2)}%<br>'
+                f'{O_ID}: {data[O_ID][i]}'
+                for i in range(data_len)]
+    else:
+        return [f'{CW}: <b>{data[CW][i]}</b><br>'
+                f'{PROP}: <b>{round(data[PROP][i] * 100, 2)}%</b><br>'
+                f'{EW}: <b>{data[EW][i]}</b><br>'
+                f'{O_ID}: {data[O_ID][i]}'
+                for i in range(data_len)]
 #
 #
 # def write_tsv_output(data, output):

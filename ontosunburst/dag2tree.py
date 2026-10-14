@@ -15,7 +15,7 @@ PATH_DEEPER = 'deeper'
 PATH_HIGHER = 'higher'
 PATH_BOUND = 'bound'
 
-ID, PARENT, R_PROP = ('ID', 'Parent', 'Relative proportion')
+ID, PARENT, RELAT_P = ('ID', 'Parent', 'Relative proportion')
 
 
 # ==================================================================================================
@@ -26,17 +26,17 @@ class TreeNode:
     def __init__(self, dag_node: NodeDAG, parent, copy: int, r_prop: float):
         self.dag_node: NodeDAG = dag_node
         self.parent: TreeNode | None = parent
-        self.node_id: Tuple[str, int] = (self.dag_node.onto_id, copy)
+        self.node_id: str = f'{self.dag_node.onto_id}_{copy}'
         self.relative_proportion: float = r_prop
 
     def get_arguments(self):
         dag_node_arg = self.dag_node.get_arguments()
-        parent = None
-        if self.parent is not None:
+        parent = ''
+        if self.parent != '':
             parent = self.parent.node_id
         tree_node_arg = {ID: self.node_id,
                          PARENT: parent,
-                         R_PROP: self.relative_proportion}
+                         RELAT_P: self.relative_proportion}
         return {**dag_node_arg, **tree_node_arg}
 
 
@@ -49,7 +49,7 @@ class InducedTree:
         root_id = sub_dag.root
         root_dag_node = sub_dag.node_by_id(root_id)
         r_children = root_dag_node.children
-        root_tree_node = TreeNode(root_dag_node, None, 0, 1.0)
+        root_tree_node = TreeNode(root_dag_node, '', 0, 1.0)
         self.nodes[(root_id, 0)] = root_tree_node
         self.dag_traversal_rec(root_tree_node, r_children, ref_base)
 

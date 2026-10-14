@@ -2,9 +2,7 @@ from time import time
 import plotly.graph_objects as go
 
 from ontosunburst.input_preprocessing import *
-from ontosunburst.dag2tree import *
-from ontosunburst.onto2dag import *
-# from ontosunburst.tree2sunburst import *
+from ontosunburst.tree2sunburst import *
 
 
 logging.basicConfig(level=logging.INFO)
@@ -17,7 +15,7 @@ def ontosunburst(interest: Input,
                  reference: Input | None = None,
                  ontology: OntologyName = None,
                  ref_base: bool = True,
-                 analysis: str = None,
+                 colorization: Colorization = COL_W,
                  output: FilePath = 'sunburst',
                  scores: Dict[str, float] = None,
                  write_output: bool = True,
@@ -98,14 +96,20 @@ def ontosunburst(interest: Input,
     # ===================================== ONTO TO DAG ============================================
     sub_dag = SubDAG(interest, reference, all_concepts, ontology_dag, root, id_to_label, test)
     # ===================================== DAG TO TREE ============================================
-    if reference is None:
+    ref_set = True
+    if reference == {}:
         ref_base = False
+        ref_set = False
     induced_tree = InducedTree(sub_dag, ref_base)
+    print(induced_tree.nodes)
     # =================================== TREE TO SUNBURST =========================================
+
+    fig = generate_sunburst_fig(tree=induced_tree, output=output, colorization=colorization,
+                                sector_sized=True, ref_set=ref_set, write_fig=True)
 
     end_time = time()
     logging.info(f'Execution time : {end_time - start_time} seconds')
-    # return fig
+    return fig
 
 
 # ==================================================================================================
