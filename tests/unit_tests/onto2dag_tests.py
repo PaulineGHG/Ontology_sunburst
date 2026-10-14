@@ -125,4 +125,6 @@ class TestOntoToDag(unittest.TestCase):
 
     def test_all(self):
         ontosunburst(interest=R_DCT, reference=None, ontology_dag_input=ONTO,
-                     id_to_label_input=LABELS)
+                     id_to_label_input=LABELS, output='test_no_ref')
+        ontosunburst(interest=I_DCT, reference=R_DCT, ontology_dag_input=ONTO,
+                     id_to_label_input=LABELS, output='test_ref')

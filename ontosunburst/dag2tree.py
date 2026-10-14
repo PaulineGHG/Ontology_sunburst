@@ -56,7 +56,10 @@ class InducedTree:
     def dag_traversal_rec(self, parent: TreeNode, children: List[str], ref_base: bool):
         p_r_prop = parent.relative_proportion
         child_nodes = self.sub_dag.nodes_by_id(children)
-        c_nodes_prop_sum = sum([c.proportion for c in child_nodes])
+        if ref_base:
+            c_nodes_prop_sum = sum([c.ref_proportion for c in child_nodes])
+        else:
+            c_nodes_prop_sum = sum([c.proportion for c in child_nodes])
         if ref_base:
             total = parent.dag_node.ref_proportion
         else:
