@@ -101,7 +101,6 @@ def ontosunburst(interest: Input,
         ref_base = False
         ref_set = False
     induced_tree = InducedTree(sub_dag, ref_base)
-    print(induced_tree.nodes)
     # =================================== TREE TO SUNBURST =========================================
 
     fig = generate_sunburst_fig(tree=induced_tree, output=output, colorization=colorization,

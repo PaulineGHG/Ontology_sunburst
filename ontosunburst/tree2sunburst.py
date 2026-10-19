@@ -47,13 +47,19 @@ def generate_sunburst_fig(tree: InducedTree, output: str, colorization: str, sec
     c_min, c_max, c_mid, max_depth, colorscale, title, colorbar_legend, background_color, \
         font_color, font_size, table_title, table_legend, table_color = \
         get_fig_kwargs(output, colorization, **kwargs)
+
     data = get_tree_data(tree)
+    if ref_base:
+        color = COLOR_DATA_REF[colorization]
+    else:
+        color = COLOR_DATA[colorization]
+
     fig = go.Figure(go.Sunburst(labels=data[LAB], parents=data[PARENT],
                                 values=data[RELAT_P], ids=data[ID],
                                 hoverinfo='label+text', maxdepth=max_depth,
                                 branchvalues='total',
                                 hovertext=get_hover_fig_text(data, ref_set),
-                                marker=dict(colors=data[CW], colorscale=colorscale,
+                                marker=dict(colors=data[color], colorscale=colorscale,
                                             cmin=c_min, cmax=c_max, cmid=c_mid, showscale=True,
                                             colorbar=dict(title=dict(text=colorbar_legend)))))
 
@@ -75,7 +81,6 @@ def get_tree_data(tree: InducedTree):
         node_args = node.get_arguments()
         for arg, val in node_args.items():
             data[arg].append(val)
-    print(data)
     return data
 
 
