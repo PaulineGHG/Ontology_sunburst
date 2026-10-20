@@ -46,15 +46,17 @@ class NodeDAG:
     def calculate_enrichment(self, test: EnrichmentTest):
         # Set enrichment P-value calculation
         if not numpy.isnan(self.cumulative_weight) and not numpy.isnan(self.ref_cumulative_weight):
-            if type(self.cumulative_weight) == float or type(self.ref_cumulative_weight) == float:
-                logging.warning(f'Cannot perform enrichment on float values (only int). '
-                                f'P-value set to nan for "{self.onto_id}".')
-                self.enrichment_p_val = numpy.nan
             # Binomial Test
-            elif test == BINOMIAL_TEST:
-                self.enrichment_p_val = stats.binomtest(k=self.cumulative_weight, n=self.max_w,
-                                                        p=self.ref_cumulative_weight / self.r_max_w,
-                                                        alternative='two-sided').pvalue
+            if test == BINOMIAL_TEST:
+                if type(self.cumulative_weight) == float or type(
+                        self.ref_cumulative_weight) == float:
+                    logging.warning(f'Cannot perform enrichment on float values (only int). '
+                                    f'P-value set to nan for "{self.onto_id}".')
+                    self.enrichment_p_val = numpy.nan
+                else:
+                    self.enrichment_p_val = stats.binomtest(k=self.cumulative_weight, n=self.max_w,
+                                                            p=self.ref_cumulative_weight / self.r_max_w,
+                                                            alternative='two-sided').pvalue
                 # Hypergeometric Test
             elif test == HYPERGEO_TEST:
                 p_val_upper = stats.hypergeom.sf(k=self.cumulative_weight - 1, M=self.r_max_w,

@@ -10,6 +10,8 @@ with open(FILE, 'r') as f:
     green_moy_d = {}
     brown_med_d = {}
     brown_moy_d = {}
+    all_med_d = {}
+    all_moy_d = {}
     f.__next__()
     f.__next__()
     f.__next__()
@@ -27,6 +29,9 @@ with open(FILE, 'r') as f:
         green_moy = float(l[18].replace('#DIV/0 !', '0').replace(',', '.'))
         brown_moy = float(l[19].replace('#DIV/0 !', '0').replace(',', '.'))
 
+        all_med = float(l[20].replace('#VALUE!', '0').replace(',', '.'))
+        all_moy = float(l[21].replace('#DIV/0!', '0').replace(',', '.'))
+
         onto[biochem] = [sub_pwy]
         onto[sub_pwy] = [sup_pwy]
         onto[sup_pwy] = [root]
@@ -43,12 +48,28 @@ with open(FILE, 'r') as f:
             brown_med_d[biochem] = brown_med
         if brown_moy != 0:
             brown_moy_d[biochem] = brown_moy
+        if all_med != 0:
+            all_med_d[biochem] = all_med
+        if all_moy != 0:
+            all_moy_d[biochem] = all_moy
 
-
-ontosunburst(interest=red_med_d, ontology_dag_input=onto, output='red_med')
+# ontosunburst(interest=red_med_d, ontology_dag_input=onto, output='red_med')
 # ontosunburst(interest=red_moy_d, ontology_dag_input=onto, output='red_moy')
 # ontosunburst(interest=green_med_d, ontology_dag_input=onto, output='green_med')
 # ontosunburst(interest=green_moy_d, ontology_dag_input=onto, output='green_moy')
 # ontosunburst(interest=brown_med_d, ontology_dag_input=onto, output='brown_med')
 # ontosunburst(interest=brown_moy_d, ontology_dag_input=onto, output='brown_moy')
 
+# ontosunburst(interest=red_med_d, reference=all_med_d, ontology_dag_input=onto, output='red_med_e', colorization='e')
+# ontosunburst(interest=red_moy_d, reference=all_moy_d, ontology_dag_input=onto, output='red_moy_e', colorization='e')
+# ontosunburst(interest=green_med_d, reference=all_med_d, ontology_dag_input=onto, output='green_med_e', colorization='e')
+# ontosunburst(interest=green_moy_d, reference=all_moy_d, ontology_dag_input=onto, output='green_moy_e', colorization='e')
+# ontosunburst(interest=brown_med_d, reference=all_med_d, ontology_dag_input=onto, output='brown_med_e', colorization='e')
+# ontosunburst(interest=brown_moy_d, reference=all_moy_d, ontology_dag_input=onto, output='brown_moy_e', colorization='e')
+
+ontosunburst(interest=red_med_d, reference=all_med_d, ontology_dag_input=onto, output='red_med_d', colorization='d')
+ontosunburst(interest=red_moy_d, reference=all_moy_d, ontology_dag_input=onto, output='red_moy_d', colorization='d')
+ontosunburst(interest=green_med_d, reference=all_med_d, ontology_dag_input=onto, output='green_med_d', colorization='d')
+ontosunburst(interest=green_moy_d, reference=all_moy_d, ontology_dag_input=onto, output='green_moy_d', colorization='d')
+ontosunburst(interest=brown_med_d, reference=all_med_d, ontology_dag_input=onto, output='brown_med_d', colorization='d')
+ontosunburst(interest=brown_moy_d, reference=all_moy_d, ontology_dag_input=onto, output='brown_moy_d', colorization='d')
