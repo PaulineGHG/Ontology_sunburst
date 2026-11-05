@@ -1,54 +1,98 @@
+import numpy as np
+
 from ontosunburst.ontosunburst import ontosunburst
+import pandas as pd
 FILE = 'Belghit2017.csv'
+FILE_O = 'Belghit2017-original.csv'
 
-root = 'r'
-with open(FILE, 'r') as f:
+def analysis_1():
+    root = 'r'
+    with open(FILE, 'r') as f:
+        onto = {}
+        red_med_d = {}
+        red_moy_d = {}
+        green_med_d = {}
+        green_moy_d = {}
+        brown_med_d = {}
+        brown_moy_d = {}
+        f.__next__()
+        f.__next__()
+        f.__next__()
+        for l in f:
+            l = l.split('\t')
+            biochem = l[13]
+            sub_pwy = l[12]
+            sup_pwy = l[11]
+
+            red_med = float(l[14].replace('#VALEUR !', '0').replace(',', '.'))
+            green_med = float(l[15].replace('#VALEUR !', '0').replace(',', '.'))
+            brown_med = float(l[16].replace('#VALEUR !', '0').replace(',', '.'))
+
+            red_moy = float(l[17].replace('#DIV/0 !', '0').replace(',', '.'))
+            green_moy = float(l[18].replace('#DIV/0 !', '0').replace(',', '.'))
+            brown_moy = float(l[19].replace('#DIV/0 !', '0').replace(',', '.'))
+
+            onto[biochem] = [sub_pwy]
+            onto[sub_pwy] = [sup_pwy]
+            onto[sup_pwy] = [root]
+
+            if red_med != 0:
+                red_med_d[biochem] = red_med
+            if red_moy != 0:
+                red_moy_d[biochem] = red_moy
+            if green_med != 0:
+                green_med_d[biochem] = green_med
+            if green_moy != 0:
+                green_moy_d[biochem] = green_moy
+            if brown_med != 0:
+                brown_med_d[biochem] = brown_med
+            if brown_moy != 0:
+                brown_moy_d[biochem] = brown_moy
+
+    ontosunburst(interest=red_med_d, ontology_dag_input=onto, output='red_med')
+    ontosunburst(interest=red_moy_d, ontology_dag_input=onto, output='red_moy')
+    ontosunburst(interest=green_med_d, ontology_dag_input=onto, output='green_med')
+    ontosunburst(interest=green_moy_d, ontology_dag_input=onto, output='green_moy')
+    ontosunburst(interest=brown_med_d, ontology_dag_input=onto, output='brown_med')
+    ontosunburst(interest=brown_moy_d, ontology_dag_input=onto, output='brown_moy')
+
+def analysis_data_corrected():
+    root = 'r'
     onto = {}
-    red_med_d = {}
-    red_moy_d = {}
-    green_med_d = {}
-    green_moy_d = {}
-    brown_med_d = {}
-    brown_moy_d = {}
-    f.__next__()
-    f.__next__()
-    f.__next__()
-    for l in f:
-        l = l.split('\t')
-        biochem = l[13]
-        sub_pwy = l[12]
-        sup_pwy = l[11]
+    i_biochem = 13
+    i_sub_pw = 12
+    i_sup_pw = 11
+    i_all = slice(14,56)
+    i_red = slice(14,28)
+    i_green = slice(28,34)
+    i_brown = slice(34,56)
+    red_col = ['red' + str(x+1) for x in range(i_red.stop - i_red.start)]
+    green_col = ['green' + str(x + 1) for x in range(i_green.stop - i_green.start)]
+    brown_col = ['brown' + str(x + 1) for x in range(i_brown.stop - i_brown.start)]
+    df = pd.DataFrame(columns=red_col+green_col+brown_col)
+    with open(FILE_O, 'r') as f:
+        f.__next__()
+        f.__next__()
+        f.__next__()
+        f.__next__()
+        f.__next__()
+        f.__next__()
+        for l in f:
+            l = l[:-1].split('\t')
 
-        red_med = float(l[14].replace('#VALEUR !', '0').replace(',', '.'))
-        green_med = float(l[15].replace('#VALEUR !', '0').replace(',', '.'))
-        brown_med = float(l[16].replace('#VALEUR !', '0').replace(',', '.'))
+            # Ontology
+            onto[l[i_biochem]] = [l[i_sub_pw]]
+            onto[l[i_sub_pw]] = [l[i_sup_pw]]
+            onto[l[i_sup_pw]] = [root]
 
-        red_moy = float(l[17].replace('#DIV/0 !', '0').replace(',', '.'))
-        green_moy = float(l[18].replace('#DIV/0 !', '0').replace(',', '.'))
-        brown_moy = float(l[19].replace('#DIV/0 !', '0').replace(',', '.'))
+            # DF
+            lst = [float("nan") if x == '' else int(x) for x in l[i_all]]
+            row = pd.DataFrame([lst], columns=df.columns, index=[l[i_biochem]])
+            df = pd.concat([row, df])
 
-        onto[biochem] = [sub_pwy]
-        onto[sub_pwy] = [sup_pwy]
-        onto[sup_pwy] = [root]
+    df_normalized = df.div(df.median(axis=1), axis=0)
+    df_normalized = df_normalized.astype(float)
+    df_log2 = np.log2(df_normalized)
+    print(df_log2)
 
-        if red_med != 0:
-            red_med_d[biochem] = red_med
-        if red_moy != 0:
-            red_moy_d[biochem] = red_moy
-        if green_med != 0:
-            green_med_d[biochem] = green_med
-        if green_moy != 0:
-            green_moy_d[biochem] = green_moy
-        if brown_med != 0:
-            brown_med_d[biochem] = brown_med
-        if brown_moy != 0:
-            brown_moy_d[biochem] = brown_moy
-
-
-ontosunburst(interest=red_med_d, ontology_dag_input=onto, output='red_med')
-# ontosunburst(interest=red_moy_d, ontology_dag_input=onto, output='red_moy')
-# ontosunburst(interest=green_med_d, ontology_dag_input=onto, output='green_med')
-# ontosunburst(interest=green_moy_d, ontology_dag_input=onto, output='green_moy')
-# ontosunburst(interest=brown_med_d, ontology_dag_input=onto, output='brown_med')
-# ontosunburst(interest=brown_moy_d, ontology_dag_input=onto, output='brown_moy')
-
+analysis_data_corrected()
