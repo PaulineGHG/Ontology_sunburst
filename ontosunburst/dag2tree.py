@@ -71,7 +71,7 @@ class InducedTree:
                 c_r_prop = (c.ref_proportion / total) * p_r_prop
             else:
                 c_r_prop = (c.proportion / total) * p_r_prop
-            c_tree_node = TreeNode(c, parent, c.copies, truncate(c_r_prop, 5))
+            c_tree_node = TreeNode(c, parent, c.copies, truncate(c_r_prop, 10))
             self.nodes[(c.onto_id, c.copies)] = c_tree_node
             c.copies += 1
             c_children = c.children
