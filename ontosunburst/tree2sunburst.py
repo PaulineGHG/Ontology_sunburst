@@ -46,7 +46,7 @@ def generate_sunburst_fig(tree: InducedTree, output: str, colorization: str, sec
         -> go.Figure:
     c_min, c_max, c_mid, max_depth, colorscale, title, colorbar_legend, background_color, \
         font_color, font_size, table_title, table_legend, table_color = \
-        get_fig_kwargs(output, colorization, **kwargs)
+        get_fig_kwargs(output, colorization, tree, **kwargs)
 
     data = get_tree_data(tree)
     if ref_base:
@@ -86,7 +86,7 @@ def get_tree_data(tree: InducedTree):
 
 # Figure creation
 # --------------------------------------------------------------------------------------------------
-def get_fig_kwargs(output: str, colorization: str, **kwargs):
+def get_fig_kwargs(output: str, colorization: str, tree: InducedTree, **kwargs):
     """ Generate a Sunburst figure and save it to output path.
 
         Parameters
@@ -108,8 +108,11 @@ def get_fig_kwargs(output: str, colorization: str, **kwargs):
                     COL_P: '%age',
                     COL_E: 'Log10(p-value)',
                     COL_D: '%age diff'}
-    def_c_min = {COL_W: 1, COL_P: 0, COL_E: -10, COL_D: -1}
-    def_c_max = {COL_W: None, COL_P: 1,  COL_E: 10, COL_D: 1}
+
+    diff_val = [x.difference for x in tree.sub_dag.nodes.values()]
+    diff_bound = max(-min(diff_val), max(diff_val))
+    def_c_min = {COL_W: 1, COL_P: 0, COL_E: -10, COL_D: -diff_bound}
+    def_c_max = {COL_W: None, COL_P: 1,  COL_E: 10, COL_D: diff_bound}
     def_c_mid = {COL_W: None, COL_P: 0.5, COL_E: 0, COL_D: 0}
 
     c_min = kwargs.get(C_MIN, def_c_min[colorization])
