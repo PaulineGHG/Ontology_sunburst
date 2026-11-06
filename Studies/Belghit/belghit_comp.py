@@ -125,19 +125,38 @@ def analysis_data_corrected():
     ontosunburst(interest=brown_med_d, ontology_dag_input=onto, output='brown_med')
     ontosunburst(interest=brown_moy_d, ontology_dag_input=onto, output='brown_moy')
 
-    ontosunburst(interest={k: int(v*10000) for k, v in red_med_d.items()}, reference={k: int(v*10000) for k, v in all_med_d.items()}, colorization='e', ontology_dag_input=onto, output='red_med_e')
-    ontosunburst(interest={k: int(v*10000) for k, v in red_moy_d.items()}, reference={k: int(v*10000) for k, v in all_moy_d.items()}, colorization='e', ontology_dag_input=onto, output='red_moy_e')
-    ontosunburst(interest={k: int(v*10000) for k, v in green_med_d.items()}, reference={k: int(v*10000) for k, v in all_med_d.items()}, colorization='e', ontology_dag_input=onto, output='green_med_e')
-    ontosunburst(interest={k: int(v*10000) for k, v in green_moy_d.items()}, reference={k: int(v*10000) for k, v in all_moy_d.items()}, colorization='e', ontology_dag_input=onto, output='green_moy_e')
-    ontosunburst(interest={k: int(v*10000) for k, v in brown_med_d.items()}, reference={k: int(v*10000) for k, v in all_med_d.items()}, colorization='e', ontology_dag_input=onto, output='brown_med_e')
-    ontosunburst(interest={k: int(v*10000) for k, v in brown_moy_d.items()}, reference={k: int(v*10000) for k, v in all_moy_d.items()}, colorization='e', ontology_dag_input=onto, output='brown_moy_e')
+    mul = 10000
+    ontosunburst(interest={k: int(v*mul) for k, v in red_med_d.items()},
+                 reference={k: int(v*mul) for k, v in all_med_d.items()},
+                 colorization='e', ontology_dag_input=onto, output='red_med_e')
+    ontosunburst(interest={k: int(v*mul) for k, v in red_moy_d.items()},
+                 reference={k: int(v*mul) for k, v in all_moy_d.items()},
+                 colorization='e', ontology_dag_input=onto, output='red_moy_e')
+    ontosunburst(interest={k: int(v*mul) for k, v in green_med_d.items()},
+                 reference={k: int(v*mul) for k, v in all_med_d.items()},
+                 colorization='e', ontology_dag_input=onto, output='green_med_e')
+    ontosunburst(interest={k: int(v*mul) for k, v in green_moy_d.items()},
+                 reference={k: int(v*mul) for k, v in all_moy_d.items()},
+                 colorization='e', ontology_dag_input=onto, output='green_moy_e')
+    ontosunburst(interest={k: int(v*mul) for k, v in brown_med_d.items()},
+                 reference={k: int(v*mul) for k, v in all_med_d.items()}, 
+                 colorization='e', ontology_dag_input=onto, output='brown_med_e')
+    ontosunburst(interest={k: int(v*mul) for k, v in brown_moy_d.items()},
+                 reference={k: int(v*mul) for k, v in all_moy_d.items()},
+                 colorization='e', ontology_dag_input=onto, output='brown_moy_e')
 
-    ontosunburst(interest=red_med_d, reference=all_med_d, colorization='d', ontology_dag_input=onto, output='red_med_d')
-    ontosunburst(interest=red_moy_d, reference=all_moy_d, colorization='d', ontology_dag_input=onto, output='red_moy_d')
-    ontosunburst(interest=green_med_d, reference=all_med_d, colorization='d', ontology_dag_input=onto, output='green_med_d')
-    ontosunburst(interest=green_moy_d, reference=all_moy_d, colorization='d', ontology_dag_input=onto, output='green_moy_d')
-    ontosunburst(interest=brown_med_d, reference=all_med_d, colorization='d', ontology_dag_input=onto, output='brown_med_d')
-    ontosunburst(interest=brown_moy_d, reference=all_moy_d, colorization='d', ontology_dag_input=onto, output='brown_moy_d')
+    ontosunburst(interest=red_med_d, reference=all_med_d,
+                 colorization='d', ontology_dag_input=onto, output='red_med_d')
+    ontosunburst(interest=red_moy_d, reference=all_moy_d,
+                 colorization='d', ontology_dag_input=onto, output='red_moy_d')
+    ontosunburst(interest=green_med_d, reference=all_med_d,
+                 colorization='d', ontology_dag_input=onto, output='green_med_d')
+    ontosunburst(interest=green_moy_d, reference=all_moy_d,
+                 colorization='d', ontology_dag_input=onto, output='green_moy_d')
+    ontosunburst(interest=brown_med_d, reference=all_med_d,
+                 colorization='d', ontology_dag_input=onto, output='brown_med_d')
+    ontosunburst(interest=brown_moy_d, reference=all_moy_d,
+                 colorization='d', ontology_dag_input=onto, output='brown_moy_d')
 
     # df_log2 = np.log2(df_normalized)
 
