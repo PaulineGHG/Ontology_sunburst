@@ -250,7 +250,7 @@ def get_hover_fig_text(data: Dict, ref_set: bool) \
                 f'{EW}: {data[EW][i]}<br>'
                 f'{R_EW}: {data[R_EW][i]}<br>'
                 f'{E_PV}: {data[E_PV][i]}<br>'
-                f'{DIFF}: {data[DIFF][i]}<br>'
+                f'{DIFF}: {round(data[DIFF][i] * 100, 2)}%<br>'
                 f'{O_ID}: {data[O_ID][i]}'
                 for i in range(data_len)]
     else:

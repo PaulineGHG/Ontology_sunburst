@@ -105,7 +105,7 @@ def ontosunburst(interest: Input,
 
     fig = generate_sunburst_fig(tree=induced_tree, output=output, colorization=colorization,
                                 sector_sized=True, ref_set=ref_set, ref_base=ref_base,
-                                write_fig=True)
+                                write_fig=True, **kwargs)
 
     end_time = time()
     logging.info(f'Execution time : {end_time - start_time} seconds')
