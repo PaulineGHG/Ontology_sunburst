@@ -11,13 +11,14 @@ logging.basicConfig(level=logging.INFO)
 # ==================================================================================================
 #                                            WORKFLOW
 # ==================================================================================================
+@typechecked(collection_check_strategy=CollectionCheckStrategy.ALL_ITEMS)
 def ontosunburst(interest: Input,
                  reference: Input | None = None,
                  ontology: OntologyName = None,
                  ref_base: bool = True,
                  colorization: Colorization = COL_W,
                  output: FilePath = 'sunburst',
-                 scores: Dict[str, float] = None,
+                 scores: InputsAb = None,
                  write_output: bool = True,
                  ontology_dag_input: str | OntologyDAG = None,
                  id_to_label_input: str | IdToLabel = None,
@@ -40,7 +41,7 @@ def ontosunburst(interest: Input,
     ontology: str (optional, default=None, values in ['metacyc', 'ec', 'chebi', 'chebi_r', 'kegg',
                                                       'go_cc', 'go_bp', 'go_mf', 'go', None])
         Ontology name to use.
-    analysis: str (optional, default='topology', values in ['topology', 'enrichment'])
+    colorization: str (optional, default='w', values in ['w', 'p', 'e', 'd'])
         Analysis mode : topology or enrichment.
     output: str (optional, default='sunburst')
         Path of the output to save figure, if None, outputs will be sunburst.html and sunburst.tsv

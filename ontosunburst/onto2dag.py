@@ -1,6 +1,7 @@
 import logging
 from typing import List, Set, Dict, Any, TypeAlias, Literal, get_args
 import numpy
+import numpy as np
 import scipy.stats as stats
 from ontosunburst.input_preprocessing import OntologyDAG, IdToLabel, InputsAb, Weight
 
@@ -18,7 +19,7 @@ class NodeDAG:
     max_w = 0
     r_max_w = 0
 
-    def __init__(self, onto_id: str, label: str, exp_w: Weight, cum_w: Weight,
+    def __init__(self, onto_id: str, label: str, exp_w: Weight, cum_w: Weight, score: Weight,
                  r_exp_w: Weight, r_cum_w: Weight,
                  parents: List[str], ancestors: Set[str], children: List[str]):
         # ID and label
@@ -28,6 +29,7 @@ class NodeDAG:
         self.experimental_weight: Weight = exp_w
         self.cumulative_weight: Weight = cum_w
         self.proportion: float = cum_w / self.max_w
+        self.score = score
         # Reference weights
         self.ref_experimental_weight: Weight = r_exp_w
         self.ref_cumulative_weight: Weight = r_cum_w
@@ -104,7 +106,7 @@ class NodeDAG:
 class SubDAG:
     def __init__(self, interest: InputsAb, reference: InputsAb, all_concepts: set[str],
                  ontology_dag: OntologyDAG, root: str, id_to_labels: IdToLabel,
-                 test: EnrichmentTest):
+                 test: EnrichmentTest, scores: InputsAb):
         self.nodes: Dict[str, NodeDAG] = {}
         self.root: str = root
 
@@ -114,6 +116,7 @@ class SubDAG:
         all_classes = set(i_cum_w.keys()).union(set(r_cum_w.keys()))
         ontology_dag = reduce_dag(ontology_dag, all_classes)
         ontology_children_dag = get_children_dict(ontology_dag)
+        i_scores = calculate_scores(ontology_dag, ontology_children_dag, scores)
         NodeDAG.max_w = i_cum_w[root]
         NodeDAG.r_max_w = dict_value_or(r_cum_w, root, numpy.nan)
         for c in all_classes:
@@ -121,6 +124,7 @@ class SubDAG:
                            label=dict_value_or(id_to_labels, c, c),
                            exp_w=dict_value_or(interest, c, numpy.nan),
                            cum_w=dict_value_or(i_cum_w, c, numpy.nan),
+                           score=dict_value_or(i_scores, c, numpy.nan),
                            r_exp_w=dict_value_or(reference, c, numpy.nan),
                            r_cum_w=dict_value_or(r_cum_w, c, numpy.nan),
                            parents=dict_value_or(ontology_dag, c, []),
@@ -242,6 +246,27 @@ def get_cumulative_w(concepts_ancestors: Dict[str, Set[str]], inputs_ab: InputsA
     return dict(reversed(sorted(cumulative_weights.items(), key=lambda item: item[1])))
 
 
+def calculate_scores(concepts_ancestors: Dict[str, Set[str]], scores: InputsAb):
+    if scores is None:
+        return dict()
+
+    scores_lst = dict()
+    for cpt, s in scores.items():
+        if cpt not in scores_lst.keys():
+            scores_lst[cpt] = []
+        scores_lst[cpt].append(scores[cpt])
+        for p in concepts_ancestors[cpt]:
+            if p not in scores_lst.keys():
+                scores_lst[p] = []
+            scores_lst[p].append(scores[cpt])
+
+
+
+
+# ==================================================================================================
+# UTILS
+# ==================================================================================================
+
 def dict_value_or(dictionary: dict, key: str, alternative: Any):
     """ Returns the value of a key in a dictionary or a default value if the key doesn't exist.
 
@@ -277,15 +302,3 @@ def get_children_dict(parent_dict: OntologyDAG) -> OntologyDAG:
                 children_dict[c] = list()
             children_dict[p].append(c)
     return children_dict
-
-
-def get_classes_scores(all_classes, scores_dict, root):
-    if scores_dict is not None:
-        classes_scores = dict()
-        for met, classes in all_classes.items():
-            if met in scores_dict.keys():
-                classes_scores[met] = scores_dict[met]
-            else:
-                classes_scores[met] = numpy.nan
-        classes_scores[root] = numpy.nan
-        return classes_scores
