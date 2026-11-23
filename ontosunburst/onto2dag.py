@@ -106,17 +106,17 @@ class NodeDAG:
 class SubDAG:
     def __init__(self, interest: InputsAb, reference: InputsAb, all_concepts: set[str],
                  ontology_dag: OntologyDAG, root: str, id_to_labels: IdToLabel,
-                 test: EnrichmentTest, scores: InputsAb):
+                 test: EnrichmentTest, scores: InputsAb, ref_scores: InputsAb):
         self.nodes: Dict[str, NodeDAG] = {}
         self.root: str = root
 
         concepts_ancestors = get_ancestors(all_concepts, ontology_dag, root)
         i_cum_w = get_cumulative_w(concepts_ancestors, interest)
         r_cum_w = get_cumulative_w(concepts_ancestors, reference)
+        i_scores = calculate_scores(concepts_ancestors, scores)
         all_classes = set(i_cum_w.keys()).union(set(r_cum_w.keys()))
         ontology_dag = reduce_dag(ontology_dag, all_classes)
         ontology_children_dag = get_children_dict(ontology_dag)
-        i_scores = calculate_scores(ontology_dag, ontology_children_dag, scores)
         NodeDAG.max_w = i_cum_w[root]
         NodeDAG.r_max_w = dict_value_or(r_cum_w, root, numpy.nan)
         for c in all_classes:
@@ -252,15 +252,14 @@ def calculate_scores(concepts_ancestors: Dict[str, Set[str]], scores: InputsAb):
 
     scores_lst = dict()
     for cpt, s in scores.items():
-        if cpt not in scores_lst.keys():
-            scores_lst[cpt] = []
-        scores_lst[cpt].append(scores[cpt])
-        for p in concepts_ancestors[cpt]:
-            if p not in scores_lst.keys():
-                scores_lst[p] = []
-            scores_lst[p].append(scores[cpt])
-
-
+        scores_lst[cpt] = [scores[cpt]]
+        for ancestor in concepts_ancestors[cpt]:
+            if ancestor not in scores_lst.keys():
+                scores_lst[ancestor] = []
+            scores_lst[ancestor].append(scores[cpt])
+    for cpt, scores in scores_lst.items():
+        scores_lst[cpt] = np.mean(scores)
+    return scores_lst
 
 
 # ==================================================================================================
