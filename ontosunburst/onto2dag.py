@@ -38,7 +38,8 @@ class NodeDAG:
         self.enrichment_p_val = None
         self.enrichment_log10_p_val = None
         self.difference = self.proportion - self.ref_proportion
-        self.e_prop = self.ref_proportion / self.ref_proportion
+        self.raw_difference = self.cumulative_weight - self.ref_cumulative_weight
+        self.fold_enrichment = self.proportion / self.ref_proportion
         # Hierarchy
         self.parents: List[str] = parents
         self.ancestors: Set[str] = ancestors
