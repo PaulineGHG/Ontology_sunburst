@@ -14,19 +14,19 @@ logging.basicConfig(level=logging.INFO)
 @typechecked(collection_check_strategy=CollectionCheckStrategy.ALL_ITEMS)
 def ontosunburst(interest: Input,
                  reference: Input | None = None,
-                 ontology: OntologyName = None,
-                 ref_base: bool = True,
-                 colorization: Colorization = COL_W,
-                 output: FilePath = 'sunburst',
-                 scores: InputsAb = None,
-                 write_output: bool = True,
-                 ontology_dag_input: str | OntologyDAG = None,
-                 id_to_label_input: str | IdToLabel = None,
-                 use_labels: bool = True,
-                 test: EnrichmentTest = BINOMIAL_TEST,
-                 root_cut: str = ROOT_CUT,
-                 path_cut: str = PATH_UNCUT,
-                 hide_leaves: bool = False,
+                 ontology: OntologyName | None = None,
+                 ref_base: bool | None = True,
+                 colorization: Colorization | None = COL_W,
+                 output: FilePath | None = 'sunburst',
+                 scores: InputsAb | None = None,
+                 # write_output: bool = True,
+                 ontology_dag_input: str | OntologyDAG | None = None,
+                 id_to_label_input: str | IdToLabel | None = None,
+                 # use_labels: bool = True,
+                 test: EnrichmentTest | None = BINOMIAL_TEST,
+                 # root_cut: str = ROOT_CUT,
+                 # path_cut: str = PATH_UNCUT,
+                 # hide_leaves: bool = False,
                  **kwargs) -> go.Figure:
     """ Main function to be called generating the sunburst figure
 
@@ -95,7 +95,7 @@ def ontosunburst(interest: Input,
     id_to_label = get_id_to_label_dict(ontology, id_to_label_input)
 
     # ===================================== ONTO TO DAG ============================================
-    sub_dag = SubDAG(interest, reference, all_concepts, ontology_dag, root, id_to_label, test)
+    sub_dag = SubDAG(interest, reference, all_concepts, ontology_dag, root, id_to_label, test, scores, scores)
     # ===================================== DAG TO TREE ============================================
     ref_set = True
     if reference == {}:

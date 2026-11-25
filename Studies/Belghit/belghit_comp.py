@@ -62,14 +62,16 @@ def analysis_data_corrected():
     root = 'r'
 
     onto = {}
+    chebi_d = {}
 
-    i_biochem = 13
-    i_sub_pw = 12
-    i_sup_pw = 11
-    i_all = slice(14, 56)
-    i_red = slice(14, 28)
-    i_green = slice(28, 34)
-    i_brown = slice(34, 56)
+    i_biochem = 14
+    i_chebi = 8
+    i_sub_pw = 13
+    i_sup_pw = 12
+    i_all = slice(15, 57)
+    i_red = slice(15, 29)
+    i_green = slice(29, 35)
+    i_brown = slice(35, 57)
 
     red_col = ['red' + str(x+1) for x in range(i_red.stop - i_red.start)]
     green_col = ['green' + str(x + 1) for x in range(i_green.stop - i_green.start)]
@@ -86,6 +88,9 @@ def analysis_data_corrected():
         for l in f:
             l = l[:-1].split('\t')
 
+            if l[i_chebi] != '':
+                chebi_d[l[i_biochem]] = l[i_chebi]
+
             # Ontology
             onto[l[i_biochem]] = [l[i_sub_pw]]
             onto[l[i_sub_pw]] = [l[i_sup_pw]]
@@ -98,6 +103,7 @@ def analysis_data_corrected():
 
     df_n = df.div(df.median(axis=1), axis=0)
     df_n = df_n.astype(float)
+    # df_log2 = np.log2(df_normalized)
 
     df_n['mean_red'] = df_n[red_col].mean(axis=1)
     df_n['mean_green'] = df_n[green_col].mean(axis=1)
@@ -117,6 +123,10 @@ def analysis_data_corrected():
     brown_moy_d = df_n['mean_brown'].dropna().to_dict()
     all_med_d = df_n['med_all'].dropna().to_dict()
     all_moy_d = df_n['mean_all'].dropna().to_dict()
+
+    print(chebi_d)
+
+    # BELGHIT ONTOLOGY -----------------------------------------------------------------------------
 
     # ontosunburst(interest=red_med_d, ontology_dag_input=onto, output='red_med')
     # ontosunburst(interest=red_moy_d, ontology_dag_input=onto, output='red_moy')
@@ -145,20 +155,46 @@ def analysis_data_corrected():
     #              reference={k: int(v*mul) for k, v in all_moy_d.items()},
     #              colorization='e', ontology_dag_input=onto, output='brown_moy_e')
 
-    ontosunburst(interest=red_med_d, reference=all_med_d,
-                 colorization='d', ontology_dag_input=onto, output='red_med_d', c_min=-0.2, c_max=0.2)
+    # ontosunburst(interest=red_med_d, reference=all_med_d,
+    #              colorization='d', ontology_dag_input=onto, output='red_med_d', c_min=-0.2, c_max=0.2)
     # ontosunburst(interest=red_moy_d, reference=all_moy_d,
     #              colorization='d', ontology_dag_input=onto, output='red_moy_d')
-    ontosunburst(interest=green_med_d, reference=all_med_d,
-                 colorization='d', ontology_dag_input=onto, output='green_med_d', c_min=-0.2, c_max=0.2)
+    # ontosunburst(interest=green_med_d, reference=all_med_d,
+    #              colorization='d', ontology_dag_input=onto, output='green_med_d', c_min=-0.2, c_max=0.2)
     # ontosunburst(interest=green_moy_d, reference=all_moy_d,
     #              colorization='d', ontology_dag_input=onto, output='green_moy_d')
-    ontosunburst(interest=brown_med_d, reference=all_med_d,
-                 colorization='d', ontology_dag_input=onto, output='brown_med_d', c_min=-0.2, c_max=0.2)
+    # ontosunburst(interest=brown_med_d, reference=all_med_d,
+    #              colorization='d', ontology_dag_input=onto, output='brown_med_d', c_min=-0.2, c_max=0.2)
     # ontosunburst(interest=brown_moy_d, reference=all_moy_d,
     #              colorization='d', ontology_dag_input=onto, output='brown_moy_d')
 
-    # df_log2 = np.log2(df_normalized)
+    # CHEBI ONTOLOGY -------------------------------------------------------------------------------
+
+    # ontosunburst(interest={chebi_d[x]: y for x,y in red_med_d.items() if x in chebi_d},
+    #              reference={chebi_d[x]: y for x,y in all_med_d.items() if x in chebi_d},
+    #              colorization='d', ontology='chebi', output='chebi_red_med_d',
+    #              c_min=-0.5, c_max=0.5, max_depth=10)
+    # ontosunburst(interest={chebi_d[x]: y for x, y in green_med_d.items() if x in chebi_d},
+    #              reference={chebi_d[x]: y for x, y in all_med_d.items() if x in chebi_d},
+    #              colorization='d', ontology='chebi', output='chebi_green_med_d',
+    #              c_min=-0.5, c_max=0.5, max_depth=10)
+    # ontosunburst(interest={chebi_d[x]: y for x, y in brown_med_d.items() if x in chebi_d},
+    #              reference={chebi_d[x]: y for x, y in all_med_d.items() if x in chebi_d},
+    #              colorization='d', ontology='chebi', output='chebi_brown_med_d',
+    #              c_min=-0.5, c_max=0.5, max_depth=10)
+
+    ontosunburst(interest={chebi_d[x]: y for x,y in red_med_d.items() if x in chebi_d},
+                 reference={chebi_d[x]: y for x,y in all_med_d.items() if x in chebi_d},
+                 colorization='d', ontology='chebi_r', output='chebir_red_med_d',
+                 c_min=-0.5, c_max=0.5, max_depth=10)
+    ontosunburst(interest={chebi_d[x]: y for x, y in green_med_d.items() if x in chebi_d},
+                 reference={chebi_d[x]: y for x, y in all_med_d.items() if x in chebi_d},
+                 colorization='d', ontology='chebi_r', output='chebir_green_med_d',
+                 c_min=-0.5, c_max=0.5, max_depth=10)
+    ontosunburst(interest={chebi_d[x]: y for x, y in brown_med_d.items() if x in chebi_d},
+                 reference={chebi_d[x]: y for x, y in all_med_d.items() if x in chebi_d},
+                 colorization='d', ontology='chebi_r', output='chebir_brown_med_d',
+                 c_min=-0.5, c_max=0.5, max_depth=10)
 
 
 analysis_data_corrected()

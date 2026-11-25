@@ -38,6 +38,7 @@ class NodeDAG:
         self.enrichment_p_val = None
         self.enrichment_log10_p_val = None
         self.difference = self.proportion - self.ref_proportion
+        self.e_prop = self.ref_proportion / self.ref_proportion
         # Hierarchy
         self.parents: List[str] = parents
         self.ancestors: Set[str] = ancestors
@@ -45,7 +46,7 @@ class NodeDAG:
         # Duplication count
         self.copies = 0
 
-    def calculate_enrichment(self, test: EnrichmentTest):
+    def calculate_enrichment(self, test: EnrichmentTest, nb_test: int):
         # Set enrichment P-value calculation
         if not numpy.isnan(self.cumulative_weight) and not numpy.isnan(self.ref_cumulative_weight):
             # Binomial Test
@@ -64,13 +65,16 @@ class NodeDAG:
                 p_val_upper = stats.hypergeom.sf(k=self.cumulative_weight - 1, M=self.r_max_w,
                                                  n=self.ref_cumulative_weight,
                                                  N=self.max_w)  # k=k K=n n=N N=M
-                p_val_lower = stats.hypergeom.cdf(k=self.cumulative_weight - 1, M=self.r_max_w,
+                p_val_lower = stats.hypergeom.cdf(k=self.cumulative_weight, M=self.r_max_w,
                                                   # k=cw n=max K=r_cw N=r_max
                                                   n=self.ref_cumulative_weight,
                                                   N=self.max_w)  # k=cw N=max n=r_cw M=r_max
                 self.enrichment_p_val = 2 * min(p_val_lower, p_val_upper)  # bilateral
         else:
             self.enrichment_p_val = numpy.nan
+
+        # Correction Bonferroni
+        self.enrichment_p_val = min(self.enrichment_p_val * nb_test, 1.0)
 
         # Set Log10 P-value values
         if self.difference > 0:  # If over-represented :
@@ -119,6 +123,7 @@ class SubDAG:
         ontology_children_dag = get_children_dict(ontology_dag)
         NodeDAG.max_w = i_cum_w[root]
         NodeDAG.r_max_w = dict_value_or(r_cum_w, root, numpy.nan)
+        nb_test = len(i_cum_w.keys())
         for c in all_classes:
             node = NodeDAG(onto_id=c,
                            label=dict_value_or(id_to_labels, c, c),
@@ -130,7 +135,7 @@ class SubDAG:
                            parents=dict_value_or(ontology_dag, c, []),
                            ancestors=dict_value_or(concepts_ancestors, c, set()),
                            children=dict_value_or(ontology_children_dag, c, []))
-            node.calculate_enrichment(test)
+            node.calculate_enrichment(test, nb_test)
             self.nodes[c] = node
 
     def node_by_id(self, node_id: str) -> NodeDAG:
