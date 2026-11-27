@@ -12,10 +12,10 @@ from ontosunburst.onto2dag import *
 # ==================================================================================================
 
 # COLORIZATION
-Colorization: TypeAlias = Literal['w', 'p', 'e', 'd']
-COL_W, COL_P, COL_E, COL_D = get_args(Colorization)
-COLOR_DATA = {COL_W: CW, COL_P: PROP, COL_E: E_L10PV, COL_D: DIFF}
-COLOR_DATA_REF = {COL_W: R_CW, COL_P: R_PROP, COL_E: E_L10PV, COL_D: DIFF}
+Colorization: TypeAlias = Literal['w', 'p', 'fe', 'e', 'd']
+COL_W, COL_P, COL_FE, COL_E, COL_D = get_args(Colorization)
+COLOR_DATA = {COL_W: CW, COL_P: PROP, COL_FE: FE, COL_E: E_L10PV, COL_D: DIFF}
+COLOR_DATA_REF = {COL_W: R_CW, COL_P: R_PROP, COL_FE: FE, COL_E: E_L10PV, COL_D: DIFF}
 
 # Kwargs
 C_MIN = 'c_min'
@@ -98,22 +98,25 @@ def get_fig_kwargs(output: str, colorization: str, tree: InducedTree, **kwargs):
     check_kwargs(**kwargs)
     def_colorscale = {COL_W: 'Viridis',
                       COL_P: 'Viridis',
+                      COL_FE: 'Viridis',
                       COL_E: 'RdBu',
                       COL_D: 'RdBu'}
     def_titles = {COL_W: f'{os.path.basename(output)} : Cumulative weight',
                   COL_P: f'{os.path.basename(output)} : Proportion',
+                  COL_FE: f'{os.path.basename(output)} : Fold Enrichment',
                   COL_E: f'{os.path.basename(output)} : Enrichment representation',
                   COL_D: f'{os.path.basename(output)} : Proportion difference'}
     def_colorbar = {COL_W: 'Weight',
                     COL_P: '%age',
+                    COL_FE: 'Ratio',
                     COL_E: 'Log10(p-value)',
                     COL_D: '%age diff'}
 
     diff_val = [x.difference for x in tree.sub_dag.nodes.values()]
     diff_bound = max(-min(diff_val), max(diff_val))
-    def_c_min = {COL_W: 1, COL_P: 0, COL_E: -10, COL_D: -diff_bound}
-    def_c_max = {COL_W: None, COL_P: 1,  COL_E: 10, COL_D: diff_bound}
-    def_c_mid = {COL_W: None, COL_P: 0.5, COL_E: 0, COL_D: 0}
+    def_c_min = {COL_W: 1, COL_P: 0, COL_FE:0, COL_E: -10, COL_D: -diff_bound}
+    def_c_max = {COL_W: None, COL_P: 1, COL_FE:None, COL_E: 10, COL_D: diff_bound}
+    def_c_mid = {COL_W: None, COL_P: 0.5, COL_FE:None, COL_E: 0, COL_D: 0}
 
     c_min = kwargs.get(C_MIN, def_c_min[colorization])
     c_max = kwargs.get(C_MAX, def_c_max[colorization])
@@ -249,6 +252,7 @@ def get_hover_fig_text(data: Dict, ref_set: bool) \
                 f'{R_PROP}: {round(data[R_PROP][i] * 100, 2)}%<br>'
                 f'{EW}: {data[EW][i]}<br>'
                 f'{R_EW}: {data[R_EW][i]}<br>'
+                f'{FE}: {data[FE][i]}<br>'
                 f'{E_PV}: {data[E_PV][i]}<br>'
                 f'{DIFF}: {round(data[DIFF][i] * 100, 2)}%<br>'
                 f'{O_ID}: {data[O_ID][i]}'

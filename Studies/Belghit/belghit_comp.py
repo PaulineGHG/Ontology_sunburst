@@ -168,33 +168,46 @@ def analysis_data_corrected():
     # ontosunburst(interest=brown_moy_d, reference=all_moy_d,
     #              colorization='d', ontology_dag_input=onto, output='brown_moy_d')
 
+    ontosunburst(interest=red_med_d, reference=all_med_d,
+                 colorization='fe', ontology_dag_input=onto, output='red_med_fe')
+    ontosunburst(interest=red_moy_d, reference=all_moy_d,
+                 colorization='fe', ontology_dag_input=onto, output='red_moy_fe')
+    ontosunburst(interest=green_med_d, reference=all_med_d,
+                 colorization='fe', ontology_dag_input=onto, output='green_med_fe')
+    ontosunburst(interest=green_moy_d, reference=all_moy_d,
+                 colorization='fe', ontology_dag_input=onto, output='green_moy_fe')
+    ontosunburst(interest=brown_med_d, reference=all_med_d,
+                 colorization='fe', ontology_dag_input=onto, output='brown_med_fe')
+    ontosunburst(interest=brown_moy_d, reference=all_moy_d,
+                 colorization='fe', ontology_dag_input=onto, output='brown_moy_fe')
+
     # CHEBI ONTOLOGY -------------------------------------------------------------------------------
 
     # ontosunburst(interest={chebi_d[x]: y for x,y in red_med_d.items() if x in chebi_d},
     #              reference={chebi_d[x]: y for x,y in all_med_d.items() if x in chebi_d},
     #              colorization='d', ontology='chebi', output='chebi_red_med_d',
-    #              c_min=-0.5, c_max=0.5, max_depth=10)
+    #              c_min=-0.2, c_max=0.2, max_depth=10)
     # ontosunburst(interest={chebi_d[x]: y for x, y in green_med_d.items() if x in chebi_d},
     #              reference={chebi_d[x]: y for x, y in all_med_d.items() if x in chebi_d},
     #              colorization='d', ontology='chebi', output='chebi_green_med_d',
-    #              c_min=-0.5, c_max=0.5, max_depth=10)
+    #              c_min=-0.2, c_max=0.2, max_depth=10)
     # ontosunburst(interest={chebi_d[x]: y for x, y in brown_med_d.items() if x in chebi_d},
     #              reference={chebi_d[x]: y for x, y in all_med_d.items() if x in chebi_d},
     #              colorization='d', ontology='chebi', output='chebi_brown_med_d',
-    #              c_min=-0.5, c_max=0.5, max_depth=10)
+    #              c_min=-0.2, c_max=0.2, max_depth=10)
 
-    ontosunburst(interest={chebi_d[x]: y for x,y in red_med_d.items() if x in chebi_d},
-                 reference={chebi_d[x]: y for x,y in all_med_d.items() if x in chebi_d},
-                 colorization='d', ontology='chebi_r', output='chebir_red_med_d',
-                 c_min=-0.5, c_max=0.5, max_depth=10)
-    ontosunburst(interest={chebi_d[x]: y for x, y in green_med_d.items() if x in chebi_d},
-                 reference={chebi_d[x]: y for x, y in all_med_d.items() if x in chebi_d},
-                 colorization='d', ontology='chebi_r', output='chebir_green_med_d',
-                 c_min=-0.5, c_max=0.5, max_depth=10)
-    ontosunburst(interest={chebi_d[x]: y for x, y in brown_med_d.items() if x in chebi_d},
-                 reference={chebi_d[x]: y for x, y in all_med_d.items() if x in chebi_d},
-                 colorization='d', ontology='chebi_r', output='chebir_brown_med_d',
-                 c_min=-0.5, c_max=0.5, max_depth=10)
+    # ontosunburst(interest={chebi_d[x]: y for x,y in red_med_d.items() if x in chebi_d},
+    #              reference={chebi_d[x]: y for x,y in all_med_d.items() if x in chebi_d},
+    #              colorization='d', ontology='chebi_r', output='chebir_red_med_d',
+    #              c_min=-0.2, c_max=0.2, max_depth=10)
+    # ontosunburst(interest={chebi_d[x]: y for x, y in green_med_d.items() if x in chebi_d},
+    #              reference={chebi_d[x]: y for x, y in all_med_d.items() if x in chebi_d},
+    #              colorization='d', ontology='chebi_r', output='chebir_green_med_d',
+    #              c_min=-0.2, c_max=0.2, max_depth=10)
+    # ontosunburst(interest={chebi_d[x]: y for x, y in brown_med_d.items() if x in chebi_d},
+    #              reference={chebi_d[x]: y for x, y in all_med_d.items() if x in chebi_d},
+    #              colorization='d', ontology='chebi_r', output='chebir_brown_med_d',
+    #              c_min=-0.2, c_max=0.2, max_depth=10)
 
 
 analysis_data_corrected()

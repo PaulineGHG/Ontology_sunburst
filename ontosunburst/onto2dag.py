@@ -8,11 +8,11 @@ from ontosunburst.input_preprocessing import OntologyDAG, IdToLabel, InputsAb, W
 EnrichmentTest: TypeAlias = Literal['binomial', 'hypergeo']
 BINOMIAL_TEST, HYPERGEO_TEST = get_args(EnrichmentTest)
 
-O_ID, LAB, EW, CW, PROP, R_EW, R_CW, R_PROP, DIFF, E_PV, E_L10PV, PARENTS, ANCESTORS, CHILDREN = \
+O_ID, LAB, EW, CW, PROP, R_EW, R_CW, R_PROP, DIFF, FE, E_PV, E_L10PV, PARENTS, ANCESTORS, CHILDREN = \
     ('Onto ID', 'Label', 'Experimental Weight', 'Cumulative Weight', 'Proportion',
      'Reference Experimental Weight', 'Reference Cumulative Weight', 'Reference Proportion',
-     'Difference', 'Enrichment P-value', 'Enrichment Log10 P-value', 'Parents', 'Ancestors',
-     'Children')
+     'Difference', 'Fold Enrichment', 'Enrichment P-value', 'Enrichment Log10 P-value', 'Parents',
+     'Ancestors', 'Children')
 
 
 class NodeDAG:
@@ -101,6 +101,7 @@ class NodeDAG:
                 R_CW: self.ref_cumulative_weight,
                 R_PROP: self.ref_proportion,
                 DIFF: self.difference,
+                FE: self.fold_enrichment,
                 E_PV: self.enrichment_p_val,
                 E_L10PV: self.enrichment_log10_p_val,
                 PARENTS: self.parents,
